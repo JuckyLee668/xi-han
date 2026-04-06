@@ -1,46 +1,34 @@
 {
   "log": {
-    "level": "warn"
+    "level": "info",
+    "timestamp": true
   },
   "dns": {
-    "fakeip": {
-      "enabled": true
-    },
     "servers": [
       {
-        "tag": "proxy",
-        "address": "tls://8.8.8.8"
+        "tag": "dns-remote",
+        "address": "https://1.1.1.1/dns-query",
+        "detour": "Proxy"
       },
       {
-        "tag": "direct",
+        "tag": "dns-direct",
         "address": "223.5.5.5",
         "detour": "direct"
-      },
-      {
-        "tag": "fakeip",
-        "address": "fakeip"
       }
     ],
     "rules": [
       {
-        "rule_set": "geosite-cn",
-        "server": "direct"
+        "clash_mode": "direct",
+        "server": "dns-direct"
       },
       {
-        "query_type": [
-          "A",
-          "AAAA"
-        ],
-        "server": "fakeip"
+        "clash_mode": "global",
+        "server": "dns-remote"
       }
-    ]
+    ],
+    "strategy": "prefer_ipv4"
   },
   "inbounds": [
-    {
-      "type": "tun",
-      "tag": "tun-in",
-      "auto_route": true
-    },
     {
       "type": "mixed",
       "tag": "mixed-in",
@@ -54,28 +42,29 @@
       "tag": "Proxy",
       "outbounds": [
         "auto",
-        "node1",
-        "node2",
-        "direct"
+        "direct",
+        "233boy-tcp-38.146.29.202",
+        "233boy-reality-38.146.29.202"
       ]
     },
     {
       "type": "urltest",
       "tag": "auto",
       "outbounds": [
-        "node1",
-        "node2"
+        "233boy-tcp-38.146.29.202",
+        "233boy-reality-38.146.29.202"
       ],
       "url": "http://www.gstatic.com/generate_204",
-      "interval": "10m"
+      "interval": "10m",
+      "tolerance": 50
     },
     {
       "type": "direct",
       "tag": "direct"
     },
     {
-      "tag": "node1",
       "type": "vless",
+      "tag": "233boy-tcp-38.146.29.202",
       "server": "38.146.29.202",
       "server_port": 30091,
       "uuid": "a644032d-11fa-48c1-b17c-70baf924cb81",
@@ -83,19 +72,19 @@
       "tls": {
         "enabled": true,
         "server_name": "www.amazon.com",
-        "reality": {
-          "enabled": true,
-          "public_key": "LXw2KURfKrEcjMe2zV2ppIvTM40Wh3Fo0QbMn8HdwCQ"
-        },
         "utls": {
           "enabled": true,
           "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "LXw2KURfKrEcjMe2zV2ppIvTM40Wh3Fo0QbMn8HdwCQ"
         }
       }
     },
     {
-      "tag": "node2",
       "type": "vless",
+      "tag": "233boy-reality-38.146.29.202",
       "server": "38.146.29.202",
       "server_port": 47614,
       "uuid": "74b060c1-51b7-4f07-bac3-3686546584f3",
@@ -103,42 +92,24 @@
       "tls": {
         "enabled": true,
         "server_name": "www.cloudflare.com",
-        "reality": {
-          "enabled": true,
-          "public_key": "kze0W0o4sWSLsyDMA5z4E47JDq-Tpdrbu9SlaTvvbRk"
-        },
         "utls": {
           "enabled": true,
           "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "kze0W0o4sWSLsyDMA5z4E47JDq-Tpdrbu9SlaTvvbRk"
         }
       }
     }
   ],
   "route": {
+    "auto_detect_interface": true,
     "final": "Proxy",
     "rules": [
       {
-        "protocol": "dns",
-        "action": "hijack-dns"
-      },
-      {
-        "rule_set": [
-          "geoip-cn",
-          "geosite-cn"
-        ],
+        "ip_is_private": true,
         "outbound": "direct"
-      }
-    ],
-    "rule_set": [
-      {
-        "tag": "geoip-cn",
-        "type": "remote",
-        "url": "https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geoip/cn.srs"
-      },
-      {
-        "tag": "geosite-cn",
-        "type": "remote",
-        "url": "https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/cn.srs"
       }
     ]
   }

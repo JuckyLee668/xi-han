@@ -3,7 +3,7 @@
 on:
   push:
     paths:
-      - v1
+      - v2
   workflow_dispatch:
 
 concurrency:
@@ -22,12 +22,24 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Generate lightweight runnable v3 from v1
+      - name: Generate lightweight runnable v3 from v2
         run: |
           set -euo pipefail
 
-          if [ ! -s v1 ]; then
-            echo "v1 file is missing or empty"
+          if [ ! -s v2 ]; then
+            echo "v2 file is missing or empty"
+            exit 1
+          fi
+
+          # Decode v2 (base64 subscription) into a temporary plain-text links list.
+          if ! tr -d '\r\n' < v2 | base64 --decode > /tmp/v1.links 2>/tmp/v2_decode_error.log; then
+            echo "Failed to decode v2 as base64:"
+            cat /tmp/v2_decode_error.log
+            exit 1
+          fi
+
+          if [ ! -s /tmp/v1.links ]; then
+            echo "Decoded links from v2 are empty"
             exit 1
           fi
 
@@ -332,7 +344,7 @@ jobs:
                       print(f'skip invalid line: {e}', file=sys.stderr)
 
               if not nodes:
-                  raise SystemExit('No valid nodes parsed from v1')
+                  raise SystemExit('No valid nodes parsed from decoded v2 content')
 
               cfg = minimal_config(nodes)
               out_path.write_text(json.dumps(cfg, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
@@ -342,7 +354,7 @@ jobs:
               main()
           PY
 
-          python3 /tmp/gen_v3.py v1 v3.new
+          python3 /tmp/gen_v3.py /tmp/v1.links v3.new
 
           if [ -f v3 ] && cmp -s v3.new v3; then
             echo "No changes detected in generated v3"
@@ -351,7 +363,7 @@ jobs:
             mv v3.new v3
           fi
 
-          rm -f v3.new /tmp/gen_v3.py
+          rm -f v3.new /tmp/gen_v3.py /tmp/v1.links /tmp/v2_decode_error.log
 
       - name: Commit and push when changed
         run: |
@@ -366,7 +378,7 @@ jobs:
 
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action Bot"
-          git commit -m "chore(sub): rebuild lightweight v3 from v1"
+          git commit -m "chore(sub): rebuild lightweight v3 from v2"
 
           BRANCH="${GITHUB_REF_NAME}"
           for i in 1 2 3; do

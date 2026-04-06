@@ -230,27 +230,44 @@ jobs:
               tags = [n['tag'] for n in nodes]
               return {
                   'log': {
-                      'level': 'info',
+                      'disabled': False,
+                      'level': 'error',
                       'timestamp': True,
                   },
                   'dns': {
-                      'servers': [
-                          {'tag': 'dns-remote', 'address': 'https://1.1.1.1/dns-query', 'detour': 'Proxy'},
-                          {'tag': 'dns-direct', 'address': '223.5.5.5', 'detour': 'direct'},
-                      ],
                       'rules': [
-                          {'clash_mode': 'direct', 'server': 'dns-direct'},
-                          {'clash_mode': 'global', 'server': 'dns-remote'},
+                          {'clash_mode': 'Proxy', 'server': 'remote'},
+                          {'clash_mode': 'Direct', 'server': 'local'},
+                          {'rule_set': ['geosite-cn'], 'server': 'local'},
+                          {'rule_set': ['category-ads-all'], 'server': 'block'},
                       ],
-                      'strategy': 'prefer_ipv4',
+                      'servers': [
+                          {'type': 'https', 'server': '1.1.1.1', 'detour': 'Proxy', 'tag': 'remote'},
+                          {'type': 'https', 'server': '223.5.5.5', 'tag': 'local'},
+                          {'type': 'hosts', 'path': [], 'predefined': {}, 'tag': 'block'},
+                          {'type': 'local'},
+                      ],
+                      'strategy': 'ipv4_only',
+                  },
+                  'experimental': {
+                      'cache_file': {'enabled': True},
                   },
                   'inbounds': [
                       {
-                          'type': 'mixed',
-                          'tag': 'mixed-in',
+                          'address': ['172.18.0.1/30', 'fdfe:dcba:9876::1/126'],
+                          'route_address': ['0.0.0.0/1', '128.0.0.0/1', '::/1', '8000::/1'],
+                          'route_exclude_address': ['192.168.0.0/16', '10.0.0.0/8', '172.16.0.0/12', 'fc00::/7'],
+                          'auto_route': True,
+                          'strict_route': True,
+                          'type': 'tun',
+                      },
+                      {
                           'listen': '127.0.0.1',
-                          'listen_port': 7890,
-                      }
+                          'listen_port': 10808,
+                          'tag': 'mixed-in',
+                          'type': 'mixed',
+                          'users': [],
+                      },
                   ],
                   'outbounds': [
                       {
@@ -266,16 +283,35 @@ jobs:
                           'interval': '10m',
                           'tolerance': 50,
                       },
-                      {
-                          'type': 'direct',
-                          'tag': 'direct',
-                      },
+                      {'type': 'direct', 'tag': 'direct'},
                   ] + nodes,
                   'route': {
                       'auto_detect_interface': True,
-                      'final': 'Proxy',
+                      'default_domain_resolver': 'local',
                       'rules': [
+                          {'action': 'sniff'},
+                          {'protocol': 'dns', 'action': 'hijack-dns'},
+                          {'clash_mode': 'Direct', 'outbound': 'direct'},
+                          {'clash_mode': 'Proxy', 'outbound': 'Proxy'},
+                          {'rule_set': ['geosite-cn'], 'outbound': 'direct'},
                           {'ip_is_private': True, 'outbound': 'direct'},
+                          {'rule_set': ['category-ads-all'], 'action': 'reject'},
+                      ],
+                      'rule_set': [
+                          {
+                              'tag': 'geosite-cn',
+                              'type': 'remote',
+                              'format': 'binary',
+                              'url': 'https://fastly.jsdelivr.net/gh/SagerNet/sing-geosite@rule-set/geosite-cn.srs',
+                              'download_detour': 'direct',
+                          },
+                          {
+                              'tag': 'category-ads-all',
+                              'type': 'remote',
+                              'format': 'binary',
+                              'url': 'https://fastly.jsdelivr.net/gh/SagerNet/sing-geosite@rule-set/geosite-category-ads-all.srs',
+                              'download_detour': 'direct',
+                          },
                       ],
                   },
               }

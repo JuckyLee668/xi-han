@@ -2,7 +2,6 @@
   "log": {
     "level": "warn"
   },
-
   "dns": {
     "fakeip": {
       "enabled": true
@@ -28,12 +27,14 @@
         "server": "direct"
       },
       {
-        "query_type": ["A", "AAAA"],
+        "query_type": [
+          "A",
+          "AAAA"
+        ],
         "server": "fakeip"
       }
     ]
   },
-
   "inbounds": [
     {
       "type": "tun",
@@ -47,27 +48,31 @@
       "listen_port": 7890
     }
   ],
-
   "outbounds": [
     {
       "type": "selector",
       "tag": "Proxy",
-      "outbounds": ["auto", "node1", "node2", "direct"]
+      "outbounds": [
+        "auto",
+        "node1",
+        "node2",
+        "direct"
+      ]
     },
-
     {
       "type": "urltest",
       "tag": "auto",
-      "outbounds": ["node1", "node2"],
+      "outbounds": [
+        "node1",
+        "node2"
+      ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m"
     },
-
     {
       "type": "direct",
       "tag": "direct"
     },
-
     {
       "tag": "node1",
       "type": "vless",
@@ -81,10 +86,13 @@
         "reality": {
           "enabled": true,
           "public_key": "LXw2KURfKrEcjMe2zV2ppIvTM40Wh3Fo0QbMn8HdwCQ"
+        },
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
         }
       }
     },
-
     {
       "tag": "node2",
       "type": "vless",
@@ -98,11 +106,14 @@
         "reality": {
           "enabled": true,
           "public_key": "kze0W0o4sWSLsyDMA5z4E47JDq-Tpdrbu9SlaTvvbRk"
+        },
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
         }
       }
     }
   ],
-
   "route": {
     "final": "Proxy",
     "rules": [
@@ -111,11 +122,13 @@
         "action": "hijack-dns"
       },
       {
-        "rule_set": ["geoip-cn", "geosite-cn"],
+        "rule_set": [
+          "geoip-cn",
+          "geosite-cn"
+        ],
         "outbound": "direct"
       }
     ],
-
     "rule_set": [
       {
         "tag": "geoip-cn",

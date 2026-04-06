@@ -96,6 +96,10 @@ jobs:
               if fp:
                   tls['utls'] = {'enabled': True, 'fingerprint': fp}
               if sec == 'reality':
+                  if 'utls' not in tls:
+                      tls['utls'] = {'enabled': True, 'fingerprint': 'chrome'}
+                  elif not tls['utls'].get('fingerprint'):
+                      tls['utls']['fingerprint'] = 'chrome'
                   pbk = q.get('pbk')
                   sid = q.get('sid')
                   if pbk:

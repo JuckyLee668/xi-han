@@ -6,6 +6,10 @@ on:
       - v2
   workflow_dispatch:
 
+concurrency:
+  group: singbox-build
+  cancel-in-progress: true
+
 jobs:
   build-singbox-subscription:
     runs-on: ubuntu-latest
@@ -15,8 +19,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Generate sing-box subscription artifacts from v2
         run: |
@@ -29,14 +31,25 @@ jobs:
 
           mkdir -p proxy
 
-          RAW_CONTENT="$(tr -d '\r\n\t ' < v2 | base64 -d 2>/dev/null || true)"
-          if [ -z "$RAW_CONTENT" ]; then
-            echo "Failed to decode v2 as base64"
+          # Decode base64 in stream mode and keep error details for troubleshooting.
+          if ! tr -d '\r\n' < v2 | base64 --decode > proxy/sing-box 2>proxy/.decode_error.log; then
+            echo "Base64 decode failed:"
+            cat proxy/.decode_error.log
             exit 1
           fi
 
-          printf "%s\n" "$RAW_CONTENT" > proxy/sing-box
-          printf "%s" "$RAW_CONTENT" | base64 -w 0 > proxy/sing-box.b64
+          if [ ! -s proxy/sing-box ]; then
+            echo "Decoded subscription is empty"
+            exit 1
+          fi
+
+          # Re-encode without line breaks for clients that expect one-line payload.
+          base64 proxy/sing-box | tr -d '\n' > proxy/sing-box.b64
+          rm -f proxy/.decode_error.log
+
+          if ! grep -Eq '(vmess|vless|ss|trojan)://' proxy/sing-box; then
+            echo "Warning: decoded content does not look like a standard node subscription."
+          fi
 
           BRANCH="${GITHUB_REF_NAME}"
           REPO="${GITHUB_REPOSITORY}"
@@ -56,7 +69,7 @@ jobs:
       - name: Commit and push when changed
         run: |
           set -euo pipefail
-          if git diff --quiet; then
+          if git diff --quiet -- proxy/sing-box proxy/sing-box.b64 proxy/sing-box-subscription.txt; then
             echo "No generated file changes detected."
             exit 0
           fi
@@ -65,4 +78,4 @@ jobs:
           git config --local user.name "GitHub Action Bot"
           git add proxy/sing-box proxy/sing-box.b64 proxy/sing-box-subscription.txt
           git commit -m "chore(proxy): rebuild sing-box subscription from v2"
-          git push
+          git push origin HEAD:${GITHUB_REF_NAME}

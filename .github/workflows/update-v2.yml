@@ -1,139 +1,124 @@
-name: Update V2Ray Config
+﻿name: Update V2Ray Config
 
 on:
   workflow_dispatch:
     inputs:
       config_data:
-        description: 'Base64 encoded config data'
+        description: Base64 encoded config data
         required: true
         type: string
       commit_message:
-        description: 'Commit message'
+        description: Commit message
         required: false
-        default: '🔄 Auto update v2 config'
+        default: 'chore(v2): update subscription config'
         type: string
-  
-  # 可以通过 API 调用触发
   repository_dispatch:
     types: [update-v2-config]
+
+concurrency:
+  group: update-v2
+  cancel-in-progress: true
 
 jobs:
   update-config:
     runs-on: ubuntu-latest
-    
     permissions:
       contents: write
-      
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        
-    - name: Update v2 file
-      run: |
-        # 从输入或事件载荷获取配置数据
-        if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-          CONFIG_DATA="${{ github.event.inputs.config_data }}"
-          COMMIT_MSG="${{ github.event.inputs.commit_message }}"
-        else
-          CONFIG_DATA="${{ github.event.client_payload.config_data }}"
-          COMMIT_MSG="${{ github.event.client_payload.commit_message }}"
-        fi
-        
-        # 更新 v2 文件
-        echo "$CONFIG_DATA" > v2
-        
-        # 验证文件是否更新成功
-        if [ -f "v2" ] && [ -s "v2" ]; then
-          echo "✅ v2 文件更新成功"
-          echo "📄 文件大小: $(wc -c < v2) 字节"
-          echo "📝 配置预览: $(head -c 100 v2)..."
-        else
-          echo "❌ v2 文件更新失败"
-          exit 1
-        fi
-        
-    - name: Configure Git
-      run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action Bot"
-        
-    - name: Check for changes
-      id: changes
-      run: |
-        if git diff --quiet; then
-          echo "changed=false" >> $GITHUB_OUTPUT
-          echo "📋 没有检测到配置变更"
-        else
-          echo "changed=true" >> $GITHUB_OUTPUT
-          echo "🔄 检测到配置变更"
-          git diff --stat
-        fi
-        
-    - name: Commit and push changes
-      if: steps.changes.outputs.changed == 'true'
-      run: |
-        # 设置提交信息
-        if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-          COMMIT_MSG="${{ github.event.inputs.commit_message }}"
-        else
-          COMMIT_MSG="${{ github.event.client_payload.commit_message }}"
-        fi
-        
-        # 如果没有提交信息，使用默认值
-        if [ -z "$COMMIT_MSG" ]; then
-          COMMIT_MSG="🔄 Auto update v2 config - $(date '+%Y-%m-%d %H:%M:%S')"
-        fi
-        
-        # 提交更改
-        git add v2
-        git commit -m "$COMMIT_MSG"
-        git push
-        
-        echo "✅ 配置已成功推送到仓库"
-        echo "🔗 查看变更: ${{ github.server_url }}/${{ github.repository }}/commit/$(git rev-parse HEAD)"
-        
-    - name: Update summary
-      run: |
-        # 生成运行摘要
-        echo "## 🚀 V2Ray 配置更新报告" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "| 项目 | 状态 |" >> $GITHUB_STEP_SUMMARY
-        echo "|------|------|" >> $GITHUB_STEP_SUMMARY
-        echo "| 触发方式 | ${{ github.event_name }} |" >> $GITHUB_STEP_SUMMARY
-        echo "| 更新时间 | $(date '+%Y-%m-%d %H:%M:%S UTC') |" >> $GITHUB_STEP_SUMMARY
-        echo "| 文件大小 | $(wc -c < v2) 字节 |" >> $GITHUB_STEP_SUMMARY
-        
-        if [ "${{ steps.changes.outputs.changed }}" = "true" ]; then
-          echo "| 变更状态 | ✅ 已更新 |" >> $GITHUB_STEP_SUMMARY
-          echo "| 提交链接 | [${{ github.sha }}](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}) |" >> $GITHUB_STEP_SUMMARY
-        else
-          echo "| 变更状态 | ℹ️ 无变更 |" >> $GITHUB_STEP_SUMMARY
-        fi
-        
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### 📋 配置预览" >> $GITHUB_STEP_SUMMARY
-        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-        head -c 200 v2 >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "...(内容已截断)" >> $GITHUB_STEP_SUMMARY
-        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
 
-  # 发送通知作业（可选）
-  notify:
-    runs-on: ubuntu-latest
-    needs: update-config
-    if: always()
-    
     steps:
-    - name: Send notification
-      run: |
-        echo "📢 V2Ray 配置更新完成"
-        echo "状态: ${{ needs.update-config.result }}"
-        echo "时间: $(date)"
-        
-        # 这里可以添加其他通知方式，如：
-        # - Slack 通知
-        # - 邮件通知
-        # - Webhook 调用等
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Decode payload and update v2
+        id: prepare
+        env:
+          CONFIG_DATA_DISPATCH: ${{ github.event.client_payload.config_data || '' }}
+          COMMIT_MSG_DISPATCH: ${{ github.event.client_payload.commit_message || '' }}
+        run: |
+          set -euo pipefail
+
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            CONFIG_DATA='${{ github.event.inputs.config_data }}'
+            COMMIT_MSG='${{ github.event.inputs.commit_message }}'
+          else
+            CONFIG_DATA="$CONFIG_DATA_DISPATCH"
+            COMMIT_MSG="$COMMIT_MSG_DISPATCH"
+          fi
+
+          if [ -z "$CONFIG_DATA" ]; then
+            echo "config_data is empty"
+            exit 1
+          fi
+
+          if [ -z "$COMMIT_MSG" ]; then
+            COMMIT_MSG="chore(v2): update subscription config - $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+          fi
+
+          printf '%s' "$COMMIT_MSG" > .commit_msg
+
+          # Decode Base64 payload into temporary file.
+          printf '%s' "$CONFIG_DATA" | tr -d '\r\n\t ' | base64 --decode > v2.new || {
+            echo "Base64 decode failed"
+            exit 1
+          }
+
+          if [ ! -s v2.new ]; then
+            echo "decoded content is empty"
+            exit 1
+          fi
+
+          if [ -f v2 ] && cmp -s v2.new v2; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            rm -f v2.new
+            echo "No changes detected in v2"
+            exit 0
+          fi
+
+          mv v2.new v2
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+          echo "bytes=$(wc -c < v2)" >> "$GITHUB_OUTPUT"
+
+      - name: Configure Git
+        if: steps.prepare.outputs.changed == 'true'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action Bot"
+
+      - name: Commit and push changes
+        if: steps.prepare.outputs.changed == 'true'
+        id: commit
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          set -euo pipefail
+
+          git add v2
+          COMMIT_MSG="$(cat .commit_msg)"
+          git commit -m "$COMMIT_MSG"
+          git push origin HEAD:"$DEFAULT_BRANCH"
+
+          NEW_SHA="$(git rev-parse HEAD)"
+          echo "new_sha=$NEW_SHA" >> "$GITHUB_OUTPUT"
+          echo "commit_url=${{ github.server_url }}/${{ github.repository }}/commit/$NEW_SHA" >> "$GITHUB_OUTPUT"
+
+      - name: Update summary
+        run: |
+          set -euo pipefail
+
+          echo "## V2 config update report" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Item | Value |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|------|-------|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Event | ${{ github.event_name }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Time (UTC) | $(date -u +'%Y-%m-%dT%H:%M:%SZ') |" >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "${{ steps.prepare.outputs.changed }}" = "true" ]; then
+            echo "| Status | updated |" >> "$GITHUB_STEP_SUMMARY"
+            echo "| File size | ${{ steps.prepare.outputs.bytes }} bytes |" >> "$GITHUB_STEP_SUMMARY"
+            echo "| Commit | [${{ steps.commit.outputs.new_sha }}](${{ steps.commit.outputs.commit_url }}) |" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "| Status | no changes |" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Sensitive config preview is intentionally hidden." >> "$GITHUB_STEP_SUMMARY"

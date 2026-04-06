@@ -1,4 +1,4 @@
-﻿name: Sync Proxy Sources And Packages
+name: Sync Proxy Sources And Packages
 
 on:
   push:
@@ -16,158 +16,149 @@ jobs:
       contents: write
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Sync 233boy source repositories
+      # =========================
+      # 🔹 Sync upstream sources
+      # =========================
+      - name: Sync upstream sources
         run: |
           set -euo pipefail
 
-          mkdir -p proxy/src
-          rm -rf /tmp/upstream-sources
-          mkdir -p /tmp/upstream-sources
+          BASE_DIR="proxy/src"
+          TMP_DIR="/tmp/upstream"
 
-          git clone --depth=1 https://github.com/233boy/sing-box.git /tmp/upstream-sources/sing-box
-          git clone --depth=1 https://github.com/233boy/Xray.git /tmp/upstream-sources/Xray
+          rm -rf "$TMP_DIR"
+          mkdir -p "$TMP_DIR" "$BASE_DIR"
 
-          rm -rf proxy/src/sing-box proxy/src/Xray
-          mkdir -p proxy/src/sing-box proxy/src/Xray
+          sync_repo() {
+            local repo_url="$1"
+            local name="$2"
 
-          cp /tmp/upstream-sources/sing-box/install.sh proxy/src/sing-box/
-          cp /tmp/upstream-sources/sing-box/sing-box.sh proxy/src/sing-box/ || true
-          cp -r /tmp/upstream-sources/sing-box/src proxy/src/sing-box/
+            echo "==> Sync $name"
 
-          cp /tmp/upstream-sources/Xray/install.sh proxy/src/Xray/
-          cp /tmp/upstream-sources/Xray/xray.sh proxy/src/Xray/ || true
-          cp -r /tmp/upstream-sources/Xray/src proxy/src/Xray/
+            git clone --depth=1 "$repo_url" "$TMP_DIR/$name"
 
-          {
-            echo "source_repo=233boy/sing-box"
-            echo "source_commit=$(git -C /tmp/upstream-sources/sing-box rev-parse HEAD)"
-          } > proxy/src/sing-box/UPSTREAM
+            rm -rf "$BASE_DIR/$name"
+            mkdir -p "$BASE_DIR/$name"
 
-          {
-            echo "source_repo=233boy/Xray"
-            echo "source_commit=$(git -C /tmp/upstream-sources/Xray rev-parse HEAD)"
-          } > proxy/src/Xray/UPSTREAM
+            cp "$TMP_DIR/$name/install.sh" "$BASE_DIR/$name/" || true
+            cp "$TMP_DIR/$name/$name.sh" "$BASE_DIR/$name/" || true
+            cp -r "$TMP_DIR/$name/src" "$BASE_DIR/$name/" || true
 
-      - name: Sync latest proxy client package metadata and files
+            {
+              echo "source_repo=$repo_url"
+              echo "source_commit=$(git -C "$TMP_DIR/$name" rev-parse HEAD)"
+            } > "$BASE_DIR/$name/UPSTREAM"
+          }
+
+          sync_repo https://github.com/233boy/sing-box.git sing-box
+          sync_repo https://github.com/233boy/Xray.git Xray
+
+      # =========================
+      # 🔹 Sync packages
+      # =========================
+      - name: Sync packages
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          command -v jq >/dev/null 2>&1 || {
-            sudo apt-get update
-            sudo apt-get install -y jq
-          }
 
-          mkdir -p proxy
+          sudo apt-get update -y
+          sudo apt-get install -y jq
 
-          # GitHub single-file hard limit is 100MB; keep a safety margin.
+          mkdir -p proxy/meta proxy/files
+
           MAX_BYTES=$((95 * 1024 * 1024))
 
-          get_latest_asset_json() {
+          get_asset() {
             local repo="$1"
             local pattern="$2"
 
-            local api="https://api.github.com/repos/${repo}/releases/latest"
             curl -fsSL \
               -H "Authorization: Bearer ${GH_TOKEN}" \
-              -H "Accept: application/vnd.github+json" \
-              "$api" \
-              | jq -c --arg re "$pattern" '.assets[] | select(.name | test($re)) | {name, browser_download_url, size}' \
-              | head -n 1
+              "https://api.github.com/repos/${repo}/releases/latest" \
+            | jq -c --arg re "$pattern" '
+              .assets[]
+              | select(.name | test($re))
+              | {name, url: .browser_download_url, size}
+            ' | head -n1
           }
 
-          save_asset_or_link() {
+          fetch_asset() {
             local repo="$1"
             local pattern="$2"
-            local local_file="$3"
+            local file="$3"
+            local meta="$4"
 
-            local asset_json
-            asset_json="$(get_latest_asset_json "$repo" "$pattern")"
-            if [ -z "$asset_json" ] || [ "$asset_json" = "null" ]; then
-              echo "No asset matched pattern ${pattern} in ${repo}"
-              exit 1
-            fi
+            echo "==> Fetch $repo"
+
+            local json
+            json="$(get_asset "$repo" "$pattern")"
+
+            [ -z "$json" ] && { echo "No asset"; exit 1; }
 
             local name url size
-            name="$(echo "$asset_json" | jq -r '.name')"
-            url="$(echo "$asset_json" | jq -r '.browser_download_url')"
-            size="$(echo "$asset_json" | jq -r '.size')"
+            name=$(echo "$json" | jq -r .name)
+            url=$(echo "$json" | jq -r .url)
+            size=$(echo "$json" | jq -r .size)
 
             {
-              echo "repo=${repo}"
-              echo "name=${name}"
-              echo "size_bytes=${size}"
-              echo "download_url=${url}"
-            } > "$link_file"
+              echo "repo=$repo"
+              echo "name=$name"
+              echo "size=$size"
+              echo "url=$url"
+            } > "$meta"
 
-            # Remove stale binary before optionally downloading a fresh one.
-            rm -f "$local_file"
+            rm -f "$file"
 
-            if [ "$size" -gt "$MAX_BYTES" ]; then
-              echo "Skip ${name} (${size} bytes): exceeds safe git size."
-              return 0
+            if [ "$size" -le "$MAX_BYTES" ]; then
+              curl -fL --retry 3 "$url" -o "$file"
+            else
+              echo "Skip large file: $name"
             fi
-
-            echo "Downloading ${name} (${size} bytes)"
-            curl -fL --retry 3 --retry-delay 2 "$url" -o "$local_file"
           }
 
-          save_asset_or_link "XTLS/Xray-core" "Xray-windows-64\\.zip$" "proxy/Xray-windows-64.zip"
-          save_asset_or_link "2dust/v2rayNG" "arm64-v8a\\.apk$" "proxy/v2rayNG-android-arm64-v8a.apk"
-          save_asset_or_link "SagerNet/sing-box" "windows-amd64.*\\.zip$" "proxy/sing-box-windows-amd64.zip"
-          save_asset_or_link "SagerNet/sing-box" "android.*arm64-v8a.*\\.apk$|arm64-v8a.*android.*\\.apk$" "proxy/sing-box-android-arm64-v8a.apk"
-      - name: Write package metadata
+          fetch_asset "XTLS/Xray-core" "Xray-windows-64\\.zip$" \
+            "proxy/files/Xray.zip" "proxy/meta/Xray"
+
+          fetch_asset "2dust/v2rayNG" "arm64-v8a\\.apk$" \
+            "proxy/files/v2rayNG.apk" "proxy/meta/v2rayNG"
+
+          fetch_asset "SagerNet/sing-box" "windows-amd64.*\\.zip$" \
+            "proxy/files/sing-box.zip" "proxy/meta/sing-box"
+
+          fetch_asset "SagerNet/sing-box" "android.*arm64-v8a.*\\.apk$|arm64-v8a.*android.*\\.apk$" \
+            "proxy/files/sing-box.apk" "proxy/meta/sing-box-android"
+
+      # =========================
+      # 🔹 Commit
+      # =========================
+      - name: Commit changes
         run: |
           set -euo pipefail
-          {
-            echo "xray_core_file=proxy/Xray-windows-64.zip"
-            echo "v2rayNG_file=proxy/v2rayNG-android-arm64-v8a.apk"
-            echo "sing_box_file=proxy/sing-box-windows-amd64.zip"
-            echo "sing_box_android_file=proxy/sing-box-android-arm64-v8a.apk"
-          } 
 
-      - name: Commit and push when changed
-        run: |
-          set -euo pipefail
+          git add proxy
 
-          git add -A proxy/src \
-            proxy/Xray-windows-64.zip  \
-            proxy/v2rayNG-android-arm64-v8a.apk \
-            proxy/sing-box-windows-amd64.zip  \
-            proxy/sing-box-android-arm64-v8a.apk  \
-
-          if git diff --cached --quiet -- proxy/src \
-            proxy/Xray-windows-64.zip \
-            proxy/v2rayNG-android-arm64-v8a.apk \
-            proxy/sing-box-windows-amd64.zip  \
-            proxy/sing-box-android-arm64-v8a.apk  ; then
-            echo "No source/package changes detected."
+          if git diff --cached --quiet; then
+            echo "No changes"
             exit 0
           fi
 
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action Bot"
-          git commit -m "chore(proxy): sync sources and package metadata/files"
+          git config user.name "github-actions"
+          git config user.email "action@github.com"
 
-          BRANCH="${GITHUB_REF_NAME}"
+          git commit -m "chore(proxy): sync upstream + packages"
+
           for i in 1 2 3; do
-            if git push origin HEAD:"${BRANCH}"; then
-              echo "Push succeeded on attempt ${i}"
+            git pull --rebase || true
+            if git push; then
               exit 0
             fi
-            echo "Push failed on attempt ${i}, rebasing..."
-            git fetch origin "${BRANCH}"
-            git rebase "origin/${BRANCH}" || {
-              git rebase --abort || true
-              echo "Rebase failed"
-              exit 1
-            }
+            sleep 2
           done
 
-          echo "Push failed after 3 attempts"
+          echo "Push failed"
           exit 1

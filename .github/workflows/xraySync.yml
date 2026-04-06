@@ -1,11 +1,15 @@
-﻿name: Sync 233boy Sources
+﻿name: Sync Proxy Sources And Packages
 
 on:
   push:
   workflow_dispatch:
 
+concurrency:
+  group: sync-proxy-assets
+  cancel-in-progress: true
+
 jobs:
-  sync-sources:
+  sync-assets:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     permissions:
@@ -15,9 +19,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
 
-      - name: Clone upstream repositories and copy key files
+      - name: Sync 233boy source repositories
         run: |
           set -euo pipefail
 
@@ -39,24 +43,89 @@ jobs:
           cp /tmp/upstream-sources/Xray/xray.sh proxy/src/Xray/ || true
           cp -r /tmp/upstream-sources/Xray/src proxy/src/Xray/
 
-          echo "source_repo=233boy/sing-box" > proxy/src/sing-box/UPSTREAM
-          echo "source_commit=$(git -C /tmp/upstream-sources/sing-box rev-parse HEAD)" >> proxy/src/sing-box/UPSTREAM
-          echo "synced_at_utc=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> proxy/src/sing-box/UPSTREAM
+          {
+            echo "source_repo=233boy/sing-box"
+            echo "source_commit=$(git -C /tmp/upstream-sources/sing-box rev-parse HEAD)"
+          } > proxy/src/sing-box/UPSTREAM
 
-          echo "source_repo=233boy/Xray" > proxy/src/Xray/UPSTREAM
-          echo "source_commit=$(git -C /tmp/upstream-sources/Xray rev-parse HEAD)" >> proxy/src/Xray/UPSTREAM
-          echo "synced_at_utc=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> proxy/src/Xray/UPSTREAM
+          {
+            echo "source_repo=233boy/Xray"
+            echo "source_commit=$(git -C /tmp/upstream-sources/Xray rev-parse HEAD)"
+          } > proxy/src/Xray/UPSTREAM
+
+      - name: Download latest proxy client packages to proxy
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          mkdir -p proxy
+
+          download_latest_asset() {
+            local repo="$1"
+            local pattern="$2"
+            local output="$3"
+
+            local api="https://api.github.com/repos/${repo}/releases/latest"
+            local url
+            url=$(curl -fsSL \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              -H "Accept: application/vnd.github+json" \
+              "$api" \
+              | jq -r --arg re "$pattern" '.assets[] | select(.name | test($re)) | .browser_download_url' \
+              | head -n 1)
+
+            if [ -z "$url" ] || [ "$url" = "null" ]; then
+              echo "No asset matched pattern ${pattern} in ${repo}"
+              exit 1
+            fi
+
+            echo "Downloading $url"
+            curl -fL --retry 3 --retry-delay 2 "$url" -o "$output"
+          }
+
+          download_latest_asset "2dust/v2rayN" "v2rayN-windows-64\\.zip$" "proxy/v2rayN-windows-64.zip"
+          download_latest_asset "2dust/v2rayNG" "arm64-v8a\\.apk$" "proxy/v2rayNG-android-arm64-v8a.apk"
+          download_latest_asset "SagerNet/sing-box" "windows-amd64.*\\.zip$" "proxy/sing-box-windows-amd64.zip"
+
+      - name: Write package metadata
+        run: |
+          set -euo pipefail
+          {
+            echo "v2rayN=proxy/v2rayN-windows-64.zip"
+            echo "v2rayNG=proxy/v2rayNG-android-arm64-v8a.apk"
+            echo "sing-box=proxy/sing-box-windows-amd64.zip"
+          } > proxy/packages.txt
 
       - name: Commit and push when changed
         run: |
           set -euo pipefail
-          if [ -z "$(git status --porcelain -- proxy/src)" ]; then
-            echo "No source changes detected."
+
+          git add -A proxy/src proxy/v2rayN-windows-64.zip proxy/v2rayNG-android-arm64-v8a.apk proxy/sing-box-windows-amd64.zip proxy/packages.txt
+
+          if git diff --cached --quiet -- proxy/src proxy/v2rayN-windows-64.zip proxy/v2rayNG-android-arm64-v8a.apk proxy/sing-box-windows-amd64.zip proxy/packages.txt; then
+            echo "No source/package changes detected."
             exit 0
           fi
 
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action Bot"
-          git add proxy/src
-          git commit -m "chore(proxy): sync 233boy sing-box and Xray sources"
-          git push
+          git commit -m "chore(proxy): sync 233boy sources and latest client packages"
+
+          BRANCH="${GITHUB_REF_NAME}"
+          for i in 1 2 3; do
+            if git push origin HEAD:"${BRANCH}"; then
+              echo "Push succeeded on attempt ${i}"
+              exit 0
+            fi
+            echo "Push failed on attempt ${i}, rebasing..."
+            git fetch origin "${BRANCH}"
+            git rebase "origin/${BRANCH}" || {
+              git rebase --abort || true
+              echo "Rebase failed"
+              exit 1
+            }
+          done
+
+          echo "Push failed after 3 attempts"
+          exit 1

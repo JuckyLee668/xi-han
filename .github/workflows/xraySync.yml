@@ -85,7 +85,6 @@ jobs:
             local repo="$1"
             local pattern="$2"
             local local_file="$3"
-            local link_file="$4"
 
             local asset_json
             asset_json="$(get_latest_asset_json "$repo" "$pattern")"

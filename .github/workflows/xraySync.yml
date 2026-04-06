@@ -1,65 +1,62 @@
-name: Sync Latest Release to R2
+﻿name: Sync 233boy Sources
 
 on:
-  # 在针对 `main` 分支的推送上运行。如果你
-    # 使用 `master` 分支作为默认分支，请将其更改为 `master`
-    push:
-      branches: [main]
-  
-    # 允许你从 Actions 选项卡手动运行此工作流程
-    workflow_dispatch:
+  push:
+  workflow_dispatch:
 
 jobs:
-  sync:
+  sync-sources:
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
     steps:
-      - name: Checkout Repository
+      - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Download Latest Release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TARGET_REPO: 'XTLS/Xray-core'   # 替换为目标仓库，如：vercel/next.js
-          FILE_PATTERN: 'Xray-windows-64.zip'    # 替换为要下载的文件模式，如：*.zip
+      - name: Clone upstream repositories and copy key files
         run: |
-          # 安装 GitHub CLI
-          type -p gh >/dev/null || sudo apt-get install -y gh
-          # 下载指定仓库的最新 Release 文件
-          gh release download --repo 2dust/v2rayN --pattern v2rayN-windows-64.zip --clobber
-          gh release download --repo XTLS/Xray-core --pattern Xray-windows-64.zip --clobber
-          gh release download --repo 2dust/v2rayNG --pattern *_arm64-v8a.apk --clobber
+          set -euo pipefail
 
-          mv *_arm64-v8a.apk v2rayNG_arm64-v8a.apk
+          mkdir -p proxy/src
+          rm -rf /tmp/upstream-sources
+          mkdir -p /tmp/upstream-sources
 
-          echo "✅ Download completed. Files:"
-          ls -la
+          git clone --depth=1 https://github.com/233boy/sing-box.git /tmp/upstream-sources/sing-box
+          git clone --depth=1 https://github.com/233boy/Xray.git /tmp/upstream-sources/Xray
 
-      - name: Configure AWS CLI for R2
-        env:
-          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
-          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
-          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
-          R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
+          rm -rf proxy/src/sing-box proxy/src/Xray
+          mkdir -p proxy/src/sing-box proxy/src/Xray
+
+          cp /tmp/upstream-sources/sing-box/install.sh proxy/src/sing-box/
+          cp /tmp/upstream-sources/sing-box/sing-box.sh proxy/src/sing-box/ || true
+          cp -r /tmp/upstream-sources/sing-box/src proxy/src/sing-box/
+
+          cp /tmp/upstream-sources/Xray/install.sh proxy/src/Xray/
+          cp /tmp/upstream-sources/Xray/xray.sh proxy/src/Xray/ || true
+          cp -r /tmp/upstream-sources/Xray/src proxy/src/Xray/
+
+          echo "source_repo=233boy/sing-box" > proxy/src/sing-box/UPSTREAM
+          echo "source_commit=$(git -C /tmp/upstream-sources/sing-box rev-parse HEAD)" >> proxy/src/sing-box/UPSTREAM
+          echo "synced_at_utc=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> proxy/src/sing-box/UPSTREAM
+
+          echo "source_repo=233boy/Xray" > proxy/src/Xray/UPSTREAM
+          echo "source_commit=$(git -C /tmp/upstream-sources/Xray rev-parse HEAD)" >> proxy/src/Xray/UPSTREAM
+          echo "synced_at_utc=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> proxy/src/Xray/UPSTREAM
+
+      - name: Commit and push when changed
         run: |
-          # 配置 AWS CLI 以使用 R2 的 S3 兼容端点
-          aws configure set aws_access_key_id $R2_ACCESS_KEY_ID
-          aws configure set aws_secret_access_key $R2_SECRET_ACCESS_KEY
-          aws configure set default.region auto
-          # R2 的 S3 API 端点格式
-          R2_ENDPOINT_URL="https://$R2_ACCOUNT_ID.r2.cloudflarestorage.com"
-          echo "R2 Endpoint: $R2_ENDPOINT_URL"
+          set -euo pipefail
+          if git diff --quiet; then
+            echo "No source changes detected."
+            exit 0
+          fi
 
-      - name: Upload Files to R2 Bucket
-        env:
-          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
-          R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
-        run: |
-          R2_ENDPOINT_URL="https://$R2_ACCOUNT_ID.r2.cloudflarestorage.com"
-          # 上传当前目录下所有文件到 R2 存储桶根目录
-          for file in *; do
-            if [ -f "$file" ]; then
-              echo "Uploading $file to R2..."
-              aws s3 cp "$file" "s3://$R2_BUCKET_NAME/" --endpoint-url="$R2_ENDPOINT_URL"
-            fi
-          done
-          echo "✅ All files uploaded to R2."
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action Bot"
+          git add proxy/src
+          git commit -m "chore(proxy): sync 233boy sing-box and Xray sources"
+          git push

@@ -1,0 +1,69 @@
+﻿name: Build Sing-box Subscription
+
+on:
+  push:
+    paths:
+      - v2
+  workflow_dispatch:
+
+jobs:
+  build-singbox-subscription:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate sing-box subscription artifacts from v2
+        run: |
+          set -euo pipefail
+
+          if [ ! -s v2 ]; then
+            echo "v2 file is missing or empty"
+            exit 1
+          fi
+
+          mkdir -p proxy
+
+          RAW_CONTENT="$(tr -d '\r\n\t ' < v2 | base64 -d 2>/dev/null || true)"
+          if [ -z "$RAW_CONTENT" ]; then
+            echo "Failed to decode v2 as base64"
+            exit 1
+          fi
+
+          printf "%s\n" "$RAW_CONTENT" > proxy/sing-box
+          printf "%s" "$RAW_CONTENT" | base64 -w 0 > proxy/sing-box.b64
+
+          BRANCH="${GITHUB_REF_NAME}"
+          REPO="${GITHUB_REPOSITORY}"
+          RAW_TXT_URL="https://raw.githubusercontent.com/${REPO}/${BRANCH}/proxy/sing-box"
+          RAW_B64_URL="https://raw.githubusercontent.com/${REPO}/${BRANCH}/proxy/sing-box.b64"
+
+          {
+            echo "# sing-box 订阅地址"
+            echo
+            echo "- 文本订阅（推荐）: ${RAW_TXT_URL}"
+            echo "- Base64订阅: ${RAW_B64_URL}"
+            echo
+            echo "# 生成时间（UTC）"
+            date -u +'%Y-%m-%dT%H:%M:%SZ'
+          } > proxy/sing-box-subscription.txt
+
+      - name: Commit and push when changed
+        run: |
+          set -euo pipefail
+          if git diff --quiet; then
+            echo "No generated file changes detected."
+            exit 0
+          fi
+
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action Bot"
+          git add proxy/sing-box proxy/sing-box.b64 proxy/sing-box-subscription.txt
+          git commit -m "chore(proxy): rebuild sing-box subscription from v2"
+          git push

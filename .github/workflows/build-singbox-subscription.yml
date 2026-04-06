@@ -3,7 +3,7 @@
 on:
   push:
     paths:
-      - v3
+      - v1
   workflow_dispatch:
 
 concurrency:
@@ -20,64 +20,309 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Generate sing-box subscription artifacts from v3
+      - name: Generate lightweight runnable v3 from v1
         run: |
           set -euo pipefail
 
-          if [ ! -s v3 ]; then
-            echo "v3 file is missing or empty"
+          if [ ! -s v1 ]; then
+            echo "v1 file is missing or empty"
             exit 1
           fi
 
-          mkdir -p proxy
+          cat >/tmp/gen_v3.py <<'PY'
+          import base64
+          import json
+          import sys
+          import urllib.parse
+          from pathlib import Path
 
-          # Decode base64 in stream mode and keep error details for troubleshooting.
-          if ! tr -d '\r\n' < v3 | base64 --decode > proxy/sing-box 2>proxy/.decode_error.log; then
-            echo "Base64 decode failed:"
-            cat proxy/.decode_error.log
-            exit 1
+          def parse_host_port(netloc: str):
+              if '@' in netloc:
+                  userinfo, hostport = netloc.split('@', 1)
+              else:
+                  userinfo, hostport = '', netloc
+              if ':' not in hostport:
+                  raise ValueError('missing port')
+              host, port = hostport.rsplit(':', 1)
+              return userinfo, host, int(port)
+
+          def qdict(qs: str):
+              parsed = urllib.parse.parse_qs(qs, keep_blank_values=True)
+              return {k: v[-1] for k, v in parsed.items() if v}
+
+          def tag_from(parts, idx):
+              frag = urllib.parse.unquote(parts.fragment or '').strip()
+              return frag if frag else f'node-{idx}'
+
+          def build_transport(q):
+              network = q.get('type', '').lower()
+              if network == 'ws':
+                  return {
+                      'type': 'ws',
+                      'path': urllib.parse.unquote(q.get('path', '/')),
+                      'headers': {'Host': q.get('host', '')} if q.get('host') else None,
+                  }
+              if network in ('grpc', 'gun'):
+                  return {
+                      'type': 'grpc',
+                      'service_name': q.get('serviceName', ''),
+                  }
+              return None
+
+          def clean_transport(t):
+              if not t:
+                  return None
+              out = {}
+              for k, v in t.items():
+                  if v is None:
+                      continue
+                  if isinstance(v, dict):
+                      dv = {dk: dvv for dk, dvv in v.items() if dvv not in ('', None)}
+                      if dv:
+                          out[k] = dv
+                  elif v not in ('', None):
+                      out[k] = v
+              return out or None
+
+          def build_tls(host, q):
+              sec = q.get('security', '').lower()
+              if sec not in ('tls', 'reality', 'xtls'):
+                  return None
+              tls = {'enabled': True}
+              sni = q.get('sni') or q.get('serverName') or host
+              if sni:
+                  tls['server_name'] = sni
+              fp = q.get('fp') or q.get('fingerprint')
+              if fp:
+                  tls['utls'] = {'enabled': True, 'fingerprint': fp}
+              if sec == 'reality':
+                  pbk = q.get('pbk')
+                  sid = q.get('sid')
+                  if pbk:
+                      tls['reality'] = {'enabled': True, 'public_key': pbk}
+                      if sid:
+                          tls['reality']['short_id'] = sid
+              return tls
+
+          def parse_vless(url, idx):
+              parts = urllib.parse.urlsplit(url)
+              user, host, port = parse_host_port(parts.netloc)
+              q = qdict(parts.query)
+              out = {
+                  'type': 'vless',
+                  'tag': tag_from(parts, idx),
+                  'server': host,
+                  'server_port': port,
+                  'uuid': user,
+              }
+              if q.get('flow'):
+                  out['flow'] = q['flow']
+              tls = build_tls(host, q)
+              if tls:
+                  out['tls'] = tls
+              t = clean_transport(build_transport(q))
+              if t:
+                  out['transport'] = t
+              return out
+
+          def parse_trojan(url, idx):
+              parts = urllib.parse.urlsplit(url)
+              password, host, port = parse_host_port(parts.netloc)
+              q = qdict(parts.query)
+              out = {
+                  'type': 'trojan',
+                  'tag': tag_from(parts, idx),
+                  'server': host,
+                  'server_port': port,
+                  'password': password,
+              }
+              tls = build_tls(host, q)
+              if tls:
+                  out['tls'] = tls
+              t = clean_transport(build_transport(q))
+              if t:
+                  out['transport'] = t
+              return out
+
+          def parse_ss(url, idx):
+              raw = url[len('ss://'):]
+              frag = ''
+              if '#' in raw:
+                  raw, frag = raw.split('#', 1)
+              frag = urllib.parse.unquote(frag)
+
+              if '@' in raw and ':' in raw.split('@', 1)[0]:
+                  userinfo, hostport = raw.split('@', 1)
+              else:
+                  if '@' not in raw:
+                      raise ValueError('invalid ss format')
+                  b64, hostport = raw.split('@', 1)
+                  padding = '=' * (-len(b64) % 4)
+                  userinfo = base64.urlsafe_b64decode((b64 + padding).encode()).decode(errors='ignore')
+
+              if ':' not in userinfo or ':' not in hostport:
+                  raise ValueError('invalid ss fields')
+              method, password = userinfo.split(':', 1)
+              host, port = hostport.rsplit(':', 1)
+
+              return {
+                  'type': 'shadowsocks',
+                  'tag': frag.strip() or f'node-{idx}',
+                  'server': host,
+                  'server_port': int(port),
+                  'method': method,
+                  'password': password,
+              }
+
+          def parse_vmess(url, idx):
+              raw = url[len('vmess://'):].strip()
+              padding = '=' * (-len(raw) % 4)
+              data = base64.b64decode((raw + padding).encode()).decode(errors='ignore')
+              obj = json.loads(data)
+
+              host = obj.get('add') or obj.get('host')
+              port = int(obj.get('port'))
+              out = {
+                  'type': 'vmess',
+                  'tag': obj.get('ps') or f'node-{idx}',
+                  'server': host,
+                  'server_port': port,
+                  'uuid': obj.get('id'),
+                  'security': obj.get('scy') or 'auto',
+              }
+              if obj.get('aid') not in (None, '', '0', 0):
+                  out['alter_id'] = int(obj['aid'])
+
+              net = (obj.get('net') or '').lower()
+              if net == 'ws':
+                  path = obj.get('path') or '/'
+                  hosth = obj.get('host') or ''
+                  out['transport'] = clean_transport({
+                      'type': 'ws',
+                      'path': path,
+                      'headers': {'Host': hosth} if hosth else None,
+                  })
+              if (obj.get('tls') or '').lower() in ('tls', '1', 'true'):
+                  out['tls'] = {'enabled': True, 'server_name': obj.get('sni') or host}
+              return out
+
+          def parse_link(line, idx):
+              s = line.strip()
+              if not s or s.startswith('#'):
+                  return None
+              if s.startswith('vless://'):
+                  return parse_vless(s, idx)
+              if s.startswith('trojan://'):
+                  return parse_trojan(s, idx)
+              if s.startswith('ss://'):
+                  return parse_ss(s, idx)
+              if s.startswith('vmess://'):
+                  return parse_vmess(s, idx)
+              return None
+
+          def minimal_config(nodes):
+              tags = [n['tag'] for n in nodes]
+              return {
+                  'log': {
+                      'level': 'info',
+                      'timestamp': True,
+                  },
+                  'dns': {
+                      'servers': [
+                          {'tag': 'dns-remote', 'address': 'https://1.1.1.1/dns-query', 'detour': 'Proxy'},
+                          {'tag': 'dns-direct', 'address': '223.5.5.5', 'detour': 'direct'},
+                      ],
+                      'rules': [
+                          {'clash_mode': 'direct', 'server': 'dns-direct'},
+                          {'clash_mode': 'global', 'server': 'dns-remote'},
+                      ],
+                      'strategy': 'prefer_ipv4',
+                  },
+                  'inbounds': [
+                      {
+                          'type': 'mixed',
+                          'tag': 'mixed-in',
+                          'listen': '127.0.0.1',
+                          'listen_port': 7890,
+                      }
+                  ],
+                  'outbounds': [
+                      {
+                          'type': 'selector',
+                          'tag': 'Proxy',
+                          'outbounds': ['auto', 'direct'] + tags,
+                      },
+                      {
+                          'type': 'urltest',
+                          'tag': 'auto',
+                          'outbounds': tags,
+                          'url': 'http://www.gstatic.com/generate_204',
+                          'interval': '10m',
+                          'tolerance': 50,
+                      },
+                      {
+                          'type': 'direct',
+                          'tag': 'direct',
+                      },
+                  ] + nodes,
+                  'route': {
+                      'auto_detect_interface': True,
+                      'final': 'Proxy',
+                      'rules': [
+                          {'ip_is_private': True, 'outbound': 'direct'},
+                      ],
+                  },
+              }
+
+          def main():
+              in_path = Path(sys.argv[1])
+              out_path = Path(sys.argv[2])
+              lines = in_path.read_text(encoding='utf-8', errors='ignore').splitlines()
+              nodes = []
+              idx = 1
+              for raw in lines:
+                  try:
+                      node = parse_link(raw, idx)
+                      if node:
+                          nodes.append(node)
+                          idx += 1
+                  except Exception as e:
+                      print(f'skip invalid line: {e}', file=sys.stderr)
+
+              if not nodes:
+                  raise SystemExit('No valid nodes parsed from v1')
+
+              cfg = minimal_config(nodes)
+              out_path.write_text(json.dumps(cfg, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+              print(f'generated_nodes={len(nodes)}')
+
+          if __name__ == '__main__':
+              main()
+          PY
+
+          python3 /tmp/gen_v3.py v1 v3.new
+
+          if [ -f v3 ] && cmp -s v3.new v3; then
+            echo "No changes detected in generated v3"
+            rm -f v3.new
+          else
+            mv v3.new v3
           fi
 
-          if [ ! -s proxy/sing-box ]; then
-            echo "Decoded subscription is empty"
-            exit 1
-          fi
-
-          # Re-encode without line breaks for clients that expect one-line payload.
-          base64 proxy/sing-box | tr -d '\n' > proxy/sing-box.b64
-          rm -f proxy/.decode_error.log
-
-          if ! grep -Eq '(vmess|vless|ss|trojan)://' proxy/sing-box; then
-            echo "Warning: decoded content does not look like a standard node subscription."
-          fi
-
-          BRANCH="${GITHUB_REF_NAME}"
-          REPO="${GITHUB_REPOSITORY}"
-          RAW_TXT_URL="https://raw.githubusercontent.com/${REPO}/${BRANCH}/proxy/sing-box"
-          RAW_B64_URL="https://raw.githubusercontent.com/${REPO}/${BRANCH}/proxy/sing-box.b64"
-
-          {
-            echo "# sing-box 订阅地址"
-            echo
-            echo "- 文本订阅（推荐）: ${RAW_TXT_URL}"
-            echo "- Base64订阅: ${RAW_B64_URL}"
-            echo
-            echo "# 生成时间（UTC）"
-            date -u +'%Y-%m-%dT%H:%M:%SZ'
-          } > proxy/sing-box-subscription.txt
+          rm -f v3.new /tmp/gen_v3.py
 
       - name: Commit and push when changed
         run: |
           set -euo pipefail
 
-          git add -A proxy/sing-box proxy/sing-box.b64 proxy/sing-box-subscription.txt
+          git add -A v3
 
-          if git diff --cached --quiet -- proxy/sing-box proxy/sing-box.b64 proxy/sing-box-subscription.txt; then
+          if git diff --cached --quiet -- v3; then
             echo "No generated file changes detected."
             exit 0
           fi
 
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action Bot"
-          git commit -m "chore(proxy): rebuild sing-box subscription from v3"
+          git commit -m "chore(sub): rebuild lightweight v3 from v1"
           git push origin HEAD:${GITHUB_REF_NAME}

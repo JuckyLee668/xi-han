@@ -69,13 +69,15 @@ jobs:
       - name: Commit and push when changed
         run: |
           set -euo pipefail
-          if git diff --quiet -- proxy/sing-box proxy/sing-box.b64 proxy/sing-box-subscription.txt; then
+
+          git add -A proxy/sing-box proxy/sing-box.b64 proxy/sing-box-subscription.txt
+
+          if git diff --cached --quiet -- proxy/sing-box proxy/sing-box.b64 proxy/sing-box-subscription.txt; then
             echo "No generated file changes detected."
             exit 0
           fi
 
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action Bot"
-          git add proxy/sing-box proxy/sing-box.b64 proxy/sing-box-subscription.txt
           git commit -m "chore(proxy): rebuild sing-box subscription from v2"
           git push origin HEAD:${GITHUB_REF_NAME}

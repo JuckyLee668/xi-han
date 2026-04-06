@@ -50,7 +50,7 @@ jobs:
       - name: Commit and push when changed
         run: |
           set -euo pipefail
-          if git diff --quiet; then
+          if [ -z "$(git status --porcelain -- proxy/src)" ]; then
             echo "No source changes detected."
             exit 0
           fi

@@ -93,16 +93,18 @@
       "outbounds": [
         "auto",
         "direct",
-        "233boy-tcp-38.146.29.202",
-        "233boy-reality-38.146.29.202"
+        "l2speed",
+        "l0speed",
+        "l3speed"
       ]
     },
     {
       "type": "urltest",
       "tag": "auto",
       "outbounds": [
-        "233boy-tcp-38.146.29.202",
-        "233boy-reality-38.146.29.202"
+        "l2speed",
+        "l0speed",
+        "l3speed"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
@@ -114,7 +116,47 @@
     },
     {
       "type": "vless",
-      "tag": "233boy-tcp-38.146.29.202",
+      "tag": "l2speed",
+      "server": "209.146.116.246",
+      "server_port": 9000,
+      "uuid": "419dd275-26b3-4229-8389-c2ea22a85bf1",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "aws.amazon.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "etuNmSS7NhxAg5o_sNtBnZRXwuJ85oNJdQvyHOKMaDA"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "l0speed",
+      "server": "104.234.36.155",
+      "server_port": 9008,
+      "uuid": "5c87e0f0-5c7d-4d0b-85e8-99f2d88f04f2",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "aws.amazon.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "FyQTstL9AhRcO6ZiyDkTQYRLkma7USEU-l_insSodC8"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "l3speed",
       "server": "38.146.29.202",
       "server_port": 30091,
       "uuid": "a644032d-11fa-48c1-b17c-70baf924cb81",
@@ -129,26 +171,6 @@
         "reality": {
           "enabled": true,
           "public_key": "LXw2KURfKrEcjMe2zV2ppIvTM40Wh3Fo0QbMn8HdwCQ"
-        }
-      }
-    },
-    {
-      "type": "vless",
-      "tag": "233boy-reality-38.146.29.202",
-      "server": "38.146.29.202",
-      "server_port": 47614,
-      "uuid": "74b060c1-51b7-4f07-bac3-3686546584f3",
-      "flow": "xtls-rprx-vision",
-      "tls": {
-        "enabled": true,
-        "server_name": "www.cloudflare.com",
-        "utls": {
-          "enabled": true,
-          "fingerprint": "chrome"
-        },
-        "reality": {
-          "enabled": true,
-          "public_key": "kze0W0o4sWSLsyDMA5z4E47JDq-Tpdrbu9SlaTvvbRk"
         }
       }
     }

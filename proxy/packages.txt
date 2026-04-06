@@ -1,0 +1,8 @@
+xray_core_file=proxy/Xray-windows-64.zip
+xray_core_info=proxy/Xray-windows-64.latest.txt
+v2rayNG_file=proxy/v2rayNG-android-arm64-v8a.apk
+v2rayNG_info=proxy/v2rayNG-android-arm64-v8a.latest.txt
+sing_box_file=proxy/sing-box-windows-amd64.zip
+sing_box_info=proxy/sing-box-windows-amd64.latest.txt
+sing_box_android_file=proxy/sing-box-android-arm64-v8a.apk
+sing_box_android_info=proxy/sing-box-android-arm64-v8a.latest.txt

@@ -1,7 +1,0 @@
-# sing-box 订阅地址
-
-- 文本订阅（推荐）: https://raw.githubusercontent.com/JuckyLee668/xi-han/main/proxy/sing-box
-- Base64订阅: https://raw.githubusercontent.com/JuckyLee668/xi-han/main/proxy/sing-box.b64
-
-# 生成时间（UTC）
-2026-04-06T12:12:01Z

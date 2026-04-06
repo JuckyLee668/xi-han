@@ -53,64 +53,114 @@ jobs:
             echo "source_commit=$(git -C /tmp/upstream-sources/Xray rev-parse HEAD)"
           } > proxy/src/Xray/UPSTREAM
 
-      - name: Download latest proxy client packages to proxy
+      - name: Sync latest proxy client package metadata and files
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
+          command -v jq >/dev/null 2>&1 || {
+            sudo apt-get update
+            sudo apt-get install -y jq
+          }
 
           mkdir -p proxy
 
-          download_latest_asset() {
+          # GitHub single-file hard limit is 100MB; keep a safety margin.
+          MAX_BYTES=$((95 * 1024 * 1024))
+
+          get_latest_asset_json() {
             local repo="$1"
             local pattern="$2"
-            local output="$3"
 
             local api="https://api.github.com/repos/${repo}/releases/latest"
-            local url
-            url=$(curl -fsSL \
+            curl -fsSL \
               -H "Authorization: Bearer ${GH_TOKEN}" \
               -H "Accept: application/vnd.github+json" \
               "$api" \
-              | jq -r --arg re "$pattern" '.assets[] | select(.name | test($re)) | .browser_download_url' \
-              | head -n 1)
+              | jq -c --arg re "$pattern" '.assets[] | select(.name | test($re)) | {name, browser_download_url, size}' \
+              | head -n 1
+          }
 
-            if [ -z "$url" ] || [ "$url" = "null" ]; then
+          save_asset_or_link() {
+            local repo="$1"
+            local pattern="$2"
+            local local_file="$3"
+            local link_file="$4"
+
+            local asset_json
+            asset_json="$(get_latest_asset_json "$repo" "$pattern")"
+            if [ -z "$asset_json" ] || [ "$asset_json" = "null" ]; then
               echo "No asset matched pattern ${pattern} in ${repo}"
               exit 1
             fi
 
-            echo "Downloading $url"
-            curl -fL --retry 3 --retry-delay 2 "$url" -o "$output"
+            local name url size
+            name="$(echo "$asset_json" | jq -r '.name')"
+            url="$(echo "$asset_json" | jq -r '.browser_download_url')"
+            size="$(echo "$asset_json" | jq -r '.size')"
+
+            {
+              echo "repo=${repo}"
+              echo "name=${name}"
+              echo "size_bytes=${size}"
+              echo "download_url=${url}"
+            } > "$link_file"
+
+            # Remove stale binary before optionally downloading a fresh one.
+            rm -f "$local_file"
+
+            if [ "$size" -gt "$MAX_BYTES" ]; then
+              echo "Skip ${name} (${size} bytes): exceeds safe git size."
+              return 0
+            fi
+
+            echo "Downloading ${name} (${size} bytes)"
+            curl -fL --retry 3 --retry-delay 2 "$url" -o "$local_file"
           }
 
-          download_latest_asset "2dust/v2rayN" "v2rayN-windows-64\\.zip$" "proxy/v2rayN-windows-64.zip"
-          download_latest_asset "2dust/v2rayNG" "arm64-v8a\\.apk$" "proxy/v2rayNG-android-arm64-v8a.apk"
-          download_latest_asset "SagerNet/sing-box" "windows-amd64.*\\.zip$" "proxy/sing-box-windows-amd64.zip"
+          save_asset_or_link "XTLS/Xray-core" "Xray-windows-64\\.zip$" "proxy/Xray-windows-64.zip" "proxy/Xray-windows-64.latest.txt"
+          save_asset_or_link "2dust/v2rayNG" "arm64-v8a\\.apk$" "proxy/v2rayNG-android-arm64-v8a.apk" "proxy/v2rayNG-android-arm64-v8a.latest.txt"
+          save_asset_or_link "SagerNet/sing-box" "windows-amd64.*\\.zip$" "proxy/sing-box-windows-amd64.zip" "proxy/sing-box-windows-amd64.latest.txt"
+          save_asset_or_link "SagerNet/sing-box" "android.*arm64-v8a.*\\.apk$|arm64-v8a.*android.*\\.apk$" "proxy/sing-box-android-arm64-v8a.apk" "proxy/sing-box-android-arm64-v8a.latest.txt"
 
       - name: Write package metadata
         run: |
           set -euo pipefail
           {
-            echo "v2rayN=proxy/v2rayN-windows-64.zip"
-            echo "v2rayNG=proxy/v2rayNG-android-arm64-v8a.apk"
-            echo "sing-box=proxy/sing-box-windows-amd64.zip"
+            echo "xray_core_file=proxy/Xray-windows-64.zip"
+            echo "xray_core_info=proxy/Xray-windows-64.latest.txt"
+            echo "v2rayNG_file=proxy/v2rayNG-android-arm64-v8a.apk"
+            echo "v2rayNG_info=proxy/v2rayNG-android-arm64-v8a.latest.txt"
+            echo "sing_box_file=proxy/sing-box-windows-amd64.zip"
+            echo "sing_box_info=proxy/sing-box-windows-amd64.latest.txt"
+            echo "sing_box_android_file=proxy/sing-box-android-arm64-v8a.apk"
+            echo "sing_box_android_info=proxy/sing-box-android-arm64-v8a.latest.txt"
           } > proxy/packages.txt
 
       - name: Commit and push when changed
         run: |
           set -euo pipefail
 
-          git add -A proxy/src proxy/v2rayN-windows-64.zip proxy/v2rayNG-android-arm64-v8a.apk proxy/sing-box-windows-amd64.zip proxy/packages.txt
+          git add -A proxy/src \
+            proxy/Xray-windows-64.zip proxy/Xray-windows-64.latest.txt \
+            proxy/v2rayNG-android-arm64-v8a.apk proxy/v2rayNG-android-arm64-v8a.latest.txt \
+            proxy/sing-box-windows-amd64.zip proxy/sing-box-windows-amd64.latest.txt \
+            proxy/sing-box-android-arm64-v8a.apk proxy/sing-box-android-arm64-v8a.latest.txt \
+            proxy/packages.txt
 
-          if git diff --cached --quiet -- proxy/src proxy/v2rayN-windows-64.zip proxy/v2rayNG-android-arm64-v8a.apk proxy/sing-box-windows-amd64.zip proxy/packages.txt; then
+          if git diff --cached --quiet -- proxy/src \
+            proxy/Xray-windows-64.zip proxy/Xray-windows-64.latest.txt \
+            proxy/v2rayNG-android-arm64-v8a.apk proxy/v2rayNG-android-arm64-v8a.latest.txt \
+            proxy/sing-box-windows-amd64.zip proxy/sing-box-windows-amd64.latest.txt \
+            proxy/sing-box-android-arm64-v8a.apk proxy/sing-box-android-arm64-v8a.latest.txt \
+            proxy/packages.txt; then
             echo "No source/package changes detected."
             exit 0
           fi
 
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action Bot"
-          git commit -m "chore(proxy): sync 233boy sources and latest client packages"
+          git commit -m "chore(proxy): sync sources and package metadata/files"
 
           BRANCH="${GITHUB_REF_NAME}"
           for i in 1 2 3; do

@@ -19,6 +19,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Generate lightweight runnable v3 from v1
         run: |
@@ -329,4 +331,22 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action Bot"
           git commit -m "chore(sub): rebuild lightweight v3 from v1"
-          git push origin HEAD:${GITHUB_REF_NAME}
+
+          BRANCH="${GITHUB_REF_NAME}"
+          for i in 1 2 3; do
+            if git push origin HEAD:"${BRANCH}"; then
+              echo "Push succeeded on attempt ${i}"
+              exit 0
+            fi
+
+            echo "Push failed on attempt ${i}, rebasing onto origin/${BRANCH}..."
+            git fetch origin "${BRANCH}"
+            git rebase "origin/${BRANCH}" || {
+              git rebase --abort || true
+              echo "Rebase failed"
+              exit 1
+            }
+          done
+
+          echo "Push failed after 3 attempts"
+          exit 1

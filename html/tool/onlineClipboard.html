@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>跨设备剪切板</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      color: #333;
+      padding: 20px;
+    }
+    
+    .container {
+      max-width: 1200px;
+      width: 90%;
+      margin: 0 auto;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      padding: 40px;
+      animation: fadeInUp 0.6s ease forwards;
+    }
+    
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    
+    h1 {
+      color: #2c3e50;
+      font-size: 2.5rem;
+      margin-bottom: 15px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .header-icon {
+      font-size: 3rem;
+      color: #667eea;
+      margin-bottom: 15px;
+      display: block;
+    }
+    
+    .subtitle {
+      color: #7f8c8d;
+      font-size: 1.1rem;
+      font-weight: 300;
+    }
+    
+    .warning-notice {
+      background: linear-gradient(135deg, #f39c12, #e67e22);
+      color: white;
+      padding: 15px 20px;
+      border-radius: 12px;
+      margin-bottom: 30px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 5px 15px rgba(243, 156, 18, 0.3);
+    }
+    
+    .warning-notice i {
+      font-size: 1.2rem;
+    }
+    
+    .input-section {
+      background: white;
+      border-radius: 15px;
+      padding: 30px;
+      margin-bottom: 30px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+      border: 1px solid #e8ecf0;
+    }
+    
+    .input-group {
+      margin-bottom: 25px;
+    }
+    
+    .input-group label {
+      display: block;
+      color: #2c3e50;
+      font-weight: 600;
+      margin-bottom: 8px;
+      font-size: 1rem;
+    }
+    
+    .input-group label i {
+      margin-right: 8px;
+      color: #667eea;
+    }
+    
+    input, textarea {
+      width: 100%;
+      padding: 15px 20px;
+      border: 2px solid #e8ecf0;
+      border-radius: 12px;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+      background: #f8f9fa;
+      font-family: inherit;
+    }
+    
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: #667eea;
+      background: white;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+    
+    .button-group {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 25px;
+    }
+    
+    button {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      padding: 15px 25px;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+      min-width: 120px;
+      justify-content: center;
+    }
+    
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    }
+    
+    button:active {
+      transform: translateY(0);
+    }
+    
+    button.secondary {
+      background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+      box-shadow: 0 5px 15px rgba(149, 165, 166, 0.3);
+    }
+    
+    button.secondary:hover {
+      box-shadow: 0 8px 25px rgba(149, 165, 166, 0.4);
+    }
+    
+    button.success {
+      background: linear-gradient(135deg, #27ae60, #2ecc71);
+      box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);
+    }
+    
+    button.success:hover {
+      box-shadow: 0 8px 25px rgba(39, 174, 96, 0.4);
+    }
+    
+    .result-section {
+      background: white;
+      border-radius: 15px;
+      padding: 30px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+      border: 1px solid #e8ecf0;
+    }
+    
+    .result-section h2 {
+      color: #2c3e50;
+      font-size: 1.5rem;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .result-section h2 i {
+      color: #667eea;
+    }
+    
+    #result {
+      background: #f8f9fa;
+      border: 2px solid #e8ecf0;
+      border-radius: 12px;
+      padding: 20px;
+      font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+      font-size: 0.95rem;
+      line-height: 1.6;
+      min-height: 120px;
+      white-space: pre-wrap;
+      word-break: break-all;
+      color: #2c3e50;
+      transition: all 0.3s ease;
+    }
+    
+    #result:empty::before {
+      content: "结果将显示在这里...";
+      color: #95a5a6;
+      font-style: italic;
+    }
+    
+    .loading {
+      display: none;
+      text-align: center;
+      color: #667eea;
+      font-weight: 600;
+      margin: 20px 0;
+    }
+    
+    .loading i {
+      animation: spin 1s linear infinite;
+      margin-right: 8px;
+    }
+    
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    
+    .success-message, .error-message {
+      padding: 15px 20px;
+      border-radius: 12px;
+      margin: 15px 0;
+      display: none;
+      align-items: center;
+      gap: 10px;
+      animation: slideIn 0.3s ease;
+    }
+    
+    .success-message {
+      background: linear-gradient(135deg, #d4edda, #c3e6cb);
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    
+    .error-message {
+      background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateX(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+    
+    /* 响应式设计 */
+    @media (max-width: 768px) {
+      .container {
+        margin: 10px;
+        padding: 25px 20px;
+      }
+      
+      h1 {
+        font-size: 2rem;
+      }
+      
+      .button-group {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      
+      button {
+        justify-content: center;
+      }
+      
+      .input-section,
+      .result-section {
+        padding: 20px;
+      }
+    }
+    
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <i class="fas fa-cloud-upload-alt header-icon"></i>
+      <h1>跨设备剪切板</h1>
+      <p class="subtitle">安全便捷的云端剪切板服务</p>
+    </div>
+    
+    <div class="warning-notice">
+      <i class="fas fa-clock"></i>
+      <span>数据保存时间为7天，到期自动删除，请及时备份重要内容</span>
+    </div>
+    
+    <div class="input-section">
+      <div class="input-group">
+        <label for="key">
+          <i class="fas fa-key"></i>
+          密钥 (Key)
+        </label>
+        <input id="key" type="text" placeholder="请输入唯一标识符，如：myClipboard2024" />
+      </div>
+      
+      <div class="input-group">
+        <label for="value">
+          <i class="fas fa-edit"></i>
+          内容 (Content)
+        </label>
+        <textarea id="value" placeholder="请输入要保存的内容，支持文本、链接、代码等"></textarea>
+      </div>
+      
+      <div class="button-group">
+        <button id="save">
+          <i class="fas fa-save"></i>
+          保存
+        </button>
+        <button id="retrieve" class="secondary">
+          <i class="fas fa-download"></i>
+          获取
+        </button>
+        <button id="copy" class="success">
+          <i class="fas fa-copy"></i>
+          复制
+        </button>
+      </div>
+      
+      <div class="loading" id="loading">
+        <i class="fas fa-spinner"></i>
+        处理中...
+      </div>
+      
+      <div class="success-message" id="successMessage">
+        <i class="fas fa-check-circle"></i>
+        <span></span>
+      </div>
+      
+      <div class="error-message" id="errorMessage">
+        <i class="fas fa-exclamation-circle"></i>
+        <span></span>
+      </div>
+    </div>
+    
+    <div class="result-section">
+      <h2>
+        <i class="fas fa-terminal"></i>
+        结果
+      </h2>
+      <pre id="result"></pre>
+    </div>
+  </div>
+
+  <script>
+    const baseURL = 'https://api.xi-han.top';
+    
+    // 显示加载状态
+    function showLoading() {
+      document.getElementById('loading').style.display = 'block';
+      hideMessages();
+    }
+    
+    // 隐藏加载状态
+    function hideLoading() {
+      document.getElementById('loading').style.display = 'none';
+    }
+    
+    // 显示成功消息
+    function showSuccess(message) {
+      const successDiv = document.getElementById('successMessage');
+      successDiv.querySelector('span').textContent = message;
+      successDiv.style.display = 'flex';
+      setTimeout(() => {
+        successDiv.style.display = 'none';
+      }, 3000);
+    }
+    
+    // 显示错误消息
+    function showError(message) {
+      const errorDiv = document.getElementById('errorMessage');
+      errorDiv.querySelector('span').textContent = message;
+      errorDiv.style.display = 'flex';
+      setTimeout(() => {
+        errorDiv.style.display = 'none';
+      }, 5000);
+    }
+    
+    // 隐藏所有消息
+    function hideMessages() {
+      document.getElementById('successMessage').style.display = 'none';
+      document.getElementById('errorMessage').style.display = 'none';
+    }
+
+    document.getElementById('save').addEventListener('click', async () => {
+      const key = document.getElementById('key').value.trim();
+      const value = document.getElementById('value').value.trim();
+      
+      if (!key) {
+        showError('请输入密钥');
+        return;
+      }
+      
+      if (!value) {
+        showError('请输入要保存的内容');
+        return;
+      }
+      
+      showLoading();
+      
+      try {
+        const res = await fetch(`${baseURL}/save`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ key, value }),
+        });
+        
+        const resultText = await res.text();
+        document.getElementById('result').textContent = resultText;
+        
+        if (res.ok) {
+          showSuccess('保存成功！');
+        } else {
+          showError('保存失败：' + resultText);
+        }
+      } catch (error) {
+        showError('网络错误：' + error.message);
+        document.getElementById('result').textContent = '网络连接失败';
+      } finally {
+        hideLoading();
+      }
+    });
+
+    document.getElementById('retrieve').addEventListener('click', async () => {
+      const key = document.getElementById('key').value.trim();
+      
+      if (!key) {
+        showError('请输入密钥');
+        return;
+      }
+      
+      showLoading();
+      
+      try {
+        const res = await fetch(`${baseURL}/retrieve/${key}`, {
+          method: 'GET',
+        });
+        
+        if (res.ok) {
+          const resultText = await res.text();
+          document.getElementById('result').textContent = resultText;
+          showSuccess('获取成功！');
+        } else {
+          document.getElementById('result').textContent = '未找到数据';
+          showError('未找到对应的数据，请检查密钥是否正确');
+        }
+      } catch (error) {
+        showError('网络错误：' + error.message);
+        document.getElementById('result').textContent = '网络连接失败';
+      } finally {
+        hideLoading();
+      }
+    });
+
+    document.getElementById('copy').addEventListener('click', async () => {
+      const resultText = document.getElementById('result').textContent.trim();
+      
+      if (!resultText || resultText === '结果将显示在这里...') {
+        showError('没有可复制的内容');
+        return;
+      }
+      
+      try {
+        await navigator.clipboard.writeText(resultText);
+        showSuccess('复制成功！内容已复制到剪切板');
+      } catch (err) {
+        // 降级方案：使用传统的复制方法
+        try {
+          const textArea = document.createElement('textarea');
+          textArea.value = resultText;
+          document.body.appendChild(textArea);
+          textArea.select();
+          document.execCommand('copy');
+          document.body.removeChild(textArea);
+          showSuccess('复制成功！内容已复制到剪切板');
+        } catch (fallbackErr) {
+          showError('复制失败，请手动复制内容');
+          console.error('复制失败', err, fallbackErr);
+        }
+      }
+    });
+    
+    // 回车键快捷操作
+    document.getElementById('key').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        document.getElementById('retrieve').click();
+      }
+    });
+    
+    document.getElementById('value').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter' && e.ctrlKey) {
+        document.getElementById('save').click();
+      }
+    });
+  </script>
+</body>
+</html>

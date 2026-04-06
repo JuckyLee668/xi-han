@@ -118,42 +118,35 @@ jobs:
             curl -fL --retry 3 --retry-delay 2 "$url" -o "$local_file"
           }
 
-          save_asset_or_link "XTLS/Xray-core" "Xray-windows-64\\.zip$" "proxy/Xray-windows-64.zip" "proxy/Xray-windows-64.latest.txt"
-          save_asset_or_link "2dust/v2rayNG" "arm64-v8a\\.apk$" "proxy/v2rayNG-android-arm64-v8a.apk" "proxy/v2rayNG-android-arm64-v8a.latest.txt"
-          save_asset_or_link "SagerNet/sing-box" "windows-amd64.*\\.zip$" "proxy/sing-box-windows-amd64.zip" "proxy/sing-box-windows-amd64.latest.txt"
-          save_asset_or_link "SagerNet/sing-box" "android.*arm64-v8a.*\\.apk$|arm64-v8a.*android.*\\.apk$" "proxy/sing-box-android-arm64-v8a.apk" "proxy/sing-box-android-arm64-v8a.latest.txt"
-
+          save_asset_or_link "XTLS/Xray-core" "Xray-windows-64\\.zip$" "proxy/Xray-windows-64.zip"
+          save_asset_or_link "2dust/v2rayNG" "arm64-v8a\\.apk$" "proxy/v2rayNG-android-arm64-v8a.apk"
+          save_asset_or_link "SagerNet/sing-box" "windows-amd64.*\\.zip$" "proxy/sing-box-windows-amd64.zip"
+          save_asset_or_link "SagerNet/sing-box" "android.*arm64-v8a.*\\.apk$|arm64-v8a.*android.*\\.apk$" "proxy/sing-box-android-arm64-v8a.apk"
       - name: Write package metadata
         run: |
           set -euo pipefail
           {
             echo "xray_core_file=proxy/Xray-windows-64.zip"
-            echo "xray_core_info=proxy/Xray-windows-64.latest.txt"
             echo "v2rayNG_file=proxy/v2rayNG-android-arm64-v8a.apk"
-            echo "v2rayNG_info=proxy/v2rayNG-android-arm64-v8a.latest.txt"
             echo "sing_box_file=proxy/sing-box-windows-amd64.zip"
-            echo "sing_box_info=proxy/sing-box-windows-amd64.latest.txt"
             echo "sing_box_android_file=proxy/sing-box-android-arm64-v8a.apk"
-            echo "sing_box_android_info=proxy/sing-box-android-arm64-v8a.latest.txt"
-          } > proxy/packages.txt
+          } 
 
       - name: Commit and push when changed
         run: |
           set -euo pipefail
 
           git add -A proxy/src \
-            proxy/Xray-windows-64.zip proxy/Xray-windows-64.latest.txt \
-            proxy/v2rayNG-android-arm64-v8a.apk proxy/v2rayNG-android-arm64-v8a.latest.txt \
-            proxy/sing-box-windows-amd64.zip proxy/sing-box-windows-amd64.latest.txt \
-            proxy/sing-box-android-arm64-v8a.apk proxy/sing-box-android-arm64-v8a.latest.txt \
-            proxy/packages.txt
+            proxy/Xray-windows-64.zip  \
+            proxy/v2rayNG-android-arm64-v8a.apk \
+            proxy/sing-box-windows-amd64.zip  \
+            proxy/sing-box-android-arm64-v8a.apk  \
 
           if git diff --cached --quiet -- proxy/src \
-            proxy/Xray-windows-64.zip proxy/Xray-windows-64.latest.txt \
-            proxy/v2rayNG-android-arm64-v8a.apk proxy/v2rayNG-android-arm64-v8a.latest.txt \
-            proxy/sing-box-windows-amd64.zip proxy/sing-box-windows-amd64.latest.txt \
-            proxy/sing-box-android-arm64-v8a.apk proxy/sing-box-android-arm64-v8a.latest.txt \
-            proxy/packages.txt; then
+            proxy/Xray-windows-64.zip \
+            proxy/v2rayNG-android-arm64-v8a.apk \
+            proxy/sing-box-windows-amd64.zip  \
+            proxy/sing-box-android-arm64-v8a.apk  ; then
             echo "No source/package changes detected."
             exit 0
           fi

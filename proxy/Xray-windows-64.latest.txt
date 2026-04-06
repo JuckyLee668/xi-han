@@ -1,0 +1,4 @@
+repo=XTLS/Xray-core
+name=Xray-windows-64.zip
+size_bytes=20913304
+download_url=https://github.com/XTLS/Xray-core/releases/download/v26.3.27/Xray-windows-64.zip

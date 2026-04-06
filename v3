@@ -1,65 +1,20 @@
-[
-  {
-    "tag": "l2speed",
-    "type": "vless",
-    "server": "209.146.116.246",
-    "server_port": 9000,
-    "uuid": "419dd275-26b3-4229-8389-c2ea22a85bf1",
-    "tls": {
+{
+  "type": "vless",
+  "tag": "233boy-tcp-38.146.29.202",
+  "server": "38.146.29.202",
+  "server_port": 30091,
+  "uuid": "a644032d-11fa-48c1-b17c-70baf924cb81",
+  "flow": "xtls-rprx-vision",
+  "tls": {
+    "enabled": true,
+    "server_name": "www.amazon.com",
+    "utls": {
       "enabled": true,
-      "server_name": "aws.amazon.com",
-      "insecure": false,
-      "reality": {
-        "enabled": true,
-        "public_key": "etuNmSS7NhxAg5o_sNtBnZRXwuJ85oNJdQvyHOKMaDA"
-      },
-      "utls": {
-        "enabled": true,
-        "fingerprint": "chrome"
-      }
+      "fingerprint": "chrome"
     },
-    "flow": "xtls-rprx-vision"
-  },
-  {
-    "tag": "l0speed",
-    "type": "vless",
-    "server": "104.234.36.155",
-    "server_port": 9008,
-    "uuid": "5c87e0f0-5c7d-4d0b-85e8-99f2d88f04f2",
-    "tls": {
+    "reality": {
       "enabled": true,
-      "server_name": "aws.amazon.com",
-      "insecure": false,
-      "reality": {
-        "enabled": true,
-        "public_key": "FyQTstL9AhRcO6ZiyDkTQYRLkma7USEU-l_insSodC8"
-      },
-      "utls": {
-        "enabled": true,
-        "fingerprint": "chrome"
-      }
-    },
-    "flow": "xtls-rprx-vision"
-  },
-  {
-    "tag": "l3speed",
-    "type": "vless",
-    "server": "38.146.29.202",
-    "server_port": 30091,
-    "uuid": "a644032d-11fa-48c1-b17c-70baf924cb81",
-    "tls": {
-      "enabled": true,
-      "server_name": "www.amazon.com",
-      "insecure": false,
-      "reality": {
-        "enabled": true,
-        "public_key": "LXw2KURfKrEcjMe2zV2ppIvTM40Wh3Fo0QbMn8HdwCQ"
-      },
-      "utls": {
-        "enabled": true,
-        "fingerprint": "chrome"
-      }
-    },
-    "flow": "xtls-rprx-vision"
+      "public_key": "LXw2KURfKrEcjMe2zV2ppIvTM40Wh3Fo0QbMn8HdwCQ"
+    }
   }
-]
+}

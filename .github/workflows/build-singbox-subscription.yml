@@ -3,7 +3,7 @@
 on:
   push:
     paths:
-      - v2
+      - v3
   workflow_dispatch:
 
 concurrency:
@@ -20,19 +20,19 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Generate sing-box subscription artifacts from v2
+      - name: Generate sing-box subscription artifacts from v3
         run: |
           set -euo pipefail
 
-          if [ ! -s v2 ]; then
-            echo "v2 file is missing or empty"
+          if [ ! -s v3 ]; then
+            echo "v3 file is missing or empty"
             exit 1
           fi
 
           mkdir -p proxy
 
           # Decode base64 in stream mode and keep error details for troubleshooting.
-          if ! tr -d '\r\n' < v2 | base64 --decode > proxy/sing-box 2>proxy/.decode_error.log; then
+          if ! tr -d '\r\n' < v3 | base64 --decode > proxy/sing-box 2>proxy/.decode_error.log; then
             echo "Base64 decode failed:"
             cat proxy/.decode_error.log
             exit 1
@@ -79,5 +79,5 @@ jobs:
 
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action Bot"
-          git commit -m "chore(proxy): rebuild sing-box subscription from v2"
+          git commit -m "chore(proxy): rebuild sing-box subscription from v3"
           git push origin HEAD:${GITHUB_REF_NAME}

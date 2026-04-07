@@ -2,6 +2,8 @@ name: Sync Proxy Sources And Packages
 
 on:
   push:
+    paths:
+      - v2
   workflow_dispatch:
 
 concurrency:

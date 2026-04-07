@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xi Han | Spring's blossoms, winter's reverie</title>
+    <link rel="shortcut icon" href="assets/images/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/fonts/iconfont.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+            background: radial-gradient(circle at 20% 20%, #242424 0%, #121212 40%, #090909 100%);
+            min-height: 100vh;
+            color: #f5f5f7;
+            overflow-x: hidden;
+            letter-spacing: 0.01em;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* 头部导航 */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(19, 19, 20, 0.78);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.3s ease;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+        }
+
+        .logo {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #f5f5f7;
+            text-decoration: none;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 30px;
+            align-items: center;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: #d8d8da;
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 999px;
+            transition: all 0.3s ease;
+            position: relative;
+            border: 1px solid transparent;
+        }
+
+        nav a:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff;
+            border-color: rgba(255, 255, 255, 0.18);
+        }
+
+        /* 主内容区 */
+        main {
+            margin-top: 80px;
+            min-height: calc(100vh - 160px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 60px 0;
+        }
+
+        .hero-section {
+            background: linear-gradient(160deg, rgba(36, 36, 37, 0.9), rgba(16, 16, 16, 0.84));
+            backdrop-filter: blur(10px);
+            border-radius: 28px;
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            padding: 68px 48px;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.4);
+            margin-bottom: 40px;
+            animation: fadeInUp 0.8s ease;
+        }
+
+        .hero-title {
+            font-size: 3.8rem;
+            font-weight: 700;
+            background: linear-gradient(90deg, #ffffff 0%, #b9bdc5 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 20px;
+            letter-spacing: -0.02em;
+        }
+
+        .hero-subtitle {
+            font-size: 1.3rem;
+            color: #b8bcc4;
+            margin-bottom: 30px;
+            font-weight: 400;
+        }
+
+        .hero-description {
+            font-size: 1.05rem;
+            color: #d2d5db;
+            line-height: 1.8;
+            max-width: 600px;
+            margin: 0 auto 40px;
+        }
+
+        .hero-tags {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .hero-tags span {
+            padding: 8px 14px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            background: rgba(255, 255, 255, 0.05);
+            color: #eceef3;
+            font-size: 0.86rem;
+        }
+
+        /* 特色卡片网格 */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            max-width: 1200px;
+            width: 100%;
+            margin-bottom: 40px;
+        }
+
+        .feature-card {
+            background: linear-gradient(180deg, #181819 0%, #101011 100%);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 18px 36px rgba(0, 0, 0, 0.35);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            text-align: center;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #8f939a, #ffffff);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 24px 42px rgba(0, 0, 0, 0.42);
+            border-color: rgba(255, 255, 255, 0.24);
+        }
+
+        .feature-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            color: #f0f2f6;
+            margin-bottom: 20px;
+            display: block;
+        }
+
+        .feature-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 12px;
+        }
+
+        .feature-description {
+            color: #bec2ca;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        /* 页脚 */
+        footer {
+            background: rgba(15, 15, 16, 0.86);
+            backdrop-filter: blur(10px);
+            padding: 30px 0;
+            text-align: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.09);
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        .footer-link {
+            color: #f5f5f7;
+            font-size: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .footer-link:hover {
+            color: #9ea3ab;
+            transform: translateY(-2px);
+        }
+
+        .footer-text {
+            color: #b7bac0;
+            font-size: 0.95rem;
+        }
+
+        /* 动画 */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .feature-card {
+            animation: fadeInUp 0.6s ease forwards;
+        }
+
+        .feature-card:nth-child(1) { animation-delay: 0.1s; }
+        .feature-card:nth-child(2) { animation-delay: 0.2s; }
+        .feature-card:nth-child(3) { animation-delay: 0.3s; }
+        .feature-card:nth-child(4) { animation-delay: 0.4s; }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 15px;
+            }
+
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            nav ul {
+                flex-wrap: wrap;
+                gap: 15px;
+                justify-content: center;
+            }
+
+            .hero-section {
+                padding: 40px 25px;
+                margin: 20px 0;
+            }
+
+            .hero-title {
+                font-size: 2.5rem;
+            }
+
+            .services-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .feature-card {
+                padding: 25px 20px;
+            }
+
+            .footer-content {
+                gap: 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero-title {
+                font-size: 2rem;
+            }
+
+            .hero-subtitle {
+                font-size: 1.1rem;
+            }
+
+            .image-container {
+                height: 200px;
+            }
+        }
+
+        /* 滚动时头部样式调整 */
+        .header-scrolled {
+            background: rgba(13, 13, 14, 0.92);
+        }
+    </style>
+</head>
+<body>
+    <header id="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="#" class="logo">Xi Han</a>
+                <nav>
+                    <ul>
+                        <li><a href="https://boke.xi-han.top/"><i class="fas fa-blog"></i> 博客</a></li>
+                        <li><a href="https://graph.xi-han.top/"><i class="fas fa-images"></i> 图床</a></li>
+                        <li><a href="https://alist.xi-han.top/"><i class="fas fa-cloud"></i> 网盘</a></li>
+                        <li><a href="https://tv.xi-han.top/"><i class="fas fa-video"></i> 在线视频</a></li>
+                        <li><a href="https://durablechat.xi-han.top"><i class="fas fa-comments"></i> 聊天室</a></li>
+                        <li><a href="./html/tools.html"><i class="fas fa-tools"></i> 小工具</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <div class="hero-section">
+                <h1 class="hero-title">Xi Han</h1>
+                <p class="hero-subtitle">春天的花，冬天的梦</p>
+                <p class="hero-description">
+                    我偏爱简约、有秩序、专注内容的设计语言。
+                    这里是我的个人数字花园：记录技术探索，沉淀开源实践，
+                    也保留一些关于生活与创作的灵感片段。
+                </p>
+                <div class="hero-tags">
+                    <span>Developer</span>
+                    <span>Builder</span>
+                </div>
+            </div>
+
+            <div class="features-grid">
+                <div class="feature-card">
+                    <i class="fas fa-rocket feature-icon"></i>
+                    <h3 class="feature-title">技术探索</h3>
+                    <p class="feature-description">聚焦可复用方案，持续打磨工程效率与产品体验。</p>
+                </div>
+
+                <div class="feature-card">
+                    <i class="fas fa-code feature-icon"></i>
+                    <h3 class="feature-title">开源实践</h3>
+                    <p class="feature-description">通过真实项目沉淀工具链与方法论，保持长期迭代。</p>
+                </div>
+
+                <div class="feature-card">
+                    <i class="fas fa-lightbulb feature-icon"></i>
+                    <h3 class="feature-title">产品思维</h3>
+                    <p class="feature-description">从用户场景出发，追求简洁、稳定、可持续的设计。</p>
+                </div>
+
+                <div class="feature-card">
+                    <i class="fas fa-users feature-icon"></i>
+                    <h3 class="feature-title">个人表达</h3>
+                    <p class="feature-description">代码、文字与灵感并行，保持克制但有温度的风格。</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <a href="https://github.xi-han.top/JuckyLee668" class="footer-link">
+                    <i class="fab fa-github"></i>
+                </a>
+                <a href="html/xray.html" class="footer-link">
+                    <i class="fas fa-map-marker-alt"></i>
+                </a>
+                <span class="footer-text">© 2026 Xi Han | Chengdu | a@xi-han.top</span>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // 滚动时头部样式变化
+        window.addEventListener('scroll', function() {
+            const header = document.getElementById('header');
+            if (window.scrollY > 50) {
+                header.classList.add('header-scrolled');
+            } else {
+                header.classList.remove('header-scrolled');
+            }
+        });
+
+        // 平滑滚动
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // 页面加载动画
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.feature-card');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, { threshold: 0.1 });
+
+            cards.forEach(card => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(30px)';
+                observer.observe(card);
+            });
+        });
+    </script>
+</body>
+</html>

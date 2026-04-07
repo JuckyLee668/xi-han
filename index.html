@@ -3,448 +3,281 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Xi Han | Spring's blossoms, winter's reverie</title>
-    <link rel="shortcut icon" href="assets/images/favicon.ico" type="image/x-icon">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="assets/fonts/iconfont.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/octicons/19.8.0/octicons.min.css">
+    <title>夜寒半两风 | Xi Han</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        /* 1. 全局重置与基础样式 */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        html, body {
+            min-height: 100%;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
-            background: radial-gradient(circle at 20% 20%, #242424 0%, #121212 40%, #090909 100%);
-            min-height: 100vh;
-            color: #f5f5f7;
-            overflow-x: hidden;
-            letter-spacing: 0.01em;
+            font-family: "Inter", "Microsoft YaHei", sans-serif;
+            background: linear-gradient(135deg, #0f1324 0%, #1a1f3a 25%, #0d0f1f 50%, #1a1f3a 75%, #0f1324 100%);
+            background-attachment: fixed;
+            color: #f5f5ff;
+            padding: 8vh 20px;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            position: relative;
         }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 0 20px;
-        }
-
-        /* 头部导航 */
-        header {
+        
+        body::before {
+            content: '';
             position: fixed;
             top: 0;
             left: 0;
-            right: 0;
-            background: rgba(19, 19, 20, 0.78);
-            backdrop-filter: blur(10px);
-            z-index: 1000;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-            transition: all 0.3s ease;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 20% 50%, rgba(184, 160, 255, 0.08) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 80%, rgba(100, 200, 255, 0.06) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
         }
-
-        .header-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px 0;
-        }
-
-        .logo {
-            font-size: 1.2rem;
-            font-weight: 600;
-            color: #f5f5f7;
-            text-decoration: none;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-        }
-
-        nav ul {
-            display: flex;
-            list-style: none;
-            gap: 30px;
-            align-items: center;
-        }
-
-        nav a {
-            text-decoration: none;
-            color: #d8d8da;
-            font-weight: 500;
-            padding: 8px 16px;
-            border-radius: 999px;
-            transition: all 0.3s ease;
+        
+        .page-wrapper {
             position: relative;
-            border: 1px solid transparent;
+            z-index: 1;
         }
 
-        nav a:hover {
-            background: rgba(255, 255, 255, 0.08);
-            color: #fff;
-            border-color: rgba(255, 255, 255, 0.18);
+
+
+        .hero-card {
+            display: flex;
+            gap: 24px;
+            background: rgba(22, 28, 48, 0.92);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 32px;
+            min-height: 80vh;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5),
+                        0 40px 120px rgba(0, 0, 0, 0.4),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+                        inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(14px);
+            flex-direction: row;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .hero-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6),
+                        0 50px 140px rgba(0, 0, 0, 0.5),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.15),
+                        inset 0 -1px 0 rgba(0, 0, 0, 0.3);
         }
 
-        /* 主内容区 */
-        main {
-            margin-top: 80px;
-            min-height: calc(100vh - 160px);
+        .hero-panel {
             display: flex;
             flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            padding: 60px 0;
-        }
-
-        .hero-section {
-            background: linear-gradient(160deg, rgba(36, 36, 37, 0.9), rgba(16, 16, 16, 0.84));
-            backdrop-filter: blur(10px);
-            border-radius: 28px;
-            border: 1px solid rgba(255, 255, 255, 0.14);
-            padding: 68px 48px;
-            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.4);
-            margin-bottom: 40px;
-            animation: fadeInUp 0.8s ease;
-        }
-
-        .hero-title {
-            font-size: 3.8rem;
-            font-weight: 700;
-            background: linear-gradient(90deg, #ffffff 0%, #b9bdc5 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 20px;
-            letter-spacing: -0.02em;
-        }
-
-        .hero-subtitle {
-            font-size: 1.3rem;
-            color: #b8bcc4;
-            margin-bottom: 30px;
-            font-weight: 400;
-        }
-
-        .hero-description {
-            font-size: 1.05rem;
-            color: #d2d5db;
-            line-height: 1.8;
-            max-width: 600px;
-            margin: 0 auto 40px;
-        }
-
-        .hero-tags {
-            display: flex;
-            justify-content: center;
+            justify-content: space-between;
+            min-width: 280px;
+            flex: 0 0 auto;         
+            flex-shrink:  0;
             flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .hero-tags span {
-            padding: 8px 14px;
-            border-radius: 999px;
-            border: 1px solid rgba(255, 255, 255, 0.18);
-            background: rgba(255, 255, 255, 0.05);
-            color: #eceef3;
-            font-size: 0.86rem;
-        }
-
-        /* 特色卡片网格 */
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 25px;
-            max-width: 1200px;
-            width: 100%;
-            margin-bottom: 40px;
-        }
-
-        .feature-card {
-            background: linear-gradient(180deg, #181819 0%, #101011 100%);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 18px 36px rgba(0, 0, 0, 0.35);
-            transition: all 0.3s ease;
+            padding: 32px 32px;
+            gap: 20px;
+            background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
             position: relative;
-            overflow: hidden;
-            text-align: center;
+            box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.05),
+                        inset -1px 0 2px rgba(0, 0, 0, 0.2);
         }
-
-        .feature-card::before {
+        
+        .hero-panel::before {
             content: '';
             position: absolute;
             top: 0;
             left: 0;
             right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, #8f939a, #ffffff);
-            transform: scaleX(0);
-            transition: transform 0.3s ease;
+            height: 1px;
+            background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,0.2), rgba(255,255,255,0));
+        }
+        .hero-panel img {
+            width: 100%;       /* 强制填满父容器宽度 */
+            height: auto;      /* 保持宽高比，防止图片变形 */
+            /* object-fit: cover; 可选：如果希望图片填满固定高度区域并裁剪多余部分 */
+            border-radius: 16px; /* 可选：配合卡片的圆角 */
+        }
+        .photo-caption {
+            padding: 24px 32px;
+            color: rgba(255,255,255,0.72);
+            letter-spacing: 0.12em;
+            font-size: 0.92rem;
         }
 
-        .feature-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 24px 42px rgba(0, 0, 0, 0.42);
-            border-color: rgba(255, 255, 255, 0.24);
+        .hero-title {
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            line-height: 1.2;
+            letter-spacing: -0.06em;
+            font-weight: 800;
+            margin-bottom: 24px;
+            max-width: 14ch;
         }
 
-        .feature-card:hover::before {
-            transform: scaleX(1);
+        .hero-description {
+            color: rgba(255,255,255,0.77);
+            line-height: 1.9;
+            font-size: 1rem;
+            max-width: 44rem;
         }
 
-        .feature-icon {
-            font-size: 2.5rem;
-            color: #f0f2f6;
-            margin-bottom: 20px;
-            display: block;
+        .hero-description a {
+            color: #b8a0ff;
+            text-decoration: underline;
         }
 
-        .feature-title {
-            font-size: 1.3rem;
-            font-weight: 600;
-            color: #ffffff;
-            margin-bottom: 12px;
-        }
-
-        .feature-description {
-            color: #bec2ca;
-            font-size: 0.95rem;
-            line-height: 1.6;
-        }
-
-        /* 页脚 */
-        footer {
-            background: rgba(15, 15, 16, 0.86);
-            backdrop-filter: blur(10px);
-            padding: 30px 0;
-            text-align: center;
-            border-top: 1px solid rgba(255, 255, 255, 0.09);
-        }
-
-        .footer-content {
+        .hero-links {
             display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 30px;
             flex-wrap: wrap;
+            gap: 16px;
+            margin-top: 16px;
         }
 
-        .footer-link {
-            color: #f5f5f7;
-            font-size: 1.5rem;
-            transition: all 0.3s ease;
+        .hero-links a {
+            color: #f5f5ff;
+            text-decoration: none;
+            border-bottom: 1px solid rgba(255,255,255,0.18);
+            padding-bottom: 2px;
+            transition: color 0.2s ease, border-color 0.2s ease;
         }
 
-        .footer-link:hover {
-            color: #9ea3ab;
-            transform: translateY(-2px);
+        .hero-links a:hover {
+            color: #d8c4ff;
+            border-color: #d8c4ff;
         }
 
-        .footer-text {
-            color: #b7bac0;
-            font-size: 0.95rem;
+        .hero-icons {
+            display: flex;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px;
+            margin-top: 32px;
+        }
+        .icon-bubble {
+            width: 48px;      /* 修改这里：最小宽度保持图标尺寸 */
+            height: 48px;     /* 修改这里：最小高度保持图标尺寸 */
+            padding: 4px 12px;    /* 新增：增加内边距，让文字有空间呼吸 */
+            margin: 10px;             /* 去掉默认外边距 */
+            /* 必须保持：让内部的图标和文字水平排列 */
+            display: flex;
+            align-items: center;  /* 垂直居中 */
+            gap: 8px;             /* 图标和文字之间的间距 */
+            
+            border-radius: 50%;   /* 注意：如果想去掉圆角，改为 8px */
+            border: 1px solid rgba(255,255,255,0.12);
+            place-items: center;
+            color: rgba(255,255,255,0.65);
+            font-size: 1.4rem;
+            transition: border-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3),
+                        inset 0 1px 2px rgba(255, 255, 255, 0.1);
         }
 
-        /* 动画 */
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .icon-bubble:hover {
+            border-color: rgba(164,138,255,0.7);
+            color: #ffffff;
+            transform: translateY(-2px) scale(1.1);
+            box-shadow: 0 8px 24px rgba(184, 160, 255, 0.4),
+                        inset 0 1px 2px rgba(255, 255, 255, 0.15);
         }
 
-        .feature-card {
-            animation: fadeInUp 0.6s ease forwards;
-        }
-
-        .feature-card:nth-child(1) { animation-delay: 0.1s; }
-        .feature-card:nth-child(2) { animation-delay: 0.2s; }
-        .feature-card:nth-child(3) { animation-delay: 0.3s; }
-        .feature-card:nth-child(4) { animation-delay: 0.4s; }
-
-        /* 响应式设计 */
-        @media (max-width: 768px) {
-            .container {
-                padding: 0 15px;
-            }
-
-            .header-content {
+        @media (max-width: 1080px) {
+            .hero-card {
                 flex-direction: column;
-                gap: 15px;
             }
+        }
 
-            nav ul {
-                flex-wrap: wrap;
-                gap: 15px;
-                justify-content: center;
+        /* @media (max-width: 680px) {
+            body {
+                padding: 24px 14px;
             }
-
-            .hero-section {
-                padding: 40px 25px;
-                margin: 20px 0;
+            。hero-card {
+                width: auto;
             }
-
+            .hero-panel {
+                padding: 28px 22px;
+            }
             .hero-title {
-                font-size: 2.5rem;
+                font-size: 2.4rem;
             }
-
-            .services-grid {
-                grid-template-columns: 1fr;
-                gap: 20px;
+            .hero-icons {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
             }
-
-            .feature-card {
-                padding: 25px 20px;
-            }
-
-            .footer-content {
-                gap: 20px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .hero-title {
-                font-size: 2rem;
-            }
-
-            .hero-subtitle {
-                font-size: 1.1rem;
-            }
-
-            .image-container {
-                height: 200px;
-            }
-        }
-
-        /* 滚动时头部样式调整 */
-        .header-scrolled {
-            background: rgba(13, 13, 14, 0.92);
-        }
+        } */
     </style>
 </head>
 <body>
-    <header id="header">
-        <div class="container">
-            <div class="header-content">
-                <a href="#" class="logo">Xi Han</a>
-                <nav>
-                    <ul>
-                        <li><a href="https://boke.xi-han.top/"><i class="fas fa-blog"></i> 博客</a></li>
-                        <li><a href="https://graph.xi-han.top/"><i class="fas fa-images"></i> 图床</a></li>
-                        <li><a href="https://alist.xi-han.top/"><i class="fas fa-cloud"></i> 网盘</a></li>
-                        <li><a href="https://tv.xi-han.top/"><i class="fas fa-video"></i> 在线视频</a></li>
-                        <li><a href="https://durablechat.xi-han.top"><i class="fas fa-comments"></i> 聊天室</a></li>
-                        <li><a href="./html/tools.html"><i class="fas fa-tools"></i> 小工具</a></li>
-                    </ul>
-                </nav>
-            </div>
-        </div>
-    </header>
-
-    <main>
-        <div class="container">
-            <div class="hero-section">
-                <h1 class="hero-title">Xi Han</h1>
-                <p class="hero-subtitle">春天的花，冬天的梦</p>
-                <p class="hero-description">
-                    我偏爱简约、有秩序、专注内容的设计语言。
-                    这里是我的个人数字花园：记录技术探索，沉淀开源实践，
-                    也保留一些关于生活与创作的灵感片段。
-                </p>
-                <div class="hero-tags">
-                    <span>Developer</span>
-                    <span>Builder</span>
-                </div>
-            </div>
-
-            <div class="features-grid">
-                <div class="feature-card">
-                    <i class="fas fa-rocket feature-icon"></i>
-                    <h3 class="feature-title">技术探索</h3>
-                    <p class="feature-description">聚焦可复用方案，持续打磨工程效率与产品体验。</p>
-                </div>
-
-                <div class="feature-card">
-                    <i class="fas fa-code feature-icon"></i>
-                    <h3 class="feature-title">开源实践</h3>
-                    <p class="feature-description">通过真实项目沉淀工具链与方法论，保持长期迭代。</p>
-                </div>
-
-                <div class="feature-card">
-                    <i class="fas fa-lightbulb feature-icon"></i>
-                    <h3 class="feature-title">产品思维</h3>
-                    <p class="feature-description">从用户场景出发，追求简洁、稳定、可持续的设计。</p>
-                </div>
-
-                <div class="feature-card">
-                    <i class="fas fa-users feature-icon"></i>
-                    <h3 class="feature-title">个人表达</h3>
-                    <p class="feature-description">代码、文字与灵感并行，保持克制但有温度的风格。</p>
-                </div>
-            </div>
-        </div>
-    </main>
-
-    <footer>
-        <div class="container">
-            <div class="footer-content">
-                <a href="https://github.xi-han.top/JuckyLee668" class="footer-link">
-                    <i class="fab fa-github"></i>
+    <div class="page-wrapper">
+        <div class="hero-card">
+            <div class="hero-panel" style="width: 300px;">
+                <a href="./html/xray.html" style="display: block;">
+                <img src="./assets/images/ahead.png" alt="Portrait">
                 </a>
-                <a href="html/xray.html" class="footer-link">
-                    <i class="fas fa-map-marker-alt"></i>
-                </a>
-                <span class="footer-text">© 2026 Xi Han | Chengdu | a@xi-han.top</span>
+                <div class="photo-caption">春天的花，冬天的梦</div>
+            </div>
+            <div class="hero-panel">
+                <div>
+                    <div class="hero-title">你好!<br>我是淅寒</div>
+                    <div class="hero-description">
+                        恭喜你发现了这个隐藏的角落！<br>
+                        生活中总是有许多乐趣。<br>
+                        所以,<br>
+                        世界这么大，热爱点什么吧！<br>
+                        <br>
+                        <br>
+                        <br>
+                        <br>
+                        <br>
+                    </div>
+                
+                    <div class="hero-links">
+                        <a href="https://boke.xi-han.top/">博客</a>
+                        <a href="https://alist.xi-han.top/">网盘</a>
+                        <a href="https://durablechat.xi-han.top">聊天</a>
+                        <a href="./html/tools.html">工具</a>
+                    </div>
+                </div>
+            </div>
+            <div class="hero-panel">
+                <div>
+                    <div class="hero-title">探索</div>
+                    <img src="./assets/images/ahead.png" style="width: 200px;" altPortrait">
+                    <img src="./assets/images/ahead.png" style="width: 200px;" altPortrait">
+                    <img src="./assets/images/ahead.png" style="width: 200px;" altPortrait">
+                    <img src="./assets/images/ahead.png" style="width: 200px;" altPortrait">
+                </div>
+            </div>
+            <div class="hero-panel">
+                <div>
+                    <div class="hero-title">Contact</div>
+                    <br>
+                    <a href="https://github.com/JuckyLee668" class="icon-bubble" target="_blank">
+                        <svg t="1775580855995" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1629" width="200" height="200"><path d="M512 12.63616c-282.74688 0-512 229.21216-512 512 0 226.22208 146.69824 418.14016 350.12608 485.82656 25.57952 4.73088 35.00032-11.10016 35.00032-24.63744 0-12.20608-0.47104-52.55168-0.69632-95.31392-142.4384 30.96576-172.50304-60.416-172.50304-60.416-23.28576-59.16672-56.85248-74.91584-56.85248-74.91584-46.44864-31.78496 3.50208-31.1296 3.50208-31.1296 51.4048 3.60448 78.47936 52.75648 78.47936 52.75648 45.6704 78.27456 119.76704 55.64416 149.01248 42.55744 4.58752-33.09568 17.85856-55.68512 32.50176-68.46464-113.72544-12.94336-233.2672-56.85248-233.2672-253.0304 0-55.88992 20.00896-101.5808 52.75648-137.4208-5.3248-12.9024-22.85568-64.96256 4.95616-135.49568 0 0 43.008-13.74208 140.84096 52.49024 40.83712-11.34592 84.64384-17.03936 128.16384-17.24416 43.49952 0.2048 87.32672 5.87776 128.24576 17.24416 97.73056-66.2528 140.65664-52.49024 140.65664-52.49024 27.87328 70.53312 10.3424 122.59328 5.03808 135.49568 32.82944 35.86048 52.69504 81.53088 52.69504 137.4208 0 196.64896-119.78752 239.94368-233.79968 252.6208 18.37056 15.89248 34.73408 47.04256 34.73408 94.80192 0 68.5056-0.59392 123.63776-0.59392 140.51328 0 13.6192 9.216 29.5936 35.16416 24.576 203.32544-67.76832 349.83936-259.62496 349.83936-485.76512 0-282.78784-229.23264-512-512-512z" fill="#444444" p-id="1630"></path></svg>
+                    </a>
+                    <a href="https://t.me/cupidLee" class="icon-bubble" target_blank">
+                        <svg t="1775581531529" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2609" width="200" height="200"><path d="M679.424 746.862l84.005-395.996c7.424-34.852-12.581-48.567-35.438-40.009L234.277 501.138c-33.72 13.13-33.134 32-5.706 40.558l126.282 39.424 293.156-184.576c13.714-9.143 26.295-3.986 16.018 5.157L426.898 615.973l-9.143 130.304c13.13 0 18.871-5.706 25.71-12.581l61.696-59.429 128 94.282c23.442 13.129 40.01 6.29 46.3-21.724zM1024 512c0 282.843-229.157 512-512 512S0 794.843 0 512 229.157 0 512 0s512 229.157 512 512z" fill="#1296DB" p-id="2610"></path></svg>
+                    </a>
+                </div>
             </div>
         </div>
-    </footer>
+    </div>
 
-    <script>
-        // 滚动时头部样式变化
-        window.addEventListener('scroll', function() {
-            const header = document.getElementById('header');
-            if (window.scrollY > 50) {
-                header.classList.add('header-scrolled');
-            } else {
-                header.classList.remove('header-scrolled');
-            }
-        });
-
-        // 平滑滚动
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
-                    });
-                }
-            });
-        });
-
-        // 页面加载动画
-        document.addEventListener('DOMContentLoaded', function() {
-            const cards = document.querySelectorAll('.feature-card');
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.style.opacity = '1';
-                        entry.target.style.transform = 'translateY(0)';
-                    }
-                });
-            }, { threshold: 0.1 });
-
-            cards.forEach(card => {
-                card.style.opacity = '0';
-                card.style.transform = 'translateY(30px)';
-                observer.observe(card);
-            });
-        });
-    </script>
 </body>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const cardContainer = document.querySelector('.hero-card');
+    
+    // 增加容错判断
+    if (!cardContainer) return;
+
+    cardContainer.addEventListener('wheel', (evt) => {
+        // 只有当容器可以横向滚动时才阻止默认行为
+        if (cardContainer.scrollWidth > cardContainer.clientWidth) {
+            evt.preventDefault();
+            cardContainer.scrollLeft += evt.deltaY;
+        }
+    }, { passive: false });
+});
+</script>
 </html>

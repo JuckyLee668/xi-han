@@ -20,6 +20,7 @@ protocol_list=(
     Trojan-HTTPUpgrade-TLS
     VLESS-REALITY
     VLESS-HTTP2-REALITY
+    AnyTLS
     # Direct
     Socks
 )
@@ -227,7 +228,7 @@ ask() {
         [[ $is_no_auto_tls ]] && {
             unset is_tmp_list
             for v in ${protocol_list[@]}; do
-                [[ $(grep -i tls$ <<<$v) ]] && is_tmp_list=(${is_tmp_list[@]} $v)
+                [[ $(grep -i "\-tls$" <<<$v) ]] && is_tmp_list=(${is_tmp_list[@]} $v)
             done
         }
         is_opt_msg="\n请选择协议:\n"
@@ -323,6 +324,8 @@ create() {
         if [[ $host ]]; then
             is_config_name=$2-${host}.json
             is_listen='listen: "127.0.0.1"'
+        elif [[ $is_anytls_domain ]]; then
+            is_config_name=$2-${is_anytls_domain}.json
         else
             is_config_name=$2-${port}.json
         fi
@@ -813,6 +816,9 @@ add() {
         trojan)
             is_new_protocol=Trojan
             ;;
+        anytls)
+            is_new_protocol=AnyTLS
+            ;;
         socks)
             is_new_protocol=Socks
             ;;
@@ -828,6 +834,14 @@ add() {
 
     # no prefer protocol
     [[ ! $is_new_protocol ]] && ask set_protocol
+
+    if [[ ${is_new_protocol,,} == 'anytls' ]]; then
+        is_core_major=$(echo "$is_core_ver" | cut -d. -f1)
+        is_core_minor=$(echo "$is_core_ver" | cut -d. -f2)
+        if [[ ${is_core_major:-0} -lt 1 || ${is_core_major:-0} -eq 1 && ${is_core_minor:-0} -lt 12 ]]; then
+            err "当前 sing-box 版本 ($is_core_ver) 不支持 AnyTLS，请先升级 sing-box core 到 1.12.0 或更高版本。"
+        fi
+    fi
 
     case ${is_new_protocol,,} in
     *-tls)
@@ -865,6 +879,12 @@ add() {
         is_use_door_addr=$3
         is_use_door_port=$4
         is_add_opts="[port] [remote_addr] [remote_port]"
+        ;;
+    anytls*)
+        is_use_port=$2
+        is_use_pass=$3
+        [[ $4 ]] && is_anytls_domain=$4
+        is_add_opts="[port] [password] [domain]"
         ;;
     socks)
         is_socks=1
@@ -961,6 +981,14 @@ add() {
         [[ $is_use_servername ]] && is_servername=$is_use_servername
         [[ $is_use_socks_user ]] && is_socks_user=$is_use_socks_user
         [[ $is_use_socks_pass ]] && is_socks_pass=$is_use_socks_pass
+    fi
+
+    # anytls with domain (ACME TLS)
+    if [[ $is_anytls_domain && ! $is_change && ! $is_gen ]]; then
+        get_ip
+        host=$is_anytls_domain
+        get host-test
+        host=
     fi
 
     if [[ $is_use_tls ]]; then
@@ -1105,6 +1133,11 @@ get() {
             is_socks_user=$username
             is_socks_pass=$password
 
+            # extract anytls ACME domain
+            [[ $is_protocol == 'anytls' ]] && {
+                is_anytls_domain=$(jq -r '(.inbounds[0].tls.certificate_provider.domain[0] // .inbounds[0].tls.acme.domain[0]) // empty' <<<$is_json_str 2>/dev/null)
+            }
+
             is_config_name=$is_config_file
 
             if [[ $is_caddy && $host && -f $is_caddy_conf/$host.conf ]]; then
@@ -1168,6 +1201,24 @@ get() {
             net=direct
             is_protocol=$net
             json_str="override_port:$door_port,override_address:\"$door_addr\""
+            ;;
+        anytls*)
+            net=anytls
+            is_protocol=$net
+            [[ ! $password ]] && password=$uuid
+            is_users="users:[{password:\"$password\"}]"
+            if [[ $is_anytls_domain ]]; then
+                # sing-box >= 1.14.0 uses certificate_provider; older uses acme
+                is_core_minor=$(echo "$is_core_ver" | cut -d. -f2)
+                if [[ ${is_core_minor:-0} -ge 14 ]]; then
+                    is_anytls_tls="tls:{enabled:true,certificate_provider:{type:\"acme\",domain:[\"$is_anytls_domain\"]}}"
+                else
+                    is_anytls_tls="tls:{enabled:true,acme:{domain:[\"$is_anytls_domain\"]}}"
+                fi
+            else
+                is_anytls_tls="${is_tls_json/alpn\:\[\"h3\"\],/}"
+            fi
+            json_str="$is_users,$is_anytls_tls"
             ;;
         socks*)
             net=socks
@@ -1391,6 +1442,19 @@ info() {
         }
         is_info_str=($is_protocol $is_addr $port $uuid $is_flow $is_net_type reality $is_servername chrome $is_public_key)
         is_url="$is_protocol://$uuid@$is_addr:$port?encryption=none&security=reality&flow=$is_flow&type=$is_net_type&sni=$is_servername&pbk=$is_public_key&fp=chrome#233boy-$net-$is_addr"
+        ;;
+    anytls)
+        is_can_change=(0 1 4)
+        if [[ $is_anytls_domain ]]; then
+            is_info_show=(0 1 2 10 8)
+            is_info_str=($is_protocol $is_anytls_domain $port $password tls)
+            is_url="anytls://$password@$is_anytls_domain:$port#233boy-$net-$is_anytls_domain"
+        else
+            is_insecure=1
+            is_info_show=(0 1 2 10 8 20)
+            is_info_str=($is_protocol $is_addr $port $password tls true)
+            is_url="anytls://$password@$is_addr:$port?allowInsecure=1#233boy-$net-$is_addr"
+        fi
         ;;
     direct)
         is_can_change=(0 1 7 8)

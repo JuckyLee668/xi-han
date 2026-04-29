@@ -93,8 +93,8 @@
       "outbounds": [
         "auto",
         "direct",
-        "l2speed",
         "l0speed",
+        "l2speed",
         "l3speed"
       ]
     },
@@ -102,8 +102,8 @@
       "type": "urltest",
       "tag": "auto",
       "outbounds": [
-        "l2speed",
         "l0speed",
+        "l2speed",
         "l3speed"
       ],
       "url": "http://www.gstatic.com/generate_204",
@@ -113,26 +113,6 @@
     {
       "type": "direct",
       "tag": "direct"
-    },
-    {
-      "type": "vless",
-      "tag": "l2speed",
-      "server": "209.146.116.246",
-      "server_port": 9000,
-      "uuid": "419dd275-26b3-4229-8389-c2ea22a85bf1",
-      "flow": "xtls-rprx-vision",
-      "tls": {
-        "enabled": true,
-        "server_name": "aws.amazon.com",
-        "utls": {
-          "enabled": true,
-          "fingerprint": "chrome"
-        },
-        "reality": {
-          "enabled": true,
-          "public_key": "etuNmSS7NhxAg5o_sNtBnZRXwuJ85oNJdQvyHOKMaDA"
-        }
-      }
     },
     {
       "type": "vless",
@@ -156,21 +136,41 @@
     },
     {
       "type": "vless",
-      "tag": "l3speed",
-      "server": "38.146.29.202",
-      "server_port": 30091,
-      "uuid": "a644032d-11fa-48c1-b17c-70baf924cb81",
+      "tag": "l2speed",
+      "server": "209.146.116.246",
+      "server_port": 9000,
+      "uuid": "419dd275-26b3-4229-8389-c2ea22a85bf1",
       "flow": "xtls-rprx-vision",
       "tls": {
         "enabled": true,
-        "server_name": "www.amazon.com",
+        "server_name": "aws.amazon.com",
         "utls": {
           "enabled": true,
           "fingerprint": "chrome"
         },
         "reality": {
           "enabled": true,
-          "public_key": "LXw2KURfKrEcjMe2zV2ppIvTM40Wh3Fo0QbMn8HdwCQ"
+          "public_key": "etuNmSS7NhxAg5o_sNtBnZRXwuJ85oNJdQvyHOKMaDA"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "l3speed",
+      "server": "38.146.29.202",
+      "server_port": 48468,
+      "uuid": "be1860fa-8ace-4d77-ac7a-50bdd65a3c02",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.paypal.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "NrW1258lxejR7G51NrPq3mty6Zr6E98HQIEzhglWmSo"
         }
       }
     }

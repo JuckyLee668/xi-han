@@ -148,19 +148,19 @@
             gap: 6px;
             margin-top: 10px;
             padding: 10px;
-            background: #f0f2ff;
+            background: rgba(255,255,255,0.04);
             border-radius: 10px;
-            border: 1px solid #e0e5ff;
+            border: 1px solid rgba(255,255,255,0.08);
         }
         
         .quick-btn {
-            background: white;
-            border: 1px solid #e0e5ff;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.1);
             border-radius: 6px;
             padding: 8px 6px;
             font-size: 0.85rem;
             font-weight: 600;
-            color: #1a2980;
+            color: rgba(255,255,255,0.8);
             cursor: pointer;
             transition: all 0.2s ease;
             min-width: 0; /* 允许按钮缩放以适应网格 */
@@ -172,10 +172,11 @@
         }
         
         .quick-btn:hover {
-            background: #1a2980;
-            color: white;
+            background: rgba(184,160,255,0.15);
+            color: #b8a0ff;
+            border-color: rgba(184,160,255,0.3);
             transform: translateY(-2px);
-            box-shadow: 0 2px 8px rgba(26, 41, 128, 0.3);
+            box-shadow: 0 2px 8px rgba(184,160,255,0.2);
         }
         
         .quick-btn:active {
@@ -211,8 +212,8 @@
         /* 桌面端也显示快速输入栏，但样式稍有不同 */
         @media (min-width: 769px) and (hover: hover) {
             .quick-input-bar {
-                background: #f8f9ff;
-                border: 1px solid #e0e5ff;
+                background: rgba(255,255,255,0.04);
+                border: 1px solid rgba(255,255,255,0.08);
                 padding: 12px;
                 grid-template-columns: repeat(4, 1fr);
                 gap: 8px;
@@ -308,10 +309,11 @@
             flex: 1;
             width: 100%;
             padding: 10px 40px 10px 12px;
-            border: 2px solid #e0e5ff;
+            border: 2px solid rgba(255,255,255,0.1);
             border-radius: 8px;
             font-size: 0.95rem;
-            background: white;
+            background: rgba(0,0,0,0.3);
+            color: #f5f5ff;
             cursor: pointer;
             transition: all 0.2s ease;
             appearance: none;
@@ -327,45 +329,45 @@
         
         .formula-select:focus {
             outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
-            background-image: linear-gradient(45deg, #667eea 50%, transparent 50%), 
-                              linear-gradient(135deg, transparent 50%, #667eea 50%);
+            border-color: #b8a0ff;
+            box-shadow: 0 0 0 3px rgba(184, 160, 255, 0.15);
+            background-image: linear-gradient(45deg, #b8a0ff 50%, transparent 50%), 
+                              linear-gradient(135deg, transparent 50%, #b8a0ff 50%);
         }
         
         .formula-select:hover {
-            border-color: #667eea;
-            background-image: linear-gradient(45deg, transparent 50%, #667eea 50%), 
-                              linear-gradient(135deg, #667eea 50%, transparent 50%);
+            border-color: #b8a0ff;
+            background-image: linear-gradient(45deg, transparent 50%, #b8a0ff 50%), 
+                              linear-gradient(135deg, #b8a0ff 50%, transparent 50%);
         }
         
         /* 自定义选项样式 */
         .formula-select option {
             padding: 8px 12px;
             font-size: 0.95rem;
-            background: white;
-            color: #333;
+            background: #1a1f3a;
+            color: #f5f5ff;
         }
         
         .formula-select option:hover {
-            background: #f8f9ff;
+            background: rgba(184,160,255,0.1);
         }
         
         .formula-select option[value=""] {
-            color: #999;
+            color: rgba(255,255,255,0.4);
             font-style: italic;
         }
         
         .formula-select option[value="delete"] {
-            color: #e74c3c;
+            color: #ff6b6b;
             font-weight: 600;
-            border-top: 1px solid #eee;
-            background: #fff5f5;
+            border-top: 1px solid rgba(255,255,255,0.08);
+            background: rgba(255,107,107,0.1);
         }
         
         .formula-select option.formula-option {
             padding: 10px 12px;
-            border-bottom: 1px solid #f0f0f0;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
         }
         
         .formula-select option.formula-option:last-of-type {
@@ -402,7 +404,7 @@
             display: block;
             margin-bottom: 10px;
             font-weight: 600;
-            color: #553c9a;
+            color: #d8c4ff;
             font-size: 1.1rem;
             display: flex;
             align-items: center;
@@ -410,7 +412,7 @@
         }
         
         .input-group label i {
-            color: #667eea;
+            color: #b8a0ff;
             font-size: 1.2rem;
         }
         
@@ -418,15 +420,17 @@
             width: 100%;
             padding: 14px 18px;
             border-radius: 12px;
-            border: 2px solid #e0e5ff;
+            border: 1px solid rgba(255,255,255,0.1);
             font-size: 1.05rem;
             transition: all 0.3s ease;
+            background: rgba(0,0,0,0.2);
+            color: #f5f5ff;
         }
         
         input:focus, select:focus, textarea:focus {
             outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
+            border-color: #b8a0ff;
+            box-shadow: 0 0 0 4px rgba(184, 160, 255, 0.15);
         }
         
         .variables-container {
@@ -441,15 +445,15 @@
             align-items: center;
             gap: 15px;
             padding: 15px;
-            background: #f8f9ff;
+            background: rgba(255,255,255,0.04);
             border-radius: 12px;
-            border: 1px solid #e0e5ff;
+            border: 1px solid rgba(255,255,255,0.08);
         }
         
         .variable-item label {
             min-width: 80px;
             font-weight: 600;
-            color: #553c9a;
+            color: #d8c4ff;
         }
         
         .variable-item input {
@@ -464,10 +468,10 @@
         }
         
         .constant-item {
-            background: #f8f9ff;
+            background: rgba(255,255,255,0.04);
             padding: 15px;
             border-radius: 12px;
-            border: 1px solid #e0e5ff;
+            border: 1px solid rgba(255,255,255,0.08);
         }
         
         .constant-header {
@@ -479,14 +483,14 @@
         
         .constant-name {
             font-weight: 700;
-            color: #553c9a;
+            color: #d8c4ff;
             font-size: 1.1rem;
         }
         
         .constant-value {
             font-size: 1.2rem;
             font-weight: 600;
-            color: #667eea;
+            color: #b8a0ff;
         }
         
         .buttons {
@@ -510,14 +514,14 @@
         }
         
         .calculate-btn {
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            background: linear-gradient(135deg, #b8a0ff, #8b6fe8);
             color: white;
             grid-column: span 2;
         }
         
         .calculate-btn:hover {
             transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 8px 20px rgba(184, 160, 255, 0.4);
         }
         
         .save-btn {
@@ -541,7 +545,7 @@
         }
         
         .result-display {
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            background: linear-gradient(135deg, #b8a0ff, #8b6fe8);
             padding: 25px;
             border-radius: 15px;
             text-align: center;
@@ -549,7 +553,7 @@
             font-weight: 700;
             color: white;
             margin-top: 20px;
-            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 8px 20px rgba(184, 160, 255, 0.3);
         }
         
         .history-list {
@@ -562,11 +566,11 @@
         }
         
         .history-item {
-            background: #f8f9ff;
+            background: rgba(255,255,255,0.04);
             padding: 20px;
             border-radius: 15px;
             margin-bottom: 15px;
-            border-left: 4px solid #667eea;
+            border-left: 4px solid #b8a0ff;
             display: grid;
             grid-template-columns: 1fr auto;
             gap: 15px;
@@ -580,7 +584,7 @@
         
         .history-formula {
             font-weight: 600;
-            color: #553c9a;
+            color: #d8c4ff;
             font-size: 1.1rem;
         }
         
@@ -588,19 +592,19 @@
             display: flex;
             gap: 15px;
             font-size: 0.95rem;
-            color: #6c757d;
+            color: rgba(255,255,255,0.5);
             flex-wrap: wrap;
         }
         
         .history-variable {
-            background: #e0e5ff;
+            background: rgba(255,255,255,0.06);
             padding: 4px 10px;
             border-radius: 20px;
         }
         
         .history-result {
             font-weight: 700;
-            color: #667eea;
+            color: #b8a0ff;
             font-size: 1.8rem;
             min-width: 120px;
             display: flex;
@@ -611,13 +615,13 @@
         .empty-history {
             text-align: center;
             padding: 50px 20px;
-            color: #6c757d;
+            color: rgba(255,255,255,0.5);
         }
         
         .empty-history i {
             font-size: 4rem;
             margin-bottom: 20px;
-            color: #e0e5ff;
+            color: rgba(255,255,255,0.1);
         }
         
         .history-header {
@@ -629,7 +633,7 @@
         }
         
         .clear-history {
-            background: #e74c3c;
+            background: #ff6b6b;
             color: white;
             border: none;
             border-radius: 10px;
@@ -1936,7 +1940,7 @@
                     const deleteOption = document.createElement('option');
                     deleteOption.value = 'delete';
                     deleteOption.textContent = '🗑️ 管理已保存的公式';
-                    deleteOption.style.color = '#e74c3c';
+                    deleteOption.style.color = "#ff6b6b";
                     deleteOption.style.fontWeight = '600';
                     formulaSelect.appendChild(deleteOption);
                 }
@@ -2005,7 +2009,7 @@
             function showNotification(message, type = 'info') {
                 const colors = {
                     success: 'linear-gradient(to right, #2ecc71, #27ae60)',
-                    error: 'linear-gradient(to right, #e74c3c, #c0392b)',
+                    error: 'linear-gradient(to right, #ff6b6b, #e05555)',
                     info: 'linear-gradient(to right, #3498db, #2980b9)',
                     warning: 'linear-gradient(to right, #f39c12, #e67e22)'
                 };
@@ -2013,7 +2017,7 @@
                 resultDisplay.textContent = message;
                 resultDisplay.style.background = colors[type] || colors.info;
                 setTimeout(() => {
-                    resultDisplay.style.background = "#1a2980";
+                    resultDisplay.style.background = "#1f2950";
                 }, 3000);
             }
             
@@ -2036,7 +2040,7 @@
                 resultDisplay.textContent = "常数配置已保存!";
                 resultDisplay.style.background = "linear-gradient(to right, #2ecc71, #27ae60)";
                 setTimeout(() => {
-                    resultDisplay.style.background = "#1a2980";
+                    resultDisplay.style.background = "#1f2950";
                 }, 2000);
             }
             
@@ -2059,7 +2063,7 @@
                 resultDisplay.textContent = "常数配置已重置为默认值!";
                 resultDisplay.style.background = "linear-gradient(to right, #3498db, #2980b9)";
                 setTimeout(() => {
-                    resultDisplay.style.background = "#1a2980";
+                    resultDisplay.style.background = "#1f2950";
                 }, 2000);
             }
             
@@ -2129,9 +2133,9 @@
                 
                 if (hasInvalidVariable) {
                     resultDisplay.textContent = "请输入有效的变量值!";
-                    resultDisplay.style.background = "#e74c3c";
+                    resultDisplay.style.background = "#ff6b6b";
                     setTimeout(() => {
-                        resultDisplay.style.background = "#1a2980";
+                        resultDisplay.style.background = "#1f2950";
                     }, 2000);
                     return;
                 }
@@ -2165,7 +2169,7 @@
                     }
                     
                     resultDisplay.textContent = `结果 = ${formatScientific(result)}`;
-                    resultDisplay.style.background = "#1a2980";
+                    resultDisplay.style.background = "#1f2950";
                     
                     // 添加到历史记录
                     const historyEntry = {
@@ -2185,9 +2189,9 @@
                     
                 } catch (error) {
                     resultDisplay.textContent = "计算错误: " + error.message;
-                    resultDisplay.style.background = "#e74c3c";
+                    resultDisplay.style.background = "#ff6b6b";
                     setTimeout(() => {
-                        resultDisplay.style.background = "#1a2980";
+                        resultDisplay.style.background = "#1f2950";
                     }, 2000);
                 }
             }

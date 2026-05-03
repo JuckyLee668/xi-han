@@ -106,43 +106,80 @@
             text-decoration: underline;
         }
 
-        /* ===== 链接行 ===== */
-        .hero-links {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 16px;
-            margin-top: 20px;
-        }
-
-        .hero-links a {
-            color: #f5f5ff;
-            text-decoration: none;
-            border-bottom: 1px solid rgba(255,255,255,0.18);
-            padding-bottom: 2px;
-            font-size: 1rem;
-            transition: color 0.2s, border-color 0.2s;
-        }
-        .hero-links a:hover {
-            color: #d8c4ff;
-            border-color: #d8c4ff;
-        }
-
-        /* ===== 图片画廊 ===== */
-        .hero-gallery {
+        /* ===== 探索卡片（替代原画廊） ===== */
+        .explore-cards {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-            gap: 12px;
-            margin-top: 16px;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 14px;
         }
-        .hero-gallery img {
-            width: 100%;
-            aspect-ratio: 1;
-            object-fit: cover;
-            border-radius: 12px;
+
+        .explore-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 24px 16px;
+            border-radius: 16px;
             border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.04);
+            text-decoration: none;
+            color: #f5f5ff;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+            min-height: 140px;
+        }
+
+        .explore-card svg {
+            width: 48px;
+            height: 48px;
             transition: transform 0.3s ease;
         }
-        .hero-gallery img:hover { transform: scale(1.03); }
+
+        .explore-card .card-label {
+            font-size: 1rem;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+        }
+
+        .explore-card .card-desc {
+            font-size: 0.78rem;
+            color: rgba(255,255,255,0.5);
+            text-align: center;
+        }
+
+        /* 每个卡片独立 hover 颜色 */
+        .explore-card.blog:hover {
+            border-color: rgba(184, 160, 255, 0.6);
+            background: rgba(184, 160, 255, 0.1);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 32px rgba(184, 160, 255, 0.25);
+        }
+        .explore-card.blog:hover svg { transform: scale(1.15); }
+
+        .explore-card.drive:hover {
+            border-color: rgba(100, 200, 255, 0.6);
+            background: rgba(100, 200, 255, 0.1);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 32px rgba(100, 200, 255, 0.25);
+        }
+        .explore-card.drive:hover svg { transform: scale(1.15); }
+
+        .explore-card.chat:hover {
+            border-color: rgba(130, 220, 170, 0.6);
+            background: rgba(130, 220, 170, 0.1);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 32px rgba(130, 220, 170, 0.25);
+        }
+        .explore-card.chat:hover svg { transform: scale(1.15); }
+
+        .explore-card.tools:hover {
+            border-color: rgba(255, 200, 100, 0.6);
+            background: rgba(255, 200, 100, 0.1);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 32px rgba(255, 200, 100, 0.25);
+        }
+        .explore-card.tools:hover svg { transform: scale(1.15); }
 
         /* ===== 社交图标 ===== */
         .contact-grid {
@@ -194,8 +231,16 @@
                 width: 200px;
                 height: 200px;
             }
-            .hero-gallery {
+            .explore-cards {
                 grid-template-columns: repeat(4, 1fr);
+            }
+            .explore-card {
+                min-height: 180px;
+                padding: 32px 20px;
+            }
+            .explore-card svg {
+                width: 56px;
+                height: 56px;
             }
             .contact-grid {
                 grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
@@ -239,22 +284,60 @@
                     所以，<br>
                     世界这么大，热爱点什么吧！
                 </div>
-                <div class="hero-links">
-                    <a href="https://boke.xi-han.top/">📝 博客</a>
-                    <a href="https://alist.xi-han.top/">📦 网盘</a>
-                    <a href="https://durablechat.xi-han.top">💬 聊天</a>
-                    <a href="./html/tools.html">🔧 工具</a>
-                </div>
             </div>
 
-            <!-- ===== 探索画廊 ===== -->
+            <!-- ===== 探索 ===== -->
             <div class="hero-panel">
                 <div class="hero-title">探索</div>
-                <div class="hero-gallery">
-                    <img src="./assets/images/ahead.png" alt="风景1">
-                    <img src="./assets/images/ahead.png" alt="风景2">
-                    <img src="./assets/images/ahead.png" alt="风景3">
-                    <img src="./assets/images/ahead.png" alt="风景4">
+                <div class="explore-cards">
+                    <!-- 博客 -->
+                    <a href="https://boke.xi-han.top/" class="explore-card blog" target="_blank">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M4 20H20" stroke="#b8a0ff" stroke-width="2" stroke-linecap="round"/>
+                            <path d="M14 4L18 8L10 16H6V12L14 4Z" stroke="#b8a0ff" stroke-width="2" stroke-linejoin="round"/>
+                            <circle cx="14" cy="4" r="2" fill="#b8a0ff" opacity="0.3"/>
+                        </svg>
+                        <span class="card-label">博客</span>
+                        <span class="card-desc">知识沉淀 · 学习笔记</span>
+                    </a>
+
+                    <!-- 网盘 -->
+                    <a href="https://alist.xi-han.top/" class="explore-card drive" target="_blank">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M2 16L6 8H18L22 16" stroke="#64c8ff" stroke-width="2" stroke-linejoin="round"/>
+                            <path d="M6 8L10 16" stroke="#64c8ff" stroke-width="2"/>
+                            <path d="M18 8L14 16" stroke="#64c8ff" stroke-width="2"/>
+                            <path d="M2 16H22" stroke="#64c8ff" stroke-width="2" stroke-linecap="round"/>
+                            <path d="M8 20H16" stroke="#64c8ff" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+                        </svg>
+                        <span class="card-label">网盘</span>
+                        <span class="card-desc">文件存储 · 资源共享</span>
+                    </a>
+
+                    <!-- 聊天 -->
+                    <a href="https://durablechat.xi-han.top" class="explore-card chat" target="_blank">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M20 2H4C2.9 2 2 2.9 2 4V18C2 19.1 2.9 20 4 20H8L12 24L16 20H20C21.1 20 22 19.1 22 18V4C22 2.9 21.1 2 20 2Z" stroke="#82dcaa" stroke-width="2" stroke-linejoin="round"/>
+                            <circle cx="8" cy="10" r="1" fill="#82dcaa"/>
+                            <circle cx="12" cy="10" r="1" fill="#82dcaa"/>
+                            <circle cx="16" cy="10" r="1" fill="#82dcaa"/>
+                        </svg>
+                        <span class="card-label">聊天</span>
+                        <span class="card-desc">即时通讯 · 在线畅聊</span>
+                    </a>
+
+                    <!-- 工具 -->
+                    <a href="./html/tools.html" class="explore-card tools">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="12" cy="12" r="4" stroke="#ffc864" stroke-width="2"/>
+                            <path d="M12 2V6M12 18V22" stroke="#ffc864" stroke-width="2" stroke-linecap="round"/>
+                            <path d="M4.93 4.93L7.76 7.76M16.24 16.24L19.07 19.07" stroke="#ffc864" stroke-width="2" stroke-linecap="round"/>
+                            <path d="M2 12H6M18 12H22" stroke="#ffc864" stroke-width="2" stroke-linecap="round"/>
+                            <path d="M4.93 19.07L7.76 16.24M16.24 7.76L19.07 4.93" stroke="#ffc864" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                        <span class="card-label">工具</span>
+                        <span class="card-desc">实用工具 · 效率提升</span>
+                    </a>
                 </div>
             </div>
 

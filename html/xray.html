@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
@@ -6,83 +6,138 @@
   <title>Xray / Sing-box 下载与订阅</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
   <style>
-    * { box-sizing: border-box; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
     body {
-      margin: 0;
-      font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
-      background: radial-gradient(circle at 20% 20%, #f0f6ff 0%, #e9f0ff 30%, #dfe8ff 100%);
-      color: #1f2a44;
+      font-family: "Inter", "Microsoft YaHei", "PingFang SC", sans-serif;
+      background: linear-gradient(135deg, #0f1324 0%, #1a1f3a 25%, #0d0f1f 50%, #1a1f3a 75%, #0f1324 100%);
+      background-attachment: fixed;
+      color: #f5f5ff;
       min-height: 100vh;
-      padding: 28px 16px;
+      padding: 20px;
     }
-    .wrap {
-      max-width: 980px;
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(circle at 20% 50%, rgba(184, 160, 255, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(100, 200, 255, 0.06) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .page-wrapper {
+      position: relative;
+      z-index: 1;
+      max-width: 1000px;
       margin: 0 auto;
-      background: rgba(255, 255, 255, 0.92);
-      border: 1px solid #dbe6ff;
-      border-radius: 20px;
-      box-shadow: 0 16px 40px rgba(42, 73, 140, 0.16);
-      overflow: hidden;
     }
+
+    /* ===== 主卡片 ===== */
+    .wrap {
+      background: rgba(22, 28, 48, 0.92);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
+      backdrop-filter: blur(14px);
+    }
+
+    /* ===== 顶部 Hero ===== */
     .hero {
-      padding: 28px 24px 20px;
-      background: linear-gradient(120deg, #5e80ff, #5570d3 55%, #4760b8);
-      color: #fff;
+      padding: 28px 24px;
+      background: linear-gradient(135deg, rgba(184,160,255,0.12), rgba(100,200,255,0.08));
+      border-bottom: 1px solid rgba(255,255,255,0.06);
     }
     .hero h1 {
-      margin: 0 0 8px;
-      font-size: 28px;
-      font-weight: 700;
-      letter-spacing: 0.2px;
+      font-size: clamp(22px, 4vw, 28px);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 8px;
     }
+    .hero h1 i { color: #b8a0ff; margin-right: 8px; }
     .hero p {
-      margin: 0;
-      opacity: 0.95;
+      color: rgba(255,255,255,0.6);
       font-size: 14px;
+      line-height: 1.6;
     }
+    .hero p code {
+      background: rgba(255,255,255,0.08);
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 13px;
+    }
+    .top-link {
+      color: rgba(255,255,255,0.5);
+      text-decoration: none;
+      font-size: 13px;
+      display: inline-flex;
+      gap: 6px;
+      align-items: center;
+      margin-top: 12px;
+      transition: color 0.2s;
+    }
+    .top-link:hover { color: #b8a0ff; }
+
+    /* ===== 内容区 ===== */
     .body {
       padding: 22px;
       display: grid;
       gap: 20px;
     }
+
+    /* ===== 面板 ===== */
     .panel {
-      background: #f8fbff;
-      border: 1px solid #dfe8ff;
-      border-radius: 14px;
-      padding: 18px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      padding: 20px;
     }
     .panel h2 {
-      margin: 0 0 14px;
       font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 16px;
       display: flex;
       align-items: center;
       gap: 8px;
-      color: #2a447f;
+      color: #d8c4ff;
     }
+    .panel h2 i { color: #b8a0ff; }
+
+    /* ===== 卡片网格 ===== */
     .cards {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
       gap: 12px;
     }
     .card {
-      background: #fff;
-      border: 1px solid #dbe6ff;
-      border-radius: 12px;
-      padding: 14px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      padding: 16px;
       display: grid;
-      gap: 8px;
+      gap: 10px;
+      transition: all 0.25s ease;
+    }
+    .card:hover {
+      border-color: rgba(184,160,255,0.3);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
     }
     .card h3 {
-      margin: 0;
-      font-size: 16px;
-      color: #223766;
+      font-size: 15px;
+      color: #f5f5ff;
+      font-weight: 600;
     }
     .meta {
-      margin: 0;
-      color: #5f6f95;
+      color: rgba(255,255,255,0.5);
       font-size: 13px;
       line-height: 1.5;
     }
+
+    /* ===== 按钮 ===== */
     .actions {
       display: flex;
       flex-wrap: wrap;
@@ -95,20 +150,31 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      border-radius: 9px;
+      border-radius: 10px;
       padding: 8px 12px;
       font-size: 13px;
       font-weight: 600;
+      transition: all 0.2s ease;
     }
     .btn-primary {
-      background: linear-gradient(120deg, #5c7eff, #4d69c9);
+      background: linear-gradient(135deg, #b8a0ff, #8b6fe8);
       color: #fff;
     }
-    .btn-ghost {
-      background: #eef3ff;
-      color: #3f5cae;
-      border: 1px solid #d8e4ff;
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(184,160,255,0.3);
     }
+    .btn-ghost {
+      background: rgba(255,255,255,0.06);
+      color: rgba(255,255,255,0.7);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .btn-ghost:hover {
+      background: rgba(255,255,255,0.1);
+      color: #f5f5ff;
+    }
+
+    /* ===== 订阅 ===== */
     .sub-item {
       display: grid;
       gap: 8px;
@@ -117,111 +183,113 @@
     .sub-item:last-child { margin-bottom: 0; }
     .sub-label {
       font-size: 13px;
-      color: #4d5f8a;
+      color: rgba(255,255,255,0.6);
       font-weight: 600;
     }
     .sub-url {
-      background: #fff;
-      border: 1px solid #dbe6ff;
+      background: rgba(0,0,0,0.2);
+      border: 1px solid rgba(255,255,255,0.08);
       border-radius: 10px;
       padding: 10px 12px;
-      color: #1f2f57;
+      color: #b8a0ff;
       font-family: Consolas, "Courier New", monospace;
       font-size: 12px;
       word-break: break-all;
     }
     .note {
-      margin: 0;
       font-size: 12px;
-      color: #64759e;
+      color: rgba(255,255,255,0.4);
       line-height: 1.6;
+      margin-top: 4px;
     }
-    .top-link {
-      color: #d7e3ff;
-      text-decoration: none;
-      font-size: 13px;
-      display: inline-flex;
-      gap: 6px;
-      align-items: center;
-      margin-top: 10px;
-    }
+
     @media (max-width: 720px) {
-      .hero h1 { font-size: 22px; }
+      .hero { padding: 20px 16px; }
       .body { padding: 14px; }
+      .panel { padding: 14px; }
+    }
+
+    @media (min-width: 768px) {
+      body { padding: 6vh 24px; }
+      .wrap { border-radius: 32px; }
+      .hero { padding: 32px 36px; }
+      .body { padding: 28px; }
     }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="hero">
-      <h1><i class="fas fa-shield-alt"></i> Xray / Sing-box 下载与订阅</h1>
-      <p>安装包由 GitHub Actions 自动同步到本仓库 <code>proxy/</code> 目录，订阅文件可直接复制导入。</p>
-      <a class="top-link" href="../index.html"><i class="fas fa-arrow-left"></i> 返回首页</a>
-    </div>
+  <div class="page-wrapper">
+    <div class="wrap">
+      <div class="hero">
+        <h1><i class="fas fa-shield-alt"></i> Xray / Sing-box 下载与订阅</h1>
+        <p>安装包由 GitHub Actions 自动同步到本仓库 <code>proxy/</code> 目录，订阅文件可直接复制导入。</p>
+        <a class="top-link" href="../index.html"><i class="fas fa-arrow-left"></i> 返回首页</a>
+      </div>
 
-    <div class="body">
-      <section class="panel">
-        <h2><i class="fas fa-download"></i> 客户端安装包</h2>
-        <div class="cards">
-          <article class="card">
-            <h3>Xray Core (Windows)</h3>
-            <p class="meta">同步 Xray Windows 内核压缩包</p>
-            <div class="actions">
-              <a class="btn btn-primary" href="/proxy/files/Xray.zip"><i class="fas fa-download"></i> 本站下载</a>
-              <a class="btn btn-ghost" href="https://github.com/XTLS/Xray-core/releases" target="_blank" rel="noopener"><i class="fas fa-external-link-alt"></i> 官方发布页</a>
-            </div>
-          </article>
-          
-          <article class="card">
-            <h3>v2rayNG (Android)</h3>
-            <p class="meta">自动同步最新版 arm64-v8a APK</p>
-            <div class="actions">
-              <a class="btn btn-primary" href="/proxy/files/v2rayNG.apk"><i class="fas fa-download"></i> 本站下载</a>
-              <a class="btn btn-ghost" href="https://github.com/2dust/v2rayNG/releases" target="_blank" rel="noopener"><i class="fas fa-external-link-alt"></i> 官方发布页</a>
-            </div>
-          </article>
+      <div class="body">
+        <section class="panel">
+          <h2><i class="fas fa-download"></i> 客户端安装包</h2>
+          <div class="cards">
+            <article class="card">
+              <h3>Xray Core (Windows)</h3>
+              <p class="meta">同步 Xray Windows 内核压缩包</p>
+              <div class="actions">
+                <a class="btn btn-primary" href="/proxy/files/Xray.zip"><i class="fas fa-download"></i> 本站下载</a>
+                <a class="btn btn-ghost" href="https://github.com/XTLS/Xray-core/releases" target="_blank" rel="noopener"><i class="fas fa-external-link-alt"></i> 官方发布页</a>
+              </div>
+            </article>
 
-          <article class="card">
-            <h3>sing-box (Windows)</h3>
-            <p class="meta">自动同步最新版 windows-amd64 安装包</p>
-            <div class="actions">
-              <a class="btn btn-primary" href="/proxy/files/sing-box.zip"><i class="fas fa-download"></i> 本站下载</a>
-              <a class="btn btn-ghost" href="https://github.com/SagerNet/sing-box/releases" target="_blank" rel="noopener"><i class="fas fa-external-link-alt"></i> 官方发布页</a>
-            </div>
-          </article>
+            <article class="card">
+              <h3>v2rayNG (Android)</h3>
+              <p class="meta">自动同步最新版 arm64-v8a APK</p>
+              <div class="actions">
+                <a class="btn btn-primary" href="/proxy/files/v2rayNG.apk"><i class="fas fa-download"></i> 本站下载</a>
+                <a class="btn btn-ghost" href="https://github.com/2dust/v2rayNG/releases" target="_blank" rel="noopener"><i class="fas fa-external-link-alt"></i> 官方发布页</a>
+              </div>
+            </article>
 
-          <article class="card">
-            <h3>sing-box (Android)</h3>
-            <p class="meta">自动同步最新版 arm64-v8a APK</p>
-            <div class="actions">
-              <a class="btn btn-primary" href="/proxy/files/sing-box.apk"><i class="fas fa-download"></i> 本站下载</a>
-              <a class="btn btn-ghost" href="https://github.com/SagerNet/sing-box/releases" target="_blank" rel="noopener"><i class="fas fa-external-link-alt"></i> 官方发布页</a>
-            </div>
-          </article>
-        </div>
-      </section>
+            <article class="card">
+              <h3>sing-box (Windows)</h3>
+              <p class="meta">自动同步最新版 windows-amd64 安装包</p>
+              <div class="actions">
+                <a class="btn btn-primary" href="/proxy/files/sing-box.zip"><i class="fas fa-download"></i> 本站下载</a>
+                <a class="btn btn-ghost" href="https://github.com/SagerNet/sing-box/releases" target="_blank" rel="noopener"><i class="fas fa-external-link-alt"></i> 官方发布页</a>
+              </div>
+            </article>
 
-      <section class="panel">
-        <h2><i class="fas fa-link"></i> 订阅地址</h2>
-
-        <div class="sub-item">
-          <div class="sub-label">V2Ray 通用订阅（base64）</div>
-          <div class="sub-url" id="sub-v2">https://xi-han.top/v2</div>
-          <div class="actions">
-            <button class="btn btn-primary" onclick="copySub('sub-v2')"><i class="fas fa-copy"></i> 复制 v2 链接</button>
+            <article class="card">
+              <h3>sing-box (Android)</h3>
+              <p class="meta">自动同步最新版 arm64-v8a APK</p>
+              <div class="actions">
+                <a class="btn btn-primary" href="/proxy/files/sing-box.apk"><i class="fas fa-download"></i> 本站下载</a>
+                <a class="btn btn-ghost" href="https://github.com/SagerNet/sing-box/releases" target="_blank" rel="noopener"><i class="fas fa-external-link-alt"></i> 官方发布页</a>
+              </div>
+            </article>
           </div>
-        </div>
+        </section>
 
-        <div class="sub-item">
-          <div class="sub-label">sing-box 配置订阅（JSON）</div>
-          <div class="sub-url" id="sub-v3">https://xi-han.top/v3</div>
-          <div class="actions">
-            <button class="btn btn-primary" onclick="copySub('sub-v3')"><i class="fas fa-copy"></i> 复制 v3 链接</button>
+        <section class="panel">
+          <h2><i class="fas fa-link"></i> 订阅地址</h2>
+
+          <div class="sub-item">
+            <div class="sub-label">V2Ray 通用订阅（base64）</div>
+            <div class="sub-url" id="sub-v2">https://xi-han.top/v2</div>
+            <div class="actions">
+              <button class="btn btn-primary" onclick="copySub('sub-v2')"><i class="fas fa-copy"></i> 复制 v2 链接</button>
+            </div>
           </div>
-        </div>
 
-        <p class="note">提示：如果你使用的是 v2rayNG，可优先导入 v2；如果使用 sing-box 客户端，可直接使用 v3。</p>
-      </section>
+          <div class="sub-item">
+            <div class="sub-label">sing-box 配置订阅（JSON）</div>
+            <div class="sub-url" id="sub-v3">https://xi-han.top/v3</div>
+            <div class="actions">
+              <button class="btn btn-primary" onclick="copySub('sub-v3')"><i class="fas fa-copy"></i> 复制 v3 链接</button>
+            </div>
+          </div>
+
+          <p class="note">提示：如果你使用的是 v2rayNG，可优先导入 v2；如果使用 sing-box 客户端，可直接使用 v3。</p>
+        </section>
+      </div>
     </div>
   </div>
 

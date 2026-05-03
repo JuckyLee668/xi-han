@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#1a2980">
+    <meta name="theme-color" content="#0f1324">
     <title>通用公式计算器 - 支持变量输入与常数配置</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -16,14 +16,25 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(circle at 20% 50%, rgba(184, 160, 255, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(100, 200, 255, 0.06) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #0f1324 0%, #1a1f3a 25%, #0d0f1f 50%, #1a1f3a 75%, #0f1324 100%);
+            background-attachment: fixed;
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
             padding: 20px;
-            color: #333;
+            color: #f5f5ff;
         }
         
         .container {
@@ -32,6 +43,8 @@
             display: flex;
             flex-direction: column;
             gap: 25px;
+            position: relative;
+            z-index: 1;
         }
         
         header {
@@ -39,17 +52,18 @@
             color: white;
             padding: 30px;
             border-radius: 20px;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            background: rgba(22, 28, 48, 0.92);
+            backdrop-filter: blur(14px);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.08);
         }
         
         header h1 {
             font-size: 2.8rem;
             margin-bottom: 15px;
-            text-shadow: 0 2px 8px rgba(255, 255, 255, 0.3);
-            color: #553c9a;
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            color: #f5f5ff;
+            background: linear-gradient(135deg, #b8a0ff, #64c8ff);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -60,7 +74,7 @@
             max-width: 700px;
             margin: 0 auto;
             line-height: 1.7;
-            color: #6c757d;
+            color: rgba(255,255,255,0.6);
         }
         
         .app-container {
@@ -72,11 +86,12 @@
         }
         
         .calculator, .history {
-            background: rgba(255, 255, 255, 0.95);
+            background: rgba(22, 28, 48, 0.92);
+            border: 1px solid rgba(255,255,255,0.08);
             border-radius: 20px;
             padding: 30px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            backdrop-filter: blur(5px);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
+            backdrop-filter: blur(14px);
         }
         
         .history {
@@ -88,38 +103,38 @@
         .section-title {
             font-size: 1.8rem;
             margin-bottom: 25px;
-            color: #553c9a;
+            color: #d8c4ff;
             display: flex;
             align-items: center;
             gap: 12px;
             padding-bottom: 15px;
-            border-bottom: 2px solid #eaeaea;
-            text-shadow: 0 1px 3px rgba(85, 60, 154, 0.2);
+            border-bottom: 2px solid rgba(255,255,255,0.08);
+            text-shadow: 0 1px 3px rgba(0,0,0,0.2);
         }
         
         .section-title i {
             font-size: 1.5rem;
-            color: #667eea;
+            color: #b8a0ff;
         }
         
         .formula-container {
-            background: #f8f9ff;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
             padding: 20px;
             border-radius: 15px;
             margin-bottom: 25px;
-            border: 1px solid #e0e5ff;
         }
         
         .formula-display {
             text-align: center;
             font-size: 1.8rem;
             font-family: 'Courier New', monospace;
-            color: #553c9a;
+            color: #b8a0ff;
             padding: 15px;
             margin: 15px 0;
-            background: white;
+            background: rgba(0,0,0,0.25);
+            border: 1px solid rgba(255,255,255,0.08);
             border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
             min-height: 60px;
             display: flex;
             justify-content: center;
@@ -263,7 +278,7 @@
         }
         
         .save-formula-btn {
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            background: linear-gradient(135deg, #b8a0ff, #8b6fe8);
             color: white;
             border: none;
             border-radius: 8px;
@@ -280,7 +295,7 @@
         }
         
         .save-formula-btn:hover {
-            background: linear-gradient(135deg, #5a6fd8, #6a4190);
+            background: linear-gradient(135deg, #a088ee, #7a5fd8);
             transform: translateY(-2px);
         }
         

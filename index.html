@@ -2,125 +2,103 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/octicons/19.8.0/octicons.min.css">
     <title>夜寒半两风 | Xi Han</title>
     <style>
-        /* 1. 全局重置与基础样式 */
+        /* ===== 全局重置 ===== */
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
-        html, body {
-            min-height: 100%;
-        }
+        html { -webkit-text-size-adjust: 100%; }
 
         body {
-            font-family: "Inter", "Microsoft YaHei", sans-serif;
+            font-family: "Inter", "Microsoft YaHei", "PingFang SC", sans-serif;
             background: linear-gradient(135deg, #0f1324 0%, #1a1f3a 25%, #0d0f1f 50%, #1a1f3a 75%, #0f1324 100%);
             background-attachment: fixed;
             color: #f5f5ff;
-            padding: 8vh 20px;
-            overflow-x: auto;
-            scroll-snap-type: x mandatory;
-            position: relative;
+            min-height: 100vh;
         }
-        
+
         body::before {
             content: '';
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle at 20% 50%, rgba(184, 160, 255, 0.08) 0%, transparent 50%),
-                        radial-gradient(circle at 80% 80%, rgba(100, 200, 255, 0.06) 0%, transparent 50%);
+            inset: 0;
+            background:
+                radial-gradient(circle at 20% 50%, rgba(184, 160, 255, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(100, 200, 255, 0.06) 0%, transparent 50%);
             pointer-events: none;
             z-index: 0;
         }
-        
+
         .page-wrapper {
             position: relative;
             z-index: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 16px;
         }
 
-
-
+        /* ===== 主卡片容器 ===== */
         .hero-card {
             display: flex;
-            gap: 24px;
+            flex-direction: column;
+            gap: 0;
             background: rgba(22, 28, 48, 0.92);
             border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 32px;
-            min-height: 80vh;
+            border-radius: 24px;
             overflow: hidden;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5),
-                        0 40px 120px rgba(0, 0, 0, 0.4),
-                        inset 0 1px 0 rgba(255, 255, 255, 0.1),
-                        inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+            box-shadow:
+                0 20px 60px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(14px);
-            flex-direction: row;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        
-        .hero-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6),
-                        0 50px 140px rgba(0, 0, 0, 0.5),
-                        inset 0 1px 0 rgba(255, 255, 255, 0.15),
-                        inset 0 -1px 0 rgba(0, 0, 0, 0.3);
         }
 
+        /* ===== 面板通用 ===== */
         .hero-panel {
+            padding: 28px 24px;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            background: linear-gradient(180deg, rgba(255,255,255,0.04), transparent);
+        }
+        .hero-panel:last-child { border-bottom: none; }
+
+        /* ===== 头像区 ===== */
+        .hero-avatar {
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
-            min-width: 280px;
-            flex: 0 0 auto;         
-            flex-shrink:  0;
-            flex-wrap: wrap;
-            padding: 32px 32px;
-            gap: 20px;
-            background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
-            position: relative;
-            box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.05),
-                        inset -1px 0 2px rgba(0, 0, 0, 0.2);
+            align-items: center;
+            text-align: center;
+            gap: 12px;
         }
-        
-        .hero-panel::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,0.2), rgba(255,255,255,0));
+        .hero-avatar a { display: block; }
+        .hero-avatar img {
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid rgba(255,255,255,0.15);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            transition: transform 0.3s ease;
         }
-        .hero-panel img {
-            width: 100%;       /* 强制填满父容器宽度 */
-            height: auto;      /* 保持宽高比，防止图片变形 */
-            /* object-fit: cover; 可选：如果希望图片填满固定高度区域并裁剪多余部分 */
-            border-radius: 16px; /* 可选：配合卡片的圆角 */
-        }
+        .hero-avatar img:hover { transform: scale(1.05); }
         .photo-caption {
-            padding: 24px 32px;
-            color: rgba(255,255,255,0.72);
+            color: rgba(255,255,255,0.6);
+            font-size: 0.9rem;
             letter-spacing: 0.12em;
-            font-size: 0.92rem;
         }
 
+        /* ===== 标题区 ===== */
         .hero-title {
-            font-size: clamp(2.5rem, 5vw, 4rem);
+            font-size: clamp(2rem, 6vw, 3.5rem);
             line-height: 1.2;
-            letter-spacing: -0.06em;
+            letter-spacing: -0.04em;
             font-weight: 800;
-            margin-bottom: 24px;
-            max-width: 14ch;
+            margin-bottom: 16px;
         }
 
         .hero-description {
             color: rgba(255,255,255,0.77);
             line-height: 1.9;
             font-size: 1rem;
-            max-width: 44rem;
         }
 
         .hero-description a {
@@ -128,11 +106,12 @@
             text-decoration: underline;
         }
 
+        /* ===== 链接行 ===== */
         .hero-links {
             display: flex;
             flex-wrap: wrap;
             gap: 16px;
-            margin-top: 16px;
+            margin-top: 20px;
         }
 
         .hero-links a {
@@ -140,144 +119,160 @@
             text-decoration: none;
             border-bottom: 1px solid rgba(255,255,255,0.18);
             padding-bottom: 2px;
-            transition: color 0.2s ease, border-color 0.2s ease;
+            font-size: 1rem;
+            transition: color 0.2s, border-color 0.2s;
         }
-
         .hero-links a:hover {
             color: #d8c4ff;
             border-color: #d8c4ff;
         }
 
-        .hero-icons {
-            display: flex;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 18px;
-            margin-top: 32px;
+        /* ===== 图片画廊 ===== */
+        .hero-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 12px;
+            margin-top: 16px;
+        }
+        .hero-gallery img {
+            width: 100%;
+            aspect-ratio: 1;
+            object-fit: cover;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: transform 0.3s ease;
+        }
+        .hero-gallery img:hover { transform: scale(1.03); }
+
+        /* ===== 社交图标 ===== */
+        .contact-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 12px;
+            margin-top: 16px;
         }
         .icon-bubble {
-            width: 48px;      /* 修改这里：最小宽度保持图标尺寸 */
-            height: 48px;     /* 修改这里：最小高度保持图标尺寸 */
-            padding: 4px 12px;    /* 新增：增加内边距，让文字有空间呼吸 */
-            margin: 10px;             /* 去掉默认外边距 */
-            /* 必须保持：让内部的图标和文字水平排列 */
-            display: flex;
-            align-items: center;  /* 垂直居中 */
-            gap: 8px;             /* 图标和文字之间的间距 */
-            
-            border-radius: 50%;   /* 注意：如果想去掉圆角，改为 8px */
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 12px 16px;
+            border-radius: 12px;
             border: 1px solid rgba(255,255,255,0.12);
-            place-items: center;
-            color: rgba(255,255,255,0.65);
-            font-size: 1.4rem;
-            transition: border-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3),
-                        inset 0 1px 2px rgba(255, 255, 255, 0.1);
+            background: rgba(255,255,255,0.04);
+            color: rgba(255,255,255,0.75);
+            font-size: 0.85rem;
+            text-decoration: none;
+            transition: all 0.25s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
-
+        .icon-bubble svg {
+            width: 22px;
+            height: 22px;
+            flex-shrink: 0;
+        }
         .icon-bubble:hover {
             border-color: rgba(164,138,255,0.7);
-            color: #ffffff;
-            transform: translateY(-2px) scale(1.1);
-            box-shadow: 0 8px 24px rgba(184, 160, 255, 0.4),
-                        inset 0 1px 2px rgba(255, 255, 255, 0.15);
+            color: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(184, 160, 255, 0.3);
         }
+        .icon-bubble span { font-size: 0.9rem; }
 
-        @media (max-width: 1080px) {
+        /* ===== 桌面端（≥768px） ===== */
+        @media (min-width: 768px) {
+            .page-wrapper {
+                padding: 6vh 24px;
+            }
             .hero-card {
-                flex-direction: column;
-            }
-        }
-
-        /* @media (max-width: 680px) {
-            body {
-                padding: 24px 14px;
-            }
-            。hero-card {
-                width: auto;
+                border-radius: 32px;
             }
             .hero-panel {
-                padding: 28px 22px;
+                padding: 40px 48px;
             }
-            .hero-title {
-                font-size: 2.4rem;
+            .hero-avatar img {
+                width: 200px;
+                height: 200px;
             }
-            .hero-icons {
-                grid-template-columns: repeat(3, minmax(0, 1fr));
+            .hero-gallery {
+                grid-template-columns: repeat(4, 1fr);
             }
-        } */
+            .contact-grid {
+                grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            }
+        }
+
+        /* ===== 超大桌面（≥1080px） ===== */
+        @media (min-width: 1080px) {
+            .hero-card {
+                flex-direction: row;
+                flex-wrap: wrap;
+            }
+            .hero-panel {
+                flex: 1 1 45%;
+                border-bottom: none;
+                border-right: 1px solid rgba(255,255,255,0.06);
+            }
+            .hero-panel:nth-child(even) { border-right: none; }
+            .hero-panel:last-child { border-right: none; }
+            .hero-avatar { align-items: flex-start; text-align: left; }
+        }
     </style>
 </head>
 <body>
     <div class="page-wrapper">
         <div class="hero-card">
-            <div class="hero-panel" style="width: 300px;">
-                <a href="./html/xray.html" style="display: block;">
-                <img src="./assets/images/ahead.png" alt="Portrait">
+            <!-- ===== 头像区 ===== -->
+            <div class="hero-panel hero-avatar">
+                <a href="./html/xray.html">
+                    <img src="./assets/images/ahead.png" alt="Portrait">
                 </a>
                 <div class="photo-caption">春天的花，冬天的梦</div>
             </div>
+
+            <!-- ===== 个人介绍 ===== -->
             <div class="hero-panel">
-                <div>
-                    <div class="hero-title">你好!<br>我是淅寒</div>
-                    <div class="hero-description">
-                        恭喜你发现了这个隐藏的角落！<br>
-                        生活中总是有许多乐趣。<br>
-                        所以,<br>
-                        世界这么大，热爱点什么吧！<br>
-                        <br>
-                        <br>
-                        <br>
-                        <br>
-                        <br>
-                    </div>
-                
-                    <div class="hero-links">
-                        <a href="https://boke.xi-han.top/">博客</a>
-                        <a href="https://alist.xi-han.top/">网盘</a>
-                        <a href="https://durablechat.xi-han.top">聊天</a>
-                        <a href="./html/tools.html">工具</a>
-                    </div>
+                <div class="hero-title">你好!<br>我是淅寒</div>
+                <div class="hero-description">
+                    恭喜你发现了这个隐藏的角落！<br>
+                    生活中总是有许多乐趣。<br>
+                    所以，<br>
+                    世界这么大，热爱点什么吧！
+                </div>
+                <div class="hero-links">
+                    <a href="https://boke.xi-han.top/">📝 博客</a>
+                    <a href="https://alist.xi-han.top/">📦 网盘</a>
+                    <a href="https://durablechat.xi-han.top">💬 聊天</a>
+                    <a href="./html/tools.html">🔧 工具</a>
                 </div>
             </div>
+
+            <!-- ===== 探索画廊 ===== -->
             <div class="hero-panel">
-                <div>
-                    <div class="hero-title">探索</div>
-                    <img src="./assets/images/ahead.png" style="width: 200px;" altPortrait">
-                    <img src="./assets/images/ahead.png" style="width: 200px;" altPortrait">
-                    <img src="./assets/images/ahead.png" style="width: 200px;" altPortrait">
-                    <img src="./assets/images/ahead.png" style="width: 200px;" altPortrait">
+                <div class="hero-title">探索</div>
+                <div class="hero-gallery">
+                    <img src="./assets/images/ahead.png" alt="风景1">
+                    <img src="./assets/images/ahead.png" alt="风景2">
+                    <img src="./assets/images/ahead.png" alt="风景3">
+                    <img src="./assets/images/ahead.png" alt="风景4">
                 </div>
             </div>
+
+            <!-- ===== 联系区 ===== -->
             <div class="hero-panel">
-                <div>
-                    <div class="hero-title">Contact</div>
-                    <br>
+                <div class="hero-title">Contact</div>
+                <div class="contact-grid">
                     <a href="https://github.com/JuckyLee668" class="icon-bubble" target="_blank">
-                       <svg t="1775582521887" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="3582" width="200" height="200"><path d="M512 0C229.283787 0 0.142041 234.942803 0.142041 524.867683c0 231.829001 146.647305 428.553077 350.068189 497.952484 25.592898 4.819996 34.976961-11.38884 34.976961-25.294314 0-12.45521-0.469203-45.470049-0.725133-89.276559-142.381822 31.735193-172.453477-70.380469-172.453477-70.380469-23.246882-60.569859-56.816233-76.693384-56.816234-76.693385-46.493765-32.58829 3.540351-31.948468 3.540351-31.948467 51.356415 3.71097 78.356923 54.086324 78.356923 54.086324 45.683323 80.19108 119.817417 57.072162 148.993321 43.593236 4.649376-33.91059 17.915029-57.029508 32.50298-70.167195-113.675122-13.222997-233.151301-58.223843-233.1513-259.341366 0-57.285437 19.919806-104.163095 52.678715-140.846248-5.246544-13.265652-22.820334-66.626844 4.990615-138.884127 0 0 42.996069-14.076094 140.760939 53.787741 40.863327-11.644769 84.627183-17.445825 128.177764-17.6591 43.465272 0.213274 87.271782 6.014331 128.135109 17.6591 97.679561-67.906489 140.59032-53.787741 140.59032-53.787741 27.938914 72.257282 10.407779 125.618474 5.118579 138.884127 32.844219 36.683154 52.593405 83.560812 52.593405 140.846248 0 201.586726-119.646798 245.990404-233.663158 258.957473 18.341577 16.208835 34.721032 48.199958 34.721032 97.210357 0 70.167195-0.639822 126.7275-0.639823 143.960051 0 14.033439 9.213443 30.370239 35.190235 25.209005 203.250265-69.527373 349.769606-266.123484 349.769605-497.867175C1023.857959 234.942803 794.673558 0 512 0" fill="#3E75C3" p-id="3583"></path></svg>
-                     </a>
-                    <a href="https://t.me/cupidLee" class="icon-bubble" target_blank">
-                        <svg t="1775581531529" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2609" width="200" height="200"><path d="M679.424 746.862l84.005-395.996c7.424-34.852-12.581-48.567-35.438-40.009L234.277 501.138c-33.72 13.13-33.134 32-5.706 40.558l126.282 39.424 293.156-184.576c13.714-9.143 26.295-3.986 16.018 5.157L426.898 615.973l-9.143 130.304c13.13 0 18.871-5.706 25.71-12.581l61.696-59.429 128 94.282c23.442 13.129 40.01 6.29 46.3-21.724zM1024 512c0 282.843-229.157 512-512 512S0 794.843 0 512 229.157 0 512 0s512 229.157 512 512z" fill="#1296DB" p-id="2610"></path></svg>
+                        <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg"><path d="M512 0C229.283787 0 0.142041 234.942803 0.142041 524.867683c0 231.829001 146.647305 428.553077 350.068189 497.952484 25.592898 4.819996 34.976961-11.38884 34.976961-25.294314 0-12.45521-0.469203-45.470049-0.725133-89.276559-142.381822 31.735193-172.453477-70.380469-172.453477-70.380469-23.246882-60.569859-56.816233-76.693384-56.816234-76.693385-46.493765-32.58829 3.540351-31.948468 3.540351-31.948467 51.356415 3.71097 78.356923 54.086324 78.356923 54.086324 45.683323 80.19108 119.817417 57.072162 148.993321 43.593236 4.649376-33.91059 17.915029-57.029508 32.50298-70.167195-113.675122-13.222997-233.151301-58.223843-233.1513-259.341366 0-57.285437 19.919806-104.163095 52.678715-140.846248-5.246544-13.265652-22.820334-66.626844 4.990615-138.884127 0 0 42.996069-14.076094 140.760939 53.787741 40.863327-11.644769 84.627183-17.445825 128.177764-17.6591 43.465272 0.213274 87.271782 6.014331 128.135109 17.6591 97.679561-67.906489 140.59032-53.787741 140.59032-53.787741 27.938914 72.257282 10.407779 125.618474 5.118579 138.884127 32.844219 36.683154 52.593405 83.560812 52.593405 140.846248 0 201.586726-119.646798 245.990404-233.663158 258.957473 18.341577 16.208835 34.721032 48.199958 34.721032 97.210357 0 70.167195-0.639822 126.7275-0.639823 143.960051 0 14.033439 9.213443 30.370239 35.190235 25.209005 203.250265-69.527373 349.769606-266.123484 349.769605-497.867175C1023.857959 234.942803 794.673558 0 512 0" fill="#3E75C3"/></svg>
+                        <span>GitHub</span>
+                    </a>
+                    <a href="https://t.me/cupidLee" class="icon-bubble" target="_blank">
+                        <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg"><path d="M679.424 746.862l84.005-395.996c7.424-34.852-12.581-48.567-35.438-40.009L234.277 501.138c-33.72 13.13-33.134 32-5.706 40.558l126.282 39.424 293.156-184.576c13.714-9.143 26.295-3.986 16.018 5.157L426.898 615.973l-9.143 130.304c13.13 0 18.871-5.706 25.71-12.581l61.696-59.429 128 94.282c23.442 13.129 40.01 6.29 46.3-21.724zM1024 512c0 282.843-229.157 512-512 512S0 794.843 0 512 229.157 0 512 0s512 229.157 512 512z" fill="#1296DB"/></svg>
+                        <span>Telegram</span>
                     </a>
                 </div>
             </div>
         </div>
     </div>
-
 </body>
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    const cardContainer = document.querySelector('.hero-card');
-    
-    // 增加容错判断
-    if (!cardContainer) return;
-
-    cardContainer.addEventListener('wheel', (evt) => {
-        // 只有当容器可以横向滚动时才阻止默认行为
-        if (cardContainer.scrollWidth > cardContainer.clientWidth) {
-            evt.preventDefault();
-            cardContainer.scrollLeft += evt.deltaY;
-        }
-    }, { passive: false });
-});
-</script>
 </html>

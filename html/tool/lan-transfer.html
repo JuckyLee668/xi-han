@@ -29,12 +29,7 @@
       z-index: 0;
     }
 
-    .page-wrapper {
-      position: relative;
-      z-index: 1;
-      max-width: 880px;
-      margin: 0 auto;
-    }
+    .page-wrapper { position: relative; z-index: 1; max-width: 880px; margin: 0 auto; }
 
     .hero-card {
       background: rgba(22, 28, 48, 0.92);
@@ -45,30 +40,14 @@
       backdrop-filter: blur(14px);
     }
 
-    .top-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 16px;
-      flex-wrap: wrap;
-      gap: 12px;
-    }
-
-    .back-link {
-      color: rgba(255,255,255,0.5);
-      text-decoration: none;
-      font-size: 0.9rem;
-      transition: color 0.2s;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
+    .top-bar { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; flex-wrap: wrap; gap: 12px; }
+    .back-link { color: rgba(255,255,255,0.5); text-decoration: none; font-size: 0.9rem; transition: color 0.2s; display: inline-flex; align-items: center; gap: 6px; }
     .back-link:hover { color: #b8a0ff; }
 
-    .header { text-align: center; margin-bottom: 18px; }
-    .header-icon { font-size: 2.5rem; color: #82dcaa; margin-bottom: 8px; display: block; }
+    .header { text-align: center; margin-bottom: 16px; }
+    .header-icon { font-size: 2.4rem; color: #82dcaa; margin-bottom: 8px; display: block; }
     h1 {
-      font-size: clamp(1.6rem, 3.5vw, 2.2rem);
+      font-size: clamp(1.5rem, 3.5vw, 2rem);
       font-weight: 800;
       letter-spacing: -0.04em;
       background: linear-gradient(135deg, #82dcaa, #64c8ff);
@@ -80,43 +59,23 @@
     .subtitle { color: rgba(255,255,255,0.5); font-size: 0.9rem; }
 
     .info-bar {
-      background: rgba(255,200,100,0.08);
-      border: 1px solid rgba(255,200,100,0.15);
-      border-radius: 12px;
-      padding: 12px 16px;
-      margin-bottom: 18px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 0.85rem;
-      color: #ffc864;
+      background: rgba(255,200,100,0.08); border: 1px solid rgba(255,200,100,0.15);
+      border-radius: 12px; padding: 10px 14px; margin-bottom: 16px;
+      display: flex; align-items: center; gap: 8px; font-size: 0.82rem; color: #ffc864;
     }
-    .info-bar i { font-size: 1rem; flex-shrink: 0; }
+    .info-bar i { flex-shrink: 0; }
 
     .tabs {
-      display: flex;
-      gap: 0;
-      background: rgba(255,255,255,0.04);
-      border-radius: 14px;
-      border: 1px solid rgba(255,255,255,0.08);
-      overflow: hidden;
-      margin-bottom: 20px;
+      display: flex; gap: 0; background: rgba(255,255,255,0.04);
+      border-radius: 14px; border: 1px solid rgba(255,255,255,0.08);
+      overflow: hidden; margin-bottom: 18px;
     }
     .tab {
-      flex: 1;
-      padding: 14px;
-      text-align: center;
-      cursor: pointer;
-      font-weight: 600;
-      font-size: 0.95rem;
-      color: rgba(255,255,255,0.45);
-      transition: all 0.25s ease;
-      border: none;
-      background: transparent;
-      font-family: inherit;
+      flex: 1; padding: 13px; text-align: center; cursor: pointer;
+      font-weight: 600; font-size: 0.95rem; color: rgba(255,255,255,0.45);
+      transition: all 0.25s ease; border: none; background: transparent; font-family: inherit;
     }
     .tab:hover { color: rgba(255,255,255,0.7); }
-    .tab.active { color: #f5f5ff; background: rgba(184,160,255,0.12); }
     .tab.send.active { background: rgba(130,220,170,0.12); color: #82dcaa; }
     .tab.recv.active { background: rgba(100,200,255,0.12); color: #64c8ff; }
 
@@ -124,291 +83,184 @@
     .panel.active { display: block; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
+    /* Conn status bar */
+    .conn-bar {
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 14px; border-radius: 10px; margin-bottom: 14px;
+      font-size: 0.85rem; font-weight: 500;
+    }
+    .conn-bar.idle { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); color: rgba(255,255,255,0.35); }
+    .conn-bar.connected { background: rgba(130,220,170,0.08); border: 1px solid rgba(130,220,170,0.15); color: #82dcaa; }
+    .conn-bar.waiting { background: rgba(255,200,100,0.08); border: 1px solid rgba(255,200,100,0.15); color: #ffc864; }
+    .conn-bar .dot {
+      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+    }
+    .conn-bar.idle .dot { background: rgba(255,255,255,0.2); }
+    .conn-bar.connected .dot { background: #82dcaa; box-shadow: 0 0 6px rgba(130,220,170,0.5); }
+    .conn-bar.waiting .dot { background: #ffc864; animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+    .conn-bar .conn-right { margin-left: auto; display: flex; gap: 6px; }
+    .conn-bar .badge {
+      padding: 2px 10px; border-radius: 20px; font-size: 0.72rem;
+      background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.4);
+    }
+    .conn-bar .badge.room { background: rgba(130,220,170,0.12); color: #82dcaa; font-family: monospace; font-weight: 700; }
+
+    /* Drop zone */
     .drop-zone {
-      border: 2px dashed rgba(130,220,170,0.25);
-      border-radius: 16px;
-      padding: 36px 20px;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.25s ease;
-      background: rgba(130,220,170,0.03);
-      margin-bottom: 14px;
+      border: 2px dashed rgba(130,220,170,0.2);
+      border-radius: 14px; padding: 28px 20px; text-align: center;
+      cursor: pointer; transition: all 0.25s ease;
+      background: rgba(130,220,170,0.02); margin-bottom: 12px;
     }
-    .drop-zone:hover, .drop-zone.dragover {
-      border-color: #82dcaa;
-      background: rgba(130,220,170,0.08);
-    }
-    .drop-zone i { font-size: 2.8rem; color: #82dcaa; margin-bottom: 10px; display: block; }
-    .drop-zone p { color: rgba(255,255,255,0.55); font-size: 0.95rem; }
-    .drop-zone .hint { color: rgba(255,255,255,0.3); font-size: 0.8rem; margin-top: 4px; }
+    .drop-zone:hover, .drop-zone.dragover { border-color: #82dcaa; background: rgba(130,220,170,0.06); }
+    .drop-zone i { font-size: 2.2rem; color: #82dcaa; margin-bottom: 8px; display: block; }
+    .drop-zone p { color: rgba(255,255,255,0.5); font-size: 0.9rem; }
+    .drop-zone .hint { color: rgba(255,255,255,0.25); font-size: 0.78rem; margin-top: 4px; }
+    .drop-zone.disabled { opacity: 0.35; cursor: not-allowed; }
+    .drop-zone.disabled:hover { border-color: rgba(130,220,170,0.2); background: rgba(130,220,170,0.02); }
 
-    .file-list { margin-bottom: 14px; }
+    /* File list */
+    .file-list { margin-bottom: 10px; max-height: 240px; overflow-y: auto; }
     .file-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 14px;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 10px;
-      margin-bottom: 6px;
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 12px; background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06); border-radius: 9px; margin-bottom: 5px;
     }
-    .file-item .f-icon { font-size: 1.3rem; color: #82dcaa; flex-shrink: 0; }
+    .file-item .f-icon { font-size: 1.1rem; color: #82dcaa; flex-shrink: 0; }
     .file-item .f-info { flex: 1; min-width: 0; }
-    .file-item .f-name { font-size: 0.88rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .file-item .f-size { font-size: 0.76rem; color: rgba(255,255,255,0.4); }
-    .file-item .f-remove {
-      background: none; border: none; color: rgba(255,255,255,0.3);
-      cursor: pointer; font-size: 1rem; padding: 4px; transition: color 0.2s;
-    }
+    .file-item .f-name { font-size: 0.85rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .file-item .f-size { font-size: 0.74rem; color: rgba(255,255,255,0.35); }
+    .file-item .f-remove { background: none; border: none; color: rgba(255,255,255,0.25); cursor: pointer; font-size: 0.9rem; padding: 3px; transition: color 0.2s; }
     .file-item .f-remove:hover { color: #ff6b6b; }
-    .empty-files { text-align: center; padding: 10px; color: rgba(255,255,255,0.25); font-size: 0.85rem; }
+    .empty-files { text-align: center; padding: 10px; color: rgba(255,255,255,0.2); font-size: 0.82rem; }
 
-    /* Room code display */
-    .room-section {
-      text-align: center;
-      padding: 24px 20px;
-      background: rgba(255,255,255,0.03);
-      border: 1px solid rgba(255,255,255,0.06);
-      border-radius: 14px;
-      margin-bottom: 14px;
-      display: none;
-    }
-    .room-section.show { display: block; }
+    .file-item .f-status { font-size: 0.7rem; padding: 2px 8px; border-radius: 20px; flex-shrink: 0; }
+    .file-item .f-status.pending { background: rgba(255,200,100,0.1); color: #ffc864; }
+    .file-item .f-status.done { background: rgba(130,220,170,0.1); color: #82dcaa; }
+    .file-item .f-status.sending { background: rgba(100,200,255,0.1); color: #64c8ff; }
 
-    .room-code {
-      font-size: 3rem;
-      font-weight: 800;
-      letter-spacing: 0.15em;
-      color: #82dcaa;
-      font-family: "JetBrains Mono", Consolas, monospace;
-      margin: 8px 0;
-    }
-    .room-code-label { font-size: 0.85rem; color: rgba(255,255,255,0.4); }
-    .room-code-hint { font-size: 0.8rem; color: rgba(255,255,255,0.25); margin-top: 4px; }
+    /* Actions */
+    .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .actions .spacer { flex: 1; }
 
-    /* Input */
-    .input-group { margin-bottom: 14px; text-align: left; }
-    .input-group label {
-      display: block; font-size: 0.85rem; font-weight: 600;
-      color: rgba(255,255,255,0.6); margin-bottom: 8px;
-    }
-    .input-group input {
-      width: 100%;
-      padding: 14px 18px;
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 12px;
-      font-size: 1.4rem;
-      font-weight: 700;
-      letter-spacing: 0.3em;
-      text-align: center;
-      background: rgba(0,0,0,0.25);
-      color: #64c8ff;
-      font-family: "JetBrains Mono", Consolas, monospace;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-    .input-group input:focus {
-      border-color: #64c8ff;
-      box-shadow: 0 0 0 3px rgba(100,200,255,0.1);
-    }
-    .input-group input::placeholder {
-      letter-spacing: 0.1em;
-      color: rgba(255,255,255,0.2);
-      font-weight: 400;
-    }
-
-    /* Status */
-    .status-box {
-      margin-top: 12px;
-      padding: 12px 16px;
-      border-radius: 10px;
-      display: none;
-      align-items: center;
-      gap: 8px;
-      font-size: 0.88rem;
-    }
-    .status-box.show { display: flex; }
-    .status-box.info { background: rgba(100,200,255,0.1); border: 1px solid rgba(100,200,255,0.2); color: #64c8ff; }
-    .status-box.success { background: rgba(130,220,170,0.1); border: 1px solid rgba(130,220,170,0.2); color: #82dcaa; }
-    .status-box.error { background: rgba(255,107,107,0.1); border: 1px solid rgba(255,107,107,0.2); color: #ff6b6b; }
-
-    /* Progress */
-    .progress-wrap { margin-top: 12px; display: none; }
-    .progress-wrap.show { display: block; }
-    .progress-bar {
-      width: 100%; height: 8px;
-      background: rgba(255,255,255,0.08);
-      border-radius: 4px; overflow: hidden;
-    }
-    .progress-fill {
-      height: 100%;
-      background: linear-gradient(90deg, #82dcaa, #64c8ff);
-      border-radius: 4px; width: 0%;
-      transition: width 0.3s ease;
-    }
-    .progress-text {
-      display: flex; justify-content: space-between;
-      margin-top: 4px; font-size: 0.8rem; color: rgba(255,255,255,0.45);
-    }
-
-    /* Received files */
-    .received-item {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 12px 14px;
-      background: rgba(130,220,170,0.06);
-      border: 1px solid rgba(130,220,170,0.15);
-      border-radius: 10px;
-      margin-top: 8px;
-    }
-    .received-item .r-icon { font-size: 1.4rem; color: #82dcaa; flex-shrink: 0; }
-    .received-item .r-info { flex: 1; min-width: 0; }
-    .received-item .r-name { font-size: 0.9rem; font-weight: 500; }
-    .received-item .r-size { font-size: 0.78rem; color: rgba(255,255,255,0.4); }
-    .received-item .r-dl {
-      color: #82dcaa; text-decoration: none;
-      font-size: 0.9rem; font-weight: 600; transition: color 0.2s;
-    }
-    .received-item .r-dl:hover { color: #b8f0d0; }
-
-    /* Buttons */
     button { font-family: inherit; cursor: pointer; }
     .btn-primary {
       background: linear-gradient(135deg, #82dcaa, #5cc48a);
-      color: white; border: none; padding: 13px 24px;
-      border-radius: 12px; font-size: 0.95rem; font-weight: 600;
-      transition: all 0.25s ease; display: inline-flex; align-items: center; gap: 8px;
+      color: white; border: none; padding: 12px 22px;
+      border-radius: 11px; font-size: 0.92rem; font-weight: 600;
+      transition: all 0.25s ease; display: inline-flex; align-items: center; gap: 7px;
     }
-    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(130,220,170,0.25); }
-    .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(130,220,170,0.25); }
+    .btn-primary:disabled { opacity: 0.35; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
 
     .btn-blue {
       background: linear-gradient(135deg, #64c8ff, #3498db);
-      color: white; border: none; padding: 13px 24px;
-      border-radius: 12px; font-size: 0.95rem; font-weight: 600;
-      transition: all 0.25s ease; display: inline-flex; align-items: center; gap: 8px;
+      color: white; border: none; padding: 12px 22px;
+      border-radius: 11px; font-size: 0.92rem; font-weight: 600;
+      transition: all 0.25s ease; display: inline-flex; align-items: center; gap: 7px;
     }
-    .btn-blue:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(100,200,255,0.25); }
-    .btn-blue:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
+    .btn-blue:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(100,200,255,0.25); }
+    .btn-blue:disabled { opacity: 0.35; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
 
-    .btn-secondary {
-      background: rgba(255,255,255,0.06);
-      color: rgba(255,255,255,0.55);
-      border: 1px solid rgba(255,255,255,0.08);
-      padding: 10px 18px;
-      border-radius: 10px;
-      font-size: 0.88rem;
-      font-weight: 600;
-      transition: all 0.2s ease;
+    .btn-danger {
+      background: rgba(255,107,107,0.08);
+      color: #ff6b6b; border: 1px solid rgba(255,107,107,0.15);
+      padding: 12px 22px; border-radius: 11px; font-size: 0.92rem; font-weight: 600;
+      transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 7px;
     }
-    .btn-secondary:hover { background: rgba(255,255,255,0.1); }
+    .btn-danger:hover { background: rgba(255,107,107,0.15); }
 
     .btn-full { width: 100%; justify-content: center; }
 
-    /* Steps */
-    .steps {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 16px;
-      flex-wrap: wrap;
+    /* Room code */
+    .room-display { text-align: center; margin-bottom: 10px; display: none; }
+    .room-display.show { display: block; }
+    .room-code-label { font-size: 0.8rem; color: rgba(255,255,255,0.35); }
+    .room-code {
+      font-size: 2.6rem; font-weight: 800; letter-spacing: 0.15em;
+      color: #82dcaa; font-family: "JetBrains Mono", Consolas, monospace; margin: 4px 0;
     }
-    .step {
-      flex: 1;
-      min-width: 100px;
-      padding: 10px 12px;
-      background: rgba(255,255,255,0.03);
-      border: 1px solid rgba(255,255,255,0.06);
-      border-radius: 10px;
-      text-align: center;
-      font-size: 0.8rem;
-      color: rgba(255,255,255,0.35);
-      transition: all 0.3s ease;
+    .room-copy-btn {
+      background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08);
+      color: rgba(255,255,255,0.5); padding: 6px 16px; border-radius: 8px;
+      font-size: 0.8rem; cursor: pointer; transition: all 0.2s;
     }
-    .step .step-icon { display: block; font-size: 1.3rem; margin-bottom: 4px; }
-    .step.active {
-      border-color: rgba(130,220,170,0.3);
-      color: #82dcaa;
-      background: rgba(130,220,170,0.06);
+    .room-copy-btn:hover { background: rgba(255,255,255,0.1); }
+
+    /* Receive input */
+    .input-group { margin-bottom: 12px; text-align: left; }
+    .input-group label { display: block; font-size: 0.82rem; font-weight: 600; color: rgba(255,255,255,0.5); margin-bottom: 6px; }
+    .input-group input {
+      width: 100%; padding: 13px 16px;
+      border: 1px solid rgba(255,255,255,0.1); border-radius: 11px;
+      font-size: 1.3rem; font-weight: 700; letter-spacing: 0.3em;
+      text-align: center; background: rgba(0,0,0,0.25);
+      color: #64c8ff; font-family: "JetBrains Mono", Consolas, monospace;
+      outline: none; transition: border-color 0.2s;
     }
-    .step.done {
-      border-color: rgba(130,220,170,0.15);
-      color: rgba(130,220,170,0.6);
+    .input-group input:focus { border-color: #64c8ff; box-shadow: 0 0 0 3px rgba(100,200,255,0.1); }
+    .input-group input::placeholder { letter-spacing: 0.1em; color: rgba(255,255,255,0.15); font-weight: 400; }
+
+    /* Progress */
+    .progress-wrap { margin-bottom: 10px; display: none; }
+    .progress-wrap.show { display: block; }
+    .progress-bar { width: 100%; height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, #82dcaa, #64c8ff); border-radius: 3px; width: 0%; transition: width 0.3s ease; }
+    .progress-text { display: flex; justify-content: space-between; margin-top: 3px; font-size: 0.76rem; color: rgba(255,255,255,0.4); }
+
+    /* Received files */
+    .recv-header { font-size: 0.82rem; color: rgba(255,255,255,0.35); margin-bottom: 6px; margin-top: 10px; }
+    .received-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 13px; background: rgba(130,220,170,0.04);
+      border: 1px solid rgba(130,220,170,0.1); border-radius: 9px; margin-bottom: 5px;
     }
-    .step.recv-active {
-      border-color: rgba(100,200,255,0.3);
-      color: #64c8ff;
-      background: rgba(100,200,255,0.06);
-    }
+    .received-item .r-icon { font-size: 1.2rem; color: #82dcaa; flex-shrink: 0; }
+    .received-item .r-info { flex: 1; min-width: 0; }
+    .received-item .r-name { font-size: 0.85rem; font-weight: 500; }
+    .received-item .r-size { font-size: 0.74rem; color: rgba(255,255,255,0.35); }
+    .received-item .r-dl { color: #82dcaa; text-decoration: none; font-size: 0.85rem; font-weight: 600; transition: color 0.2s; }
+    .received-item .r-dl:hover { color: #b8f0d0; }
 
     /* Toast */
     .toast {
-      position: fixed;
-      bottom: 30px; left: 50%;
+      position: fixed; bottom: 30px; left: 50%;
       transform: translateX(-50%) translateY(20px);
-      background: rgba(22,28,48,0.96);
-      border: 1px solid rgba(130,220,170,0.3);
-      color: #82dcaa;
-      padding: 14px 24px;
-      border-radius: 12px;
-      font-size: 0.9rem;
-      font-weight: 500;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      opacity: 0;
-      transition: all 0.3s ease;
-      pointer-events: none;
-      z-index: 999;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      background: rgba(22,28,48,0.96); border: 1px solid rgba(130,220,170,0.3);
+      color: #82dcaa; padding: 12px 22px; border-radius: 12px;
+      font-size: 0.88rem; font-weight: 500;
+      display: flex; align-items: center; gap: 8px;
+      opacity: 0; transition: all 0.3s ease;
+      pointer-events: none; z-index: 999; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     }
     .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
     .toast.error { border-color: rgba(255,107,107,0.3); color: #ff6b6b; }
 
     .spinner {
-      display: inline-block;
-      width: 18px; height: 18px;
+      display: inline-block; width: 16px; height: 16px;
       border: 2px solid rgba(255,255,255,0.2);
       border-top: 2px solid currentColor;
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
+      border-radius: 50%; animation: spin 0.7s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* URL config */
-    .config-bar {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 14px;
-      align-items: center;
-    }
-    .config-bar input {
-      flex: 1;
-      padding: 9px 12px;
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 8px;
-      background: rgba(0,0,0,0.2);
-      color: rgba(255,255,255,0.5);
-      font-size: 0.8rem;
-      font-family: "JetBrains Mono", Consolas, monospace;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-    .config-bar input:focus {
-      border-color: #b8a0ff;
-    }
-    .config-bar input::placeholder { color: rgba(255,255,255,0.15); }
+    /* Waiting overlay in recv */
+    .recv-waiting { text-align: center; padding: 30px 20px; }
+    .recv-waiting i { font-size: 3rem; color: #64c8ff; margin-bottom: 10px; display: block; }
+    .recv-waiting p { color: rgba(255,255,255,0.45); font-size: 0.9rem; }
 
     @media (max-width: 768px) {
       body { padding: 12px; }
       .hero-card { padding: 16px; border-radius: 18px; }
-      .room-code { font-size: 2.4rem; }
-      .step { min-width: 70px; padding: 8px; font-size: 0.72rem; }
+      .room-code { font-size: 2rem; }
+      .actions { flex-direction: column; }
+      .actions .spacer { display: none; }
     }
     @media (min-width: 768px) {
       body { padding: 6vh 24px; }
-      .hero-card { padding: 36px; border-radius: 32px; }
+      .hero-card { padding: 30px; border-radius: 32px; }
     }
   </style>
 </head>
@@ -423,52 +275,49 @@
       <div class="header">
         <i class="fas fa-network-wired header-icon"></i>
         <h1>局域网文件互传</h1>
-        <p class="subtitle">P2P 直连传输 · 仅信令经过 Worker · 文件不经过服务器</p>
+        <p class="subtitle">连接保持在线 · 随时选文件 · 随选随传</p>
       </div>
 
       <div class="info-bar">
         <i class="fas fa-info-circle"></i>
-        <span>通过 Cloudflare Worker 交换连接信息，文件数据走 P2P 直连，不限速。</span>
+        <span>建立连接后，发送方可随时添加文件传输，无需重新建立房间。</span>
       </div>
-
-  <!-- Config (hidden, saved by default) -->
-  <input type="hidden" id="signalUrl" value="https://signal.xi-han.top">
 
       <div class="tabs">
-        <button class="tab send active" data-tab="send"><i class="fas fa-upload"></i> 发送文件</button>
-        <button class="tab recv" data-tab="recv"><i class="fas fa-download"></i> 接收文件</button>
+        <button class="tab send active" data-tab="send"><i class="fas fa-upload"></i> 发送方</button>
+        <button class="tab recv" data-tab="recv"><i class="fas fa-download"></i> 接收方</button>
       </div>
 
-      <!-- SEND -->
+      <!-- ==================== SEND PANEL ==================== -->
       <div class="panel active" id="panelSend">
-        <div class="steps" id="sendSteps">
-          <div class="step active" id="sStep1"><span class="step-icon">①</span>选择文件</div>
-          <div class="step" id="sStep2"><span class="step-icon">②</span>创建房间</div>
-          <div class="step" id="sStep3"><span class="step-icon">③</span>等待接收方</div>
-          <div class="step" id="sStep4"><span class="step-icon">④</span>传输中</div>
+        <!-- Connection status -->
+        <div class="conn-bar idle" id="sendConnBar">
+          <span class="dot"></span>
+          <span id="sendConnText">未连接 — 选择文件并创建房间</span>
+          <div class="conn-right">
+            <span class="badge" id="sendConnBadge"></span>
+          </div>
         </div>
 
+        <!-- Room code display -->
+        <div class="room-display" id="roomDisplay">
+          <div class="room-code-label">📋 房间号（告诉接收方）</div>
+          <div class="room-code" id="roomCode">------</div>
+          <button class="room-copy-btn" onclick="copyRoomCode()"><i class="fas fa-copy"></i> 复制房间号</button>
+        </div>
+
+        <!-- Drop zone -->
         <div class="drop-zone" id="dropZone">
           <i class="fas fa-cloud-upload-alt"></i>
           <p>拖拽文件到此处，或点击选择</p>
-          <div class="hint">支持任意格式</div>
+          <div class="hint">连接建立后可随时添加文件</div>
         </div>
         <input type="file" id="fileInput" multiple hidden>
 
+        <!-- File list -->
         <div class="file-list" id="fileList"><div class="empty-files">暂无选择文件</div></div>
 
-        <div id="sendActions" style="text-align:center;">
-          <button class="btn-primary btn-full" id="createRoomBtn" disabled><i class="fas fa-play"></i> 创建房间</button>
-        </div>
-
-        <div class="room-section" id="roomDisplay">
-          <div class="room-code-label">📋 房间号</div>
-          <div class="room-code" id="roomCode">------</div>
-          <button class="btn-secondary" onclick="copyRoom()" style="margin-top:6px;"><i class="fas fa-copy"></i> 复制房间号</button>
-          <div class="room-code-hint">告诉接收方输入这个房间号</div>
-        </div>
-
-        <div class="status-box" id="sendStatus"></div>
+        <!-- Progress -->
         <div class="progress-wrap" id="sendProgress">
           <div class="progress-bar"><div class="progress-fill" id="sendProgressFill"></div></div>
           <div class="progress-text">
@@ -476,24 +325,44 @@
             <span id="sendProgressPct">0%</span>
           </div>
         </div>
+
+        <!-- Actions -->
+        <div class="actions" id="sendActions">
+          <button class="btn-primary" id="createRoomBtn"><i class="fas fa-play"></i> 创建房间</button>
+          <button class="btn-primary" id="sendFilesBtn" style="display:none;"><i class="fas fa-upload"></i> 发送所选文件</button>
+          <span class="spacer"></span>
+          <button class="btn-danger" id="disconnectBtn" style="display:none;"><i class="fas fa-plug"></i> 断开连接</button>
+        </div>
       </div>
 
-      <!-- RECEIVE -->
+      <!-- ==================== RECEIVE PANEL ==================== -->
       <div class="panel" id="panelRecv">
-        <div class="steps" id="recvSteps">
-          <div class="step recv-active" id="rStep1"><span class="step-icon">①</span>输入房间号</div>
-          <div class="step" id="rStep2"><span class="step-icon">②</span>等待连接</div>
-          <div class="step" id="rStep3"><span class="step-icon">③</span>传输中</div>
+        <!-- Connection status -->
+        <div class="conn-bar idle" id="recvConnBar">
+          <span class="dot"></span>
+          <span id="recvConnText">未连接 — 输入房间号加入</span>
+          <div class="conn-right">
+            <span class="badge" id="recvConnBadge"></span>
+          </div>
         </div>
 
-        <div class="input-group">
-          <label><i class="fas fa-key"></i> 输入发送方的房间号</label>
-          <input type="text" id="roomInput" placeholder="000000" maxlength="6" autocomplete="off">
+        <!-- Room input (shown when not connected) -->
+        <div id="recvJoinForm">
+          <div class="input-group">
+            <label><i class="fas fa-key"></i> 输入发送方的房间号</label>
+            <input type="text" id="roomInput" placeholder="000000" maxlength="6" autocomplete="off">
+          </div>
+          <button class="btn-blue btn-full" id="joinBtn" disabled><i class="fas fa-plug"></i> 加入房间</button>
         </div>
 
-        <button class="btn-blue btn-full" id="joinRoomBtn" disabled><i class="fas fa-plug"></i> 加入房间</button>
+        <!-- Waiting (shown after join, before files) -->
+        <div class="recv-waiting" id="recvWaiting" style="display:none;">
+          <i class="fas fa-hourglass-half"></i>
+          <p>已连接，等待发送方传输文件...</p>
+          <div style="margin-top:10px;"><span class="spinner" style="width:24px;height:24px;border-width:3px;"></span></div>
+        </div>
 
-        <div class="status-box" id="recvStatus"></div>
+        <!-- Progress -->
         <div class="progress-wrap" id="recvProgress">
           <div class="progress-bar"><div class="progress-fill" id="recvProgressFill"></div></div>
           <div class="progress-text">
@@ -501,7 +370,14 @@
             <span id="recvProgressPct">0%</span>
           </div>
         </div>
+
+        <!-- Received files -->
         <div id="recvFiles"></div>
+
+        <!-- Disconnect button for receiver -->
+        <div style="text-align:center;margin-top:10px;">
+          <button class="btn-danger" id="recvDisconnectBtn" style="display:none;"><i class="fas fa-plug"></i> 断开连接</button>
+        </div>
       </div>
     </div>
   </div>
@@ -511,17 +387,12 @@
   <script>
     // ===== CONFIG =====
     const SIGNAL_URL = 'https://signal.xi-han.top';
-    const STUN = [
-      'stun:stun.l.google.com:19302',
-      'stun:stun1.l.google.com:19302',
-      'stun:stun2.l.google.com:19302'
-    ];
+    const STUN = ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'];
 
     // ===== DOM =====
     const $ = id => document.getElementById(id);
     const toast = $('toast');
     const toastMsg = $('toastMsg');
-    let currentCode = '';
 
     function showToast(msg, err = false) {
       toastMsg.textContent = msg;
@@ -529,7 +400,7 @@
       toast.querySelector('i').className = 'fas ' + (err ? 'fa-exclamation-circle' : 'fa-check-circle');
       toast.classList.add('show');
       clearTimeout(toast._t);
-      toast._t = setTimeout(() => toast.classList.remove('show'), 3000);
+      toast._t = setTimeout(() => toast.classList.remove('show'), 2500);
     }
 
     function fmtSize(b) {
@@ -538,21 +409,7 @@
       return (b / 1048576).toFixed(1) + ' MB';
     }
 
-    function esc(s) {
-      const d = document.createElement('div');
-      d.textContent = s;
-      return d.innerHTML;
-    }
-
-    function setStatus(el, msg, type = 'info') {
-      el.className = 'status-box ' + type + ' show';
-      const icons = { info: 'fa-info-circle', success: 'fa-check-circle', error: 'fa-times-circle' };
-      el.innerHTML = '<i class="fas ' + (icons[type] || 'fa-info-circle') + '"></i> <span>' + msg + '</span>';
-    }
-
-    function step(el, state) { el.className = 'step ' + state; }
-
-    // SIGNAL_URL is now hardcoded above
+    function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 
     // ===== TABS =====
     document.querySelectorAll('.tab').forEach(tab => {
@@ -564,26 +421,22 @@
       });
     });
 
-    // ===== SIGNALING API =====
+    // ===== API =====
     async function api(path, opts = {}) {
-      if (!SIGNAL_URL) throw new Error('请先设置信令服务器地址');
       const r = await fetch(SIGNAL_URL + path, {
         headers: { 'Content-Type': 'application/json' },
         ...opts,
       });
-      if (!r.ok) {
-        const err = await r.text().catch(() => r.statusText);
-        throw new Error(err || r.statusText);
-      }
+      if (!r.ok) throw new Error(await r.text().catch(() => r.statusText));
       const text = await r.text();
-      // Some endpoints return raw text
       try { return JSON.parse(text); } catch(e) { return text; }
     }
 
     // ===== FILE SELECTION =====
     const dropZone = $('dropZone');
     const fileInput = $('fileInput');
-    let selectedFiles = [];
+    let pendingFiles = [];       // Files queued but not yet sent
+    const sentFiles = [];        // Track sent file names for display
 
     dropZone.addEventListener('click', () => fileInput.click());
     dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
@@ -592,111 +445,129 @@
     fileInput.addEventListener('change', () => { addFiles(Array.from(fileInput.files)); fileInput.value = ''; });
 
     function addFiles(files) {
-      selectedFiles = selectedFiles.concat(files);
-      renderFileList();
+      pendingFiles = pendingFiles.concat(files);
+      renderSendFiles();
+      // Show "send" button if connected
+      if (isConnected) {
+        $('sendFilesBtn').style.display = 'inline-flex';
+        $('createRoomBtn').style.display = 'none';
+      }
     }
 
-    function removeFile(i) {
-      selectedFiles.splice(i, 1);
-      renderFileList();
+    function removePendingFile(idx) {
+      pendingFiles.splice(idx, 1);
+      renderSendFiles();
     }
 
-    function renderFileList() {
+    function renderSendFiles() {
       const el = $('fileList');
-      if (selectedFiles.length === 0) {
+      if (pendingFiles.length === 0) {
         el.innerHTML = '<div class="empty-files">暂无选择文件</div>';
-        $('createRoomBtn').disabled = true;
+        $('sendFilesBtn').style.display = 'none';
+        $('createRoomBtn').style.display = 'inline-flex';
         return;
       }
-      el.innerHTML = selectedFiles.map((f, i) => {
-        const icon = f.type.startsWith('image/') ? 'fa-file-image' :
-                     f.type.startsWith('video/') ? 'fa-file-video' :
-                     f.type.startsWith('audio/') ? 'fa-file-audio' :
-                     (f.type.includes('zip') || f.type.includes('rar') || f.type.includes('tar')) ? 'fa-file-archive' :
-                     'fa-file';
-        return '<div class="file-item">' +
+      let html = '';
+      pendingFiles.forEach((f, i) => {
+        const icon = f.type.startsWith('image/') ? 'fa-file-image' : f.type.startsWith('video/') ? 'fa-file-video' : 'fa-file';
+        html += '<div class="file-item">' +
           '<i class="fas ' + icon + ' f-icon"></i>' +
           '<div class="f-info"><div class="f-name">' + esc(f.name) + '</div><div class="f-size">' + fmtSize(f.size) + '</div></div>' +
-          '<button class="f-remove" onclick="removeFile(' + i + ')"><i class="fas fa-times"></i></button></div>';
-      }).join('');
-      $('createRoomBtn').disabled = false;
+          '<span class="f-status pending">待发送</span>' +
+          '<button class="f-remove" onclick="removePendingFile(' + i + ')"><i class="fas fa-times"></i></button></div>';
+      });
+      el.innerHTML = html;
+      if (isConnected) {
+        $('sendFilesBtn').style.display = 'inline-flex';
+        $('createRoomBtn').style.display = 'none';
+      } else {
+        $('createRoomBtn').style.display = 'inline-flex';
+      }
     }
 
-    // ===== SENDER =====
-    let senderPc = null;
-    let senderDc = null;
-    let sending = false;
+    // ===== SENDER STATE =====
+    let pc = null;           // PeerConnection (shared, stays alive)
+    let dc = null;           // DataChannel
+    let isConnected = false;
+    let roomCode = '';
+    let sendingNow = false;
+    let fileQueue = [];       // For sequential sending within a batch
+    let pollTimer = null;
 
-    $('createRoomBtn').addEventListener('click', startSend);
+    function setSendConn(state, text, badge = '') {
+      const bar = $('sendConnBar');
+      bar.className = 'conn-bar ' + state;
+      $('sendConnText').textContent = text;
+      $('sendConnBadge').textContent = badge;
+    }
 
-    async function startSend() {
-      if (selectedFiles.length === 0) { showToast('请先选择文件', true); return; }
+    // ===== SENDER: Create Room =====
+    $('createRoomBtn').addEventListener('click', startHost);
 
-      step($('sStep1'), 'done');
-      step($('sStep2'), 'active');
+    async function startHost() {
+      if (pendingFiles.length === 0) { showToast('请先选择文件', true); return; }
+
       $('createRoomBtn').disabled = true;
       $('createRoomBtn').innerHTML = '<span class="spinner"></span> 创建中...';
 
       try {
-        // 1. Create room
         const room = await api('/room', { method: 'POST' });
-        currentCode = room.code;
-        $('roomCode').textContent = currentCode;
+        roomCode = room.code;
+        $('roomCode').textContent = roomCode;
         $('roomDisplay').classList.add('show');
-        step($('sStep2'), 'done');
-        step($('sStep3'), 'active');
-        setStatus($('sendStatus'), '房间已创建，等待接收方加入...', 'info');
 
-        // 2. Create WebRTC offer
-        senderPc = new RTCPeerConnection({ iceServers: [{ urls: STUN }] });
+        setSendConn('waiting', '等待接收方加入...', '房间 ' + roomCode);
 
-        senderDc = senderPc.createDataChannel('fileTransfer', { ordered: true });
+        // Setup WebRTC
+        pc = new RTCPeerConnection({ iceServers: [{ urls: STUN }] });
+        dc = pc.createDataChannel('fileTransfer', { ordered: true });
 
-        senderDc.onopen = () => {
-          step($('sStep3'), 'done');
-          step($('sStep4'), 'active');
-          setStatus($('sendStatus'), '连接已建立，开始发送文件...', 'success');
-          sendFiles();
+        dc.onopen = () => {
+          isConnected = true;
+          setSendConn('connected', '已连接 — 可随时添加文件发送', '房间 ' + roomCode);
+          $('createRoomBtn').style.display = 'none';
+          $('disconnectBtn').style.display = 'inline-flex';
+          $('sendFilesBtn').style.display = 'inline-flex';
+          showToast('接收方已加入！');
+          // Send pending files
+          flushSendQueue();
         };
 
-        senderDc.onclose = () => {
-          if (!sending) return;
-          setStatus($('sendStatus'), '传输已断开', 'error');
-        };
-
-        senderPc.oniceconnectionstatechange = () => {
-          if (senderPc.iceConnectionState === 'disconnected' || senderPc.iceConnectionState === 'failed') {
-            setStatus($('sendStatus'), '连接断开', 'error');
+        dc.onclose = () => {
+          if (isConnected) {
+            showToast('连接已断开', true);
+            resetSendState();
           }
         };
 
-        // ICE candidate gathering complete → store offer
-        senderPc.onicecandidate = async (e) => {
+        pc.oniceconnectionstatechange = () => {
+          if (pc.iceConnectionState === 'disconnected' || pc.iceConnectionState === 'failed') {
+            if (isConnected) {
+              showToast('连接已断开', true);
+              resetSendState();
+            }
+          }
+        };
+
+        pc.onicecandidate = async (e) => {
           if (!e.candidate) {
-            // All candidates gathered
-            const offerData = JSON.stringify(senderPc.localDescription);
-            await api('/room/' + currentCode + '/offer', {
+            await api('/room/' + roomCode + '/offer', {
               method: 'PUT',
-              body: offerData,
+              body: JSON.stringify(pc.localDescription),
               headers: { 'Content-Type': 'text/plain' },
             });
-            setStatus($('sendStatus'), '等待接收方应答...', 'info');
-
-            // Start polling for answer
             pollForAnswer();
           }
         };
 
-        const offer = await senderPc.createOffer();
-        await senderPc.setLocalDescription(offer);
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
 
-        // Fallback: if candidates gather instantly
         setTimeout(async () => {
-          if (senderPc && senderPc.localDescription && !$('roomDisplay').classList.contains('polling')) {
-            const offerData = JSON.stringify(senderPc.localDescription);
-            await api('/room/' + currentCode + '/offer', {
+          if (pc && pc.localDescription && !pollTimer) {
+            await api('/room/' + roomCode + '/offer', {
               method: 'PUT',
-              body: offerData,
+              body: JSON.stringify(pc.localDescription),
               headers: { 'Content-Type': 'text/plain' },
             });
             pollForAnswer();
@@ -704,288 +575,343 @@
         }, 1500);
 
       } catch (e) {
-        setStatus($('sendStatus'), '创建失败: ' + e.message, 'error');
-        showToast('创建房间失败', true);
-        console.error(e);
-        cleanupSender();
+        showToast('创建失败: ' + e.message, true);
+        resetSendState();
       }
     }
-
-    let polling = false;
 
     async function pollForAnswer() {
-      if (polling) return;
-      polling = true;
-      $('roomDisplay').classList.add('polling');
-
-      try {
-        const answerData = await api('/room/' + currentCode + '/answer');
-        if (answerData && answerData !== 'null') {
-          const answer = answerData;
-          await senderPc.setRemoteDescription(new RTCSessionDescription(answer));
-          setStatus($('sendStatus'), '连接已建立', 'success');
-          return;
-        }
-      } catch (e) {
-        // Timeout or error - receiver might still be joining
-        console.log('Poll timeout, retrying...');
-      }
-
-      if (senderPc && senderPc.signalingState !== 'closed') {
-        polling = false;
-        pollForAnswer(); // retry
-      } else {
-        polling = false;
+      if (pollTimer) return;
+      const poll = async () => {
+        try {
+          const data = await api('/room/' + roomCode + '/answer');
+          if (data && data !== 'null') {
+            clearInterval(pollTimer);
+            pollTimer = null;
+            await pc.setRemoteDescription(new RTCSessionDescription(data));
+            return;
+          }
+        } catch(e) {}
+      };
+      await poll();
+      if (!pollTimer && pc && pc.signalingState !== 'closed') {
+        pollTimer = setInterval(poll, 1500);
+        // Stop polling after 30s
+        setTimeout(() => {
+          if (pollTimer) {
+            clearInterval(pollTimer);
+            pollTimer = null;
+            if (!isConnected) {
+              setSendConn('idle', '等待超时，请重试');
+              showToast('接收方未加入', true);
+              resetSendState();
+            }
+          }
+        }, 30000);
       }
     }
 
-    async function sendFiles() {
-      sending = true;
+    // ===== SENDER: Send queued files =====
+    async function flushSendQueue() {
+      if (sendingNow || !dc || dc.readyState !== 'open' || pendingFiles.length === 0) return;
+
+      sendingNow = true;
+      $('sendFilesBtn').disabled = true;
       const pr = $('sendProgress');
       const pf = $('sendProgressFill');
       const pl = $('sendProgressLabel');
       const pp = $('sendProgressPct');
       pr.classList.add('show');
 
-      senderDc.send(JSON.stringify({ type: 'meta', count: selectedFiles.length }));
+      const batch = pendingFiles.slice();
+      pendingFiles = [];
+      renderSendFiles();
 
-      for (let i = 0; i < selectedFiles.length; i++) {
-        const file = selectedFiles[i];
+      // Send metadata
+      dc.send(JSON.stringify({ type: 'meta', count: batch.length }));
 
-        senderDc.send(JSON.stringify({
-          type: 'file-start',
-          name: file.name, size: file.size,
-          mime: file.type || 'application/octet-stream',
-          index: i, total: selectedFiles.length
+      for (let i = 0; i < batch.length; i++) {
+        const file = batch[i];
+        dc.send(JSON.stringify({
+          type: 'file-start', name: file.name, size: file.size,
+          mime: file.type || 'application/octet-stream', index: i, total: batch.length
         }));
 
         const CHUNK = 16384;
         let offset = 0;
-
         while (offset < file.size) {
           const chunk = file.slice(offset, Math.min(offset + CHUNK, file.size));
           const buf = await chunk.arrayBuffer();
-          senderDc.send(buf);
+          dc.send(buf);
           offset += CHUNK;
           const pct = Math.round((offset / file.size) * 100);
           pf.style.width = pct + '%';
-          pl.textContent = '发送: ' + file.name + ' (' + (i + 1) + '/' + selectedFiles.length + ')';
+          pl.textContent = '发送: ' + file.name + ' (' + (i + 1) + '/' + batch.length + ')';
           pp.textContent = pct + '%';
         }
       }
 
-      senderDc.send(JSON.stringify({ type: 'done' }));
+      dc.send(JSON.stringify({ type: 'done' }));
       pf.style.width = '100%';
-      pl.textContent = '✅ 全部发送完成！';
+      pl.textContent = '✅ 发送完成';
       pp.textContent = '100%';
-      step($('sStep4'), 'done');
-      setStatus($('sendStatus'), '所有文件发送成功！', 'success');
-      showToast('所有文件已发送');
+      showToast('文件发送完成');
 
-      // Cleanup room
-      try { await api('/room/' + currentCode, { method: 'DELETE' }); } catch(e) {}
-      setTimeout(cleanupSender, 5000);
+      sendingNow = false;
+      $('sendFilesBtn').disabled = false;
+
+      // If user added more files while sending, send them
+      if (pendingFiles.length > 0) {
+        setTimeout(flushSendQueue, 500);
+      }
     }
 
-    function cleanupSender() {
-      if (senderPc) { try { senderPc.close(); } catch(e) {} senderPc = null; }
-      senderDc = null;
-      sending = false;
-      polling = false;
+    // ===== SENDER: Manual send trigger =====
+    $('sendFilesBtn').addEventListener('click', () => {
+      if (pendingFiles.length === 0) { showToast('请先选择文件', true); return; }
+      if (!dc || dc.readyState !== 'open') { showToast('连接未就绪', true); return; }
+      flushSendQueue();
+    });
+
+    // ===== SENDER: Disconnect =====
+    $('disconnectBtn').addEventListener('click', () => {
+      cleanupRoom();
+      resetSendState();
+      showToast('已断开连接');
+    });
+
+    function resetSendState() {
+      if (pc) { try { pc.close(); } catch(e) {} pc = null; }
+      dc = null;
+      isConnected = false;
+      sendingNow = false;
+      if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+      $('roomDisplay').classList.remove('show');
+      $('disconnectBtn').style.display = 'none';
+      $('sendFilesBtn').style.display = 'none';
+      $('sendProgress').classList.remove('show');
+      $('sendProgressFill').style.width = '0%';
+      $('createRoomBtn').style.display = 'inline-flex';
       $('createRoomBtn').disabled = false;
       $('createRoomBtn').innerHTML = '<i class="fas fa-play"></i> 创建房间';
+      setSendConn('idle', '未连接 — 选择文件并创建房间');
     }
 
-    function copyRoom() {
-      navigator.clipboard.writeText(currentCode).then(() => showToast('房间号已复制')).catch(() => {
-        const ta = document.createElement('textarea');
-        ta.value = currentCode;
-        document.body.appendChild(ta);
-        ta.select();
-        document.execCommand('copy');
-        document.body.removeChild(ta);
-        showToast('房间号已复制');
-      });
+    async function cleanupRoom() {
+      if (roomCode) {
+        try { await api('/room/' + roomCode, { method: 'DELETE' }); } catch(e) {}
+        roomCode = '';
+      }
     }
 
-    // ===== RECEIVER =====
-    let receiverPc = null;
-    let receiverDc = null;
-    let currentFile = null;
-    let currentFileBuf = [];
-    let fileCount = 0;
-    let filesDone = 0;
+    function copyRoomCode() {
+      const code = $('roomCode').textContent;
+      navigator.clipboard.writeText(code).then(() => showToast('房间号已复制'))
+        .catch(() => { const ta = document.createElement('textarea'); ta.value = code; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); showToast('房间号已复制'); });
+    }
+
+    // ==================== RECEIVER ====================
+    let recvPc = null;
+    let recvDc = null;
+    let recvConnected = false;
+    let recvCurrentFile = null;
+    let recvFileBuf = [];
+    let recvFileCount = 0;
+    let recvFilesDone = 0;
 
     $('roomInput').addEventListener('input', () => {
       const v = $('roomInput').value.replace(/\D/g, '').slice(0, 6);
       $('roomInput').value = v;
-      $('joinRoomBtn').disabled = v.length !== 6;
+      $('joinBtn').disabled = v.length !== 6;
     });
 
-    $('joinRoomBtn').addEventListener('click', startReceive);
+    $('joinBtn').addEventListener('click', startJoin);
 
-    async function startReceive() {
+    async function startJoin() {
       const code = $('roomInput').value.trim();
-      if (code.length !== 6) { showToast('请输入6位房间号', true); return; }
+      if (code.length !== 6) return;
 
-      currentCode = code;
-      step($('rStep1'), 'done');
-      step($('rStep2'), 'active');
-      $('joinRoomBtn').disabled = true;
-      $('joinRoomBtn').innerHTML = '<span class="spinner"></span> 连接中...';
+      $('joinBtn').disabled = true;
+      $('joinBtn').innerHTML = '<span class="spinner"></span> 连接中...';
+      setRecvConn('waiting', '正在连接...', '房间 ' + code);
 
       try {
-        // 1. Poll for offer
-        setStatus($('recvStatus'), '正在获取连接信息...', 'info');
         const offerData = await api('/room/' + code + '/offer');
         if (!offerData || offerData === 'null') {
-          setStatus($('recvStatus'), '未找到该房间，请确认房间号', 'error');
-          cleanupReceiver();
+          setRecvConn('idle', '未找到该房间，请确认房间号');
+          showToast('房间不存在', true);
+          resetRecvState();
           return;
         }
 
-        const offer = offerData;
+        recvPc = new RTCPeerConnection({ iceServers: [{ urls: STUN }] });
 
-        // 2. Create WebRTC answer
-        receiverPc = new RTCPeerConnection({ iceServers: [{ urls: STUN }] });
-
-        receiverPc.ondatachannel = (event) => {
-          receiverDc = event.channel;
-          setupReceiveChannel(receiverDc);
+        recvPc.ondatachannel = (event) => {
+          recvDc = event.channel;
+          setupRecvChannel(recvDc);
         };
 
-        receiverPc.oniceconnectionstatechange = () => {
-          if (receiverPc.iceConnectionState === 'connected' || receiverPc.iceConnectionState === 'completed') {
-            step($('rStep2'), 'done');
-            step($('rStep3'), 'active');
+        recvPc.oniceconnectionstatechange = () => {
+          if (recvPc.iceConnectionState === 'connected' || recvPc.iceConnectionState === 'completed') {
+            recvConnected = true;
+            setRecvConn('connected', '已连接 — 等待文件传输', '房间 ' + code);
+            $('recvJoinForm').style.display = 'none';
+            $('recvWaiting').style.display = 'block';
+            $('recvDisconnectBtn').style.display = 'inline-flex';
           }
-          if (receiverPc.iceConnectionState === 'disconnected' || receiverPc.iceConnectionState === 'failed') {
-            setStatus($('recvStatus'), '连接断开', 'error');
+          if (recvPc.iceConnectionState === 'disconnected' || recvPc.iceConnectionState === 'failed') {
+            if (recvConnected) {
+              showToast('连接已断开', true);
+              resetRecvState();
+            }
           }
         };
 
-        receiverPc.onicecandidate = async (e) => {
+        recvPc.onicecandidate = async (e) => {
           if (!e.candidate) {
-            // Store answer
-            const answerData = JSON.stringify(receiverPc.localDescription);
             await api('/room/' + code + '/answer', {
               method: 'PUT',
-              body: answerData,
+              body: JSON.stringify(recvPc.localDescription),
               headers: { 'Content-Type': 'text/plain' },
             });
-            setStatus($('recvStatus'), '已加入房间，等待文件传输...', 'success');
           }
         };
 
-        await receiverPc.setRemoteDescription(new RTCSessionDescription(offer));
-        const answer = await receiverPc.createAnswer();
-        await receiverPc.setLocalDescription(answer);
+        await recvPc.setRemoteDescription(new RTCSessionDescription(offerData));
+        const answer = await recvPc.createAnswer();
+        await recvPc.setLocalDescription(answer);
 
-        // Fallback
         setTimeout(async () => {
-          if (receiverPc && receiverPc.localDescription) {
-            const answerData = JSON.stringify(receiverPc.localDescription);
+          if (recvPc && recvPc.localDescription) {
             await api('/room/' + code + '/answer', {
               method: 'PUT',
-              body: answerData,
+              body: JSON.stringify(recvPc.localDescription),
               headers: { 'Content-Type': 'text/plain' },
             });
-            setStatus($('recvStatus'), '已加入房间，等待文件传输...', 'success');
           }
         }, 1500);
 
       } catch (e) {
-        setStatus($('recvStatus'), '连接失败: ' + e.message, 'error');
+        setRecvConn('idle', '连接失败: ' + e.message);
         showToast('连接失败', true);
-        console.error(e);
-        cleanupReceiver();
+        resetRecvState();
       }
     }
 
-    function setupReceiveChannel(dc) {
-      const st = $('recvStatus');
+    function setupRecvChannel(ch) {
       const pr = $('recvProgress');
       const pf = $('recvProgressFill');
       const pl = $('recvProgressLabel');
       const pp = $('recvProgressPct');
       const rf = $('recvFiles');
 
-      dc.binaryType = 'arraybuffer';
+      ch.binaryType = 'arraybuffer';
 
-      dc.onmessage = (event) => {
+      ch.onmessage = (event) => {
         if (typeof event.data === 'string') {
           try {
             const msg = JSON.parse(event.data);
             if (msg.type === 'meta') {
-              fileCount = msg.count;
-              setStatus(st, '准备接收 ' + fileCount + ' 个文件...', 'success');
+              recvFileCount = msg.count;
             } else if (msg.type === 'file-start') {
-              currentFile = msg;
-              currentFileBuf = [];
+              recvCurrentFile = msg;
+              recvFileBuf = [];
               pr.classList.add('show');
               pl.textContent = '接收: ' + msg.name;
               pp.textContent = '0%';
               pf.style.width = '0%';
             } else if (msg.type === 'done') {
               pf.style.width = '100%';
-              pl.textContent = '✅ 全部接收完成！';
+              pl.textContent = '✅ 接收完成';
               pp.textContent = '100%';
-              setStatus(st, '所有文件接收完成！', 'success');
               showToast('文件接收完成！');
-              try { api('/room/' + currentCode, { method: 'DELETE' }); } catch(e) {}
+              // Keep connection alive, hide progress after a bit
+              setTimeout(() => {
+                if (!recvCurrentFile) {
+                  pr.classList.remove('show');
+                }
+              }, 3000);
             }
           } catch(e) {}
         } else {
-          if (currentFile) {
+          if (recvCurrentFile) {
             const bytes = new Uint8Array(event.data);
-            currentFileBuf.push(bytes);
-            const received = currentFileBuf.reduce((a, b) => a + b.length, 0);
-            const pct = Math.round((received / currentFile.size) * 100);
+            recvFileBuf.push(bytes);
+            const received = recvFileBuf.reduce((a, b) => a + b.length, 0);
+            const pct = Math.round((received / recvCurrentFile.size) * 100);
             pf.style.width = pct + '%';
             pp.textContent = pct + '%';
 
-            if (received >= currentFile.size) {
+            if (received >= recvCurrentFile.size) {
               const allBytes = new Uint8Array(received);
               let pos = 0;
-              for (const b of currentFileBuf) { allBytes.set(b, pos); pos += b.length; }
-              const blob = new Blob([allBytes], { type: currentFile.mime });
+              for (const b of recvFileBuf) { allBytes.set(b, pos); pos += b.length; }
+              const blob = new Blob([allBytes], { type: recvCurrentFile.mime });
               const url = URL.createObjectURL(blob);
-              filesDone++;
+              recvFilesDone++;
 
-              const icon = currentFile.mime.startsWith('image/') ? 'fa-file-image' :
-                           currentFile.mime.startsWith('video/') ? 'fa-file-video' : 'fa-file';
+              const icon = recvCurrentFile.mime.startsWith('image/') ? 'fa-file-image' : recvCurrentFile.mime.startsWith('video/') ? 'fa-file-video' : 'fa-file';
 
-              if (filesDone === 1) {
-                rf.innerHTML = '<div style="margin-top:14px;font-size:0.85rem;color:rgba(255,255,255,0.4);margin-bottom:4px;">📥 已接收:</div>';
+              if (recvFilesDone === 1) {
+                rf.innerHTML = '<div class="recv-header">📥 已接收文件:</div>';
               }
               rf.innerHTML += '<div class="received-item">' +
                 '<i class="fas ' + icon + ' r-icon"></i>' +
-                '<div class="r-info"><div class="r-name">' + esc(currentFile.name) + '</div><div class="r-size">' + fmtSize(blob.size) + '</div></div>' +
-                '<a href="' + url + '" download="' + esc(currentFile.name) + '" class="r-dl"><i class="fas fa-download"></i> 保存</a></div>';
+                '<div class="r-info"><div class="r-name">' + esc(recvCurrentFile.name) + '</div><div class="r-size">' + fmtSize(blob.size) + '</div></div>' +
+                '<a href="' + url + '" download="' + esc(recvCurrentFile.name) + '" class="r-dl"><i class="fas fa-download"></i> 保存</a></div>';
 
-              currentFile = null;
-              currentFileBuf = [];
+              recvCurrentFile = null;
+              recvFileBuf = [];
             }
           }
         }
       };
+
+      ch.onclose = () => {
+        if (recvConnected) {
+          showToast('连接已断开', true);
+          resetRecvState();
+        }
+      };
     }
 
-    function cleanupReceiver() {
-      if (receiverPc) { try { receiverPc.close(); } catch(e) {} receiverPc = null; }
-      receiverDc = null;
-      currentFile = null;
-      currentFileBuf = [];
-      $('joinRoomBtn').disabled = false;
-      $('joinRoomBtn').innerHTML = '<i class="fas fa-plug"></i> 加入房间';
+    function setRecvConn(state, text, badge = '') {
+      const bar = $('recvConnBar');
+      bar.className = 'conn-bar ' + state;
+      $('recvConnText').textContent = text;
+      $('recvConnBadge').textContent = badge;
     }
 
+    $('recvDisconnectBtn').addEventListener('click', () => {
+      resetRecvState();
+      showToast('已断开连接');
+    });
+
+    function resetRecvState() {
+      if (recvPc) { try { recvPc.close(); } catch(e) {} recvPc = null; }
+      recvDc = null;
+      recvConnected = false;
+      recvCurrentFile = null;
+      recvFileBuf = [];
+      recvFileCount = 0;
+      recvFilesDone = 0;
+
+      $('joinBtn').disabled = false;
+      $('joinBtn').innerHTML = '<i class="fas fa-plug"></i> 加入房间';
+      $('recvJoinForm').style.display = 'block';
+      $('recvWaiting').style.display = 'none';
+      $('recvDisconnectBtn').style.display = 'none';
+      $('recvProgress').classList.remove('show');
+      setRecvConn('idle', '未连接 — 输入房间号加入');
+    }
+
+    // Cleanup on page leave
     window.addEventListener('beforeunload', () => {
-      cleanupSender();
-      cleanupReceiver();
-      if (currentCode) {
-        try { fetch(SIGNAL_URL + '/room/' + currentCode, { method: 'DELETE' }); } catch(e) {}
+      if (roomCode) {
+        try { fetch(SIGNAL_URL + '/room/' + roomCode, { method: 'DELETE' }); } catch(e) {}
       }
+      if (pc) try { pc.close(); } catch(e) {}
+      if (recvPc) try { recvPc.close(); } catch(e) {}
     });
   </script>
 </body>

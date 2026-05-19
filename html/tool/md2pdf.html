@@ -452,7 +452,6 @@
   <div class="toast" id="toast"><i class="fas fa-check-circle"></i> <span id="toastMsg"></span></div>
 
   <script src="../../assets/js/marked.min.js"></script>
-  <script src="../../assets/js/html2pdf.bundle.min.js"></script>
   <script>
     marked.setOptions({ breaks: true, gfm: true });
 
@@ -491,83 +490,40 @@
       setTimeout(() => toast.classList.remove('show'), 3000);
     }
 
-    // Show/hide loading
-    function showLoading() { loadingOverlay.classList.add('show'); }
-    function hideLoading() { loadingOverlay.classList.remove('show'); }
-
-    // Download PDF
-    document.getElementById('downloadPdfBtn').addEventListener('click', async () => {
+    // Download PDF — uses browser's native Print dialog with "Save as PDF"
+    document.getElementById('downloadPdfBtn').addEventListener('click', () => {
       const raw = mdInput.value.trim();
       if (!raw) { showToast('请先输入 Markdown 内容', true); return; }
 
-      showLoading();
-      try {
-        // Build a clean print-quality container
-        const printEl = document.createElement('div');
-        printEl.innerHTML = preview.innerHTML;
-        printEl.style.cssText = `
-          padding: 40px 50px;
-          font-family: "Inter", "Microsoft YaHei", -apple-system, sans-serif;
-          font-size: 13px;
-          line-height: 1.65;
-          color: #222;
-          background: white;
-          width: 210mm;
-          margin: 0 auto;
-        `;
-
-        // Re-style for print quality
-        const style = document.createElement('style');
-        style.textContent = `
+      const w = window.open('', '_blank');
+      w.document.write(`<!DOCTYPE html><html><head>
+        <meta charset="UTF-8">
+        <title>Markdown PDF</title>
+        <style>
+          @page { margin: 20mm 15mm; }
+          body { font-family: "Inter", "Microsoft YaHei", sans-serif; max-width: 800px; margin: 0 auto; padding: 0; line-height: 1.7; color: #222; font-size: 13px; }
           h1, h2, h3, h4 { margin-top: 1em; margin-bottom: 0.4em; font-weight: 700; }
           h1 { font-size: 22px; border-bottom: 1px solid #eee; padding-bottom: 6px; }
           h2 { font-size: 18px; border-bottom: 1px solid #eee; padding-bottom: 4px; }
           h3 { font-size: 16px; }
           p { margin: 0.6em 0; }
           a { color: #0366d6; }
-          pre {
-            background: #f6f8fa; border: 1px solid #e1e4e8; border-radius: 6px;
-            padding: 12px; overflow-x: auto; margin: 0.8em 0; font-size: 12px;
-          }
+          pre { background: #f6f8fa; border: 1px solid #e1e4e8; border-radius: 6px; padding: 12px; overflow-x: auto; margin: 0.8em 0; font-size: 12px; }
           pre code { background: none; padding: 0; font-size: 12px; }
           code { background: #f0f0f0; padding: 2px 5px; border-radius: 3px; font-size: 0.9em; }
-          blockquote {
-            border-left: 3px solid #b8a0ff; padding: 6px 14px;
-            margin: 0.8em 0; background: #f8f8ff; color: #555;
-          }
+          blockquote { border-left: 3px solid #b8a0ff; padding: 6px 14px; margin: 0.8em 0; background: #f8f8ff; color: #555; }
           ul, ol { padding-left: 24px; margin: 0.5em 0; }
           table { width: 100%; border-collapse: collapse; margin: 0.8em 0; font-size: 12px; }
           th, td { padding: 6px 10px; border: 1px solid #ddd; }
           th { background: #f6f8fa; font-weight: 600; }
           img { max-width: 100%; }
           hr { border: none; border-top: 1px solid #eee; margin: 1em 0; }
-        `;
-        printEl.prepend(style);
-
-        // Temporarily append to body for html2pdf rendering
-        printEl.style.position = 'fixed';
-        printEl.style.left = '-9999px';
-        printEl.style.top = '0';
-        document.body.appendChild(printEl);
-
-        const opt = {
-          margin:        [15, 15, 15, 15], // mm
-          filename:      'document.pdf',
-          image:         { type: 'jpeg', quality: 0.95 },
-          html2canvas:   { scale: 2, useCORS: true, letterRendering: true },
-          jsPDF:         { unit: 'mm', format: 'a4', orientation: 'portrait' },
-          pagebreak:     { mode: ['avoid-all', 'css', 'legacy'] }
-        };
-
-        await html2pdf().set(opt).from(printEl).save();
-        document.body.removeChild(printEl);
-        hideLoading();
-        showToast('PDF 已下载');
-      } catch (e) {
-        hideLoading();
-        showToast('导出失败：' + e.message, true);
-        console.error('PDF error:', e);
-      }
+          @media print { body { padding: 0; } }
+        </style>
+      </head><body>${preview.innerHTML}</body></html>`);
+      w.document.close();
+      w.focus();
+      setTimeout(() => { w.print(); w.close(); }, 500);
     });
 
     // Print (browser native — user can "Save as PDF")

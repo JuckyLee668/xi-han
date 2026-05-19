@@ -388,6 +388,8 @@
     // ===== CONFIG =====
     const SIGNAL_URL = 'https://signal.xi-han.top';
     const STUN = ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'];
+    const CHUNK_SIZE = 262144;  // 256KB per chunk
+    const MAX_BUFFER = 1048576; // 1MB buffer threshold
 
     // ===== DOM =====
     const $ = id => document.getElementById(id);
@@ -524,6 +526,7 @@
         // Setup WebRTC
         pc = new RTCPeerConnection({ iceServers: [{ urls: STUN }] });
         dc = pc.createDataChannel('fileTransfer', { ordered: true });
+        dc.bufferedAmountLowThreshold = MAX_BUFFER / 2;
 
         dc.onopen = () => {
           isConnected = true;
@@ -627,6 +630,17 @@
     }
 
     // ===== SENDER: Send queued files =====
+
+    function waitSendBuffer() {
+      return new Promise(resolve => {
+        if (dc.bufferedAmount < MAX_BUFFER) {
+          resolve();
+        } else {
+          dc.addEventListener('bufferedamountlow', () => resolve(), { once: true });
+        }
+      });
+    }
+
     async function flushSendQueue() {
       if (sendingNow || !dc || dc.readyState !== 'open' || pendingFiles.length === 0) return;
 
@@ -642,7 +656,6 @@
       pendingFiles = [];
       renderSendFiles();
 
-      // Send metadata
       dc.send(JSON.stringify({ type: 'meta', count: batch.length }));
 
       for (let i = 0; i < batch.length; i++) {
@@ -652,13 +665,17 @@
           mime: file.type || 'application/octet-stream', index: i, total: batch.length
         }));
 
-        const CHUNK = 16384;
         let offset = 0;
         while (offset < file.size) {
-          const chunk = file.slice(offset, Math.min(offset + CHUNK, file.size));
+          // Wait if buffer is full
+          await waitSendBuffer();
+
+          const end = Math.min(offset + CHUNK_SIZE, file.size);
+          const chunk = file.slice(offset, end);
           const buf = await chunk.arrayBuffer();
           dc.send(buf);
-          offset += CHUNK;
+          offset = end;
+
           const pct = Math.round((offset / file.size) * 100);
           pf.style.width = pct + '%';
           pl.textContent = '发送: ' + file.name + ' (' + (i + 1) + '/' + batch.length + ')';
@@ -675,7 +692,6 @@
       sendingNow = false;
       $('sendFilesBtn').disabled = false;
 
-      // If user added more files while sending, send them
       if (pendingFiles.length > 0) {
         setTimeout(flushSendQueue, 500);
       }

@@ -900,11 +900,11 @@ $('sendBtn').onclick = async ()=>{
 
     }
 
-  }
+    dc.send(JSON.stringify({
+      type:'done'
+    }));
 
-  dc.send(JSON.stringify({
-    type:'done'
-  }));
+  }
 
   sending = false;
 
@@ -949,7 +949,8 @@ function copyRoom(){
 let recvPc = null;
 let recvDc = null;
 let recvFile = null;
-let recvChunks = [];
+let recvWritable = null;
+let recvHandle = null;
 let recvSize = 0;
 
 function setRecv(state,text){
@@ -1054,6 +1055,10 @@ function setupReceiver(){
 
   recvDc.binaryType = 'arraybuffer';
 
+  recvDc.onclose = ()=>{
+    resetRecvState();
+  };
+
   recvDc.onmessage = async e=>{
 
     if(typeof e.data === 'string'){
@@ -1068,8 +1073,38 @@ function setupReceiver(){
 
         recvFile = msg;
 
-        recvChunks = [];
         recvSize = 0;
+        recvHandle = null;
+        recvWritable = null;
+        window.recvFallbackBuf = null;
+
+        try{
+
+          if('showSaveFilePicker' in window){
+
+            recvHandle =
+              await window.showSaveFilePicker({
+                suggestedName:recvFile.name
+              });
+
+            recvWritable =
+              await recvHandle.createWritable();
+
+          }else{
+
+            toast('浏览器不支持流式写入，将使用传统下载');
+
+          }
+
+        }catch(err){
+
+          toast('用户取消保存');
+
+          recvFile = null;
+
+          return;
+
+        }
 
         $('recvProgress')
           .classList.add('show');
@@ -1085,7 +1120,63 @@ function setupReceiver(){
 
       if(msg.type === 'done'){
 
-        toast('接收完成');
+        if(!recvFile){
+          return;
+        }
+
+        try{
+
+          if(recvWritable){
+
+            await recvWritable.close();
+
+            recvWritable = null;
+
+          }else if(window.recvFallbackBuf){
+
+            const blob =
+              new Blob(
+                window.recvFallbackBuf,
+                {
+                  type:recvFile.mime
+                }
+              );
+
+            const url =
+              URL.createObjectURL(blob);
+
+            const a =
+              document.createElement('a');
+
+            a.href = url;
+            a.download = recvFile.name;
+            a.click();
+
+            setTimeout(()=>{
+              URL.revokeObjectURL(url);
+            },1000);
+
+            window.recvFallbackBuf = null;
+
+          }
+
+          appendReceivedFile(recvFile);
+
+          $('recvFill').style.width = '100%';
+          $('recvPct').innerText = '100%';
+          $('recvLabel').innerText = '接收完成';
+
+          toast('文件接收完成');
+
+          recvFile = null;
+          recvSize = 0;
+          recvHandle = null;
+
+        }catch(err){
+
+          toast('保存失败: ' + err.message);
+
+        }
 
       }
 
@@ -1100,8 +1191,6 @@ function setupReceiver(){
     const chunk =
       new Uint8Array(e.data);
 
-    recvChunks.push(chunk);
-
     recvSize += chunk.length;
 
     const pct =
@@ -1115,55 +1204,90 @@ function setupReceiver(){
     $('recvPct').innerText =
       pct + '%';
 
-    if(recvSize >= recvFile.size){
+    if(recvWritable){
 
-      const blob =
-        new Blob(
-          recvChunks,
-          {
-            type:recvFile.mime
-          }
-        );
+      await recvWritable.write(chunk);
 
-      const url =
-        URL.createObjectURL(blob);
+    }else{
 
-      const item =
-        document.createElement('div');
+      if(!window.recvFallbackBuf){
+        window.recvFallbackBuf = [];
+      }
 
-      item.className = 'recv-item';
-
-      item.innerHTML = `
-        <i class="fas fa-file"></i>
-
-        <div class="file-info">
-          <div class="file-name">
-            ${recvFile.name}
-          </div>
-
-          <div class="file-size">
-            ${fmt(blob.size)}
-          </div>
-        </div>
-
-        <a
-          href="${url}"
-          download="${recvFile.name}"
-        >
-          保存
-        </a>
-      `;
-
-      $('recvList')
-        .appendChild(item);
-
-      recvFile = null;
-      recvChunks = [];
-      recvSize = 0;
+      window.recvFallbackBuf.push(chunk);
 
     }
 
   };
+
+}
+
+function appendReceivedFile(file){
+
+  const item =
+    document.createElement('div');
+
+  item.className = 'recv-item';
+
+  const icon =
+    document.createElement('i');
+
+  icon.className =
+    file.mime && file.mime.startsWith('image/')
+      ? 'fas fa-file-image'
+      : file.mime && file.mime.startsWith('video/')
+      ? 'fas fa-file-video'
+      : 'fas fa-file';
+
+  const info =
+    document.createElement('div');
+
+  info.className = 'file-info';
+
+  const name =
+    document.createElement('div');
+
+  name.className = 'file-name';
+  name.innerText = file.name;
+
+  const size =
+    document.createElement('div');
+
+  size.className = 'file-size';
+  size.innerText = fmt(file.size);
+
+  const saved =
+    document.createElement('span');
+
+  saved.innerHTML =
+    '<i class="fas fa-check"></i> 已保存';
+
+  info.appendChild(name);
+  info.appendChild(size);
+  item.appendChild(icon);
+  item.appendChild(info);
+  item.appendChild(saved);
+
+  $('recvList')
+    .appendChild(item);
+
+}
+
+async function resetRecvState(){
+
+  if(recvWritable){
+
+    try{
+      await recvWritable.close();
+    }catch(err){}
+
+  }
+
+  recvWritable = null;
+  recvHandle = null;
+  recvFile = null;
+  recvSize = 0;
+  window.recvFallbackBuf = null;
 
 }
 
@@ -1196,6 +1320,7 @@ window.addEventListener(
     try{
       pc?.close();
       recvPc?.close();
+      resetRecvState();
     }catch{}
 
   }

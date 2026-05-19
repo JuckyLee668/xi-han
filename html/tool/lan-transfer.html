@@ -388,8 +388,8 @@
     // ===== CONFIG =====
     const SIGNAL_URL = 'https://signal.xi-han.top';
     const STUN = ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'];
-    const CHUNK_SIZE = 1048576;   // 1MB per chunk
-    const MAX_BUFFER = 16777216;  // 16MB buffer threshold
+    const CHUNK_SIZE = 262144;   // 256KB per chunk
+    const MAX_SENDS_BEFORE_YIELD = 8; // 每发 2MB 让出一次
 
     // ===== DOM =====
     const $ = id => document.getElementById(id);
@@ -524,7 +524,6 @@
 
         pc = new RTCPeerConnection({ iceServers: [{ urls: STUN }] });
         dc = pc.createDataChannel('ft', { ordered: true });
-        dc.bufferedAmountLowThreshold = MAX_BUFFER / 2;
 
         dc.onopen = () => {
           isConnected = true;
@@ -626,13 +625,6 @@
 
     // ===== SENDER: Single-channel file transfer =====
 
-    function waitBuf(dc) {
-      return new Promise(resolve => {
-        if (dc.bufferedAmount < MAX_BUFFER) resolve();
-        else dc.addEventListener('bufferedamountlow', () => resolve(), { once: true });
-      });
-    }
-
     async function flushSendQueue() {
       if (sendingNow || !isConnected || pendingFiles.length === 0) return;
 
@@ -660,11 +652,18 @@
         }));
 
         let offset = 0;
+        let sendCount = 0;
         while (offset < fsize) {
-          await waitBuf(dc);
           const end = Math.min(offset + CHUNK_SIZE, fsize);
           dc.send(fileBuf.slice(offset, end));
           offset = end;
+          sendCount++;
+
+          // Yield to event loop every 8 sends so browser can flush SCTP buffer
+          if (sendCount % MAX_SENDS_BEFORE_YIELD === 0) {
+            await new Promise(r => setTimeout(r, 0));
+          }
+
           const pct = Math.round((offset / fsize) * 100);
           pf.style.width = pct + '%';
           pl.textContent = '发送: ' + file.name + ' (' + (fi + 1) + '/' + batch.length + ')';

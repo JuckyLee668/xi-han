@@ -431,12 +431,8 @@
         <span>通过 Cloudflare Worker 交换连接信息，文件数据走 P2P 直连，不限速。</span>
       </div>
 
-      <!-- Config -->
-      <div class="config-bar">
-        <i class="fas fa-cloud" style="color:rgba(255,255,255,0.3);font-size:0.85rem;"></i>
-        <input type="text" id="signalUrl" placeholder="https://signaling.你的域名.workers.dev" value="">
-        <button class="btn-secondary" onclick="saveUrl()" style="padding:9px 14px;font-size:0.8rem;">设置</button>
-      </div>
+  <!-- Config (hidden, saved by default) -->
+  <input type="hidden" id="signalUrl" value="https://signal.xi-han.top">
 
       <div class="tabs">
         <button class="tab send active" data-tab="send"><i class="fas fa-upload"></i> 发送文件</button>
@@ -514,9 +510,7 @@
 
   <script>
     // ===== CONFIG =====
-    const STORAGE_KEY = 'xi_han_signal_url';
-    let SIGNAL_URL = localStorage.getItem(STORAGE_KEY) || '';
-
+    const SIGNAL_URL = 'https://signal.xi-han.top';
     const STUN = [
       'stun:stun.l.google.com:19302',
       'stun:stun1.l.google.com:19302',
@@ -558,25 +552,11 @@
 
     function step(el, state) { el.className = 'step ' + state; }
 
-    // ===== Signal URL =====
-    function saveUrl() {
-      const v = $('signalUrl').value.trim().replace(/\/+$/, '');
-      if (v) {
-        SIGNAL_URL = v;
-        localStorage.setItem(STORAGE_KEY, v);
-        showToast('信令服务器地址已保存');
-      } else {
-        showToast('请输入 Worker 地址', true);
-      }
-    }
-
-    // Restore saved URL
-    if (SIGNAL_URL) $('signalUrl').value = SIGNAL_URL;
+    // SIGNAL_URL is now hardcoded above
 
     // ===== TABS =====
     document.querySelectorAll('.tab').forEach(tab => {
       tab.addEventListener('click', () => {
-        if (!SIGNAL_URL) { showToast('请先设置信令服务器地址', true); return; }
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
         document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
         tab.classList.add('active');
@@ -651,7 +631,6 @@
 
     async function startSend() {
       if (selectedFiles.length === 0) { showToast('请先选择文件', true); return; }
-      if (!SIGNAL_URL) { showToast('请先设置信令服务器地址', true); return; }
 
       step($('sStep1'), 'done');
       step($('sStep2'), 'active');
@@ -848,7 +827,6 @@
     async function startReceive() {
       const code = $('roomInput').value.trim();
       if (code.length !== 6) { showToast('请输入6位房间号', true); return; }
-      if (!SIGNAL_URL) { showToast('请先设置信令服务器地址', true); return; }
 
       currentCode = code;
       step($('rStep1'), 'done');

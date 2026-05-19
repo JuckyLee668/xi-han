@@ -721,7 +721,7 @@
       try {
         const answerData = await api('/room/' + currentCode + '/answer');
         if (answerData && answerData !== 'null') {
-          const answer = JSON.parse(answerData);
+          const answer = answerData;
           await senderPc.setRemoteDescription(new RTCSessionDescription(answer));
           setStatus($('sendStatus'), '连接已建立', 'success');
           return;
@@ -844,7 +844,7 @@
           return;
         }
 
-        const offer = JSON.parse(offerData);
+        const offer = offerData;
 
         // 2. Create WebRTC answer
         receiverPc = new RTCPeerConnection({ iceServers: [{ urls: STUN }] });

@@ -492,7 +492,6 @@
     let roomCode = '';
     let sendingNow = false;
     let fileQueue = [];       // For sequential sending within a batch
-    let pollTimer = null;
 
     function setSendConn(state, text, badge = '') {
       const bar = $('sendConnBar');
@@ -500,6 +499,9 @@
       $('sendConnText').textContent = text;
       $('sendConnBadge').textContent = badge;
     }
+
+    let pollTimer = null;
+    let answerReceived = false;
 
     // ===== SENDER: Create Room =====
     $('createRoomBtn').addEventListener('click', startHost);
@@ -509,6 +511,7 @@
 
       $('createRoomBtn').disabled = true;
       $('createRoomBtn').innerHTML = '<span class="spinner"></span> 创建中...';
+      answerReceived = false;
 
       try {
         const room = await api('/room', { method: 'POST' });
@@ -529,33 +532,28 @@
           $('disconnectBtn').style.display = 'inline-flex';
           $('sendFilesBtn').style.display = 'inline-flex';
           showToast('接收方已加入！');
-          // Send pending files
           flushSendQueue();
         };
 
         dc.onclose = () => {
-          if (isConnected) {
-            showToast('连接已断开', true);
-            resetSendState();
-          }
+          if (isConnected) { showToast('连接已断开', true); resetSendState(); }
         };
 
         pc.oniceconnectionstatechange = () => {
           if (pc.iceConnectionState === 'disconnected' || pc.iceConnectionState === 'failed') {
-            if (isConnected) {
-              showToast('连接已断开', true);
-              resetSendState();
-            }
+            if (isConnected) { showToast('连接已断开', true); resetSendState(); }
           }
         };
 
         pc.onicecandidate = async (e) => {
           if (!e.candidate) {
-            await api('/room/' + roomCode + '/offer', {
-              method: 'PUT',
-              body: JSON.stringify(pc.localDescription),
-              headers: { 'Content-Type': 'text/plain' },
-            });
+            try {
+              await api('/room/' + roomCode + '/offer', {
+                method: 'PUT',
+                body: JSON.stringify(pc.localDescription),
+                headers: { 'Content-Type': 'text/plain' },
+              });
+            } catch(e) {}
             pollForAnswer();
           }
         };
@@ -564,12 +562,14 @@
         await pc.setLocalDescription(offer);
 
         setTimeout(async () => {
-          if (pc && pc.localDescription && !pollTimer) {
-            await api('/room/' + roomCode + '/offer', {
-              method: 'PUT',
-              body: JSON.stringify(pc.localDescription),
-              headers: { 'Content-Type': 'text/plain' },
-            });
+          if (pc && pc.localDescription && !pollTimer && !answerReceived) {
+            try {
+              await api('/room/' + roomCode + '/offer', {
+                method: 'PUT',
+                body: JSON.stringify(pc.localDescription),
+                headers: { 'Content-Type': 'text/plain' },
+              });
+            } catch(e) {}
             pollForAnswer();
           }
         }, 1500);
@@ -581,34 +581,49 @@
     }
 
     async function pollForAnswer() {
-      if (pollTimer) return;
-      const poll = async () => {
+      if (pollTimer || answerReceived) return;
+
+      const doPoll = async () => {
         try {
           const data = await api('/room/' + roomCode + '/answer');
           if (data && data !== 'null') {
-            clearInterval(pollTimer);
+            answerReceived = true;
+            clearTimeout(pollTimer);
             pollTimer = null;
             await pc.setRemoteDescription(new RTCSessionDescription(data));
-            return;
+            return true;
           }
         } catch(e) {}
+        return false;
       };
-      await poll();
-      if (!pollTimer && pc && pc.signalingState !== 'closed') {
-        pollTimer = setInterval(poll, 1500);
-        // Stop polling after 30s
-        setTimeout(() => {
-          if (pollTimer) {
-            clearInterval(pollTimer);
-            pollTimer = null;
-            if (!isConnected) {
-              setSendConn('idle', '等待超时，请重试');
-              showToast('接收方未加入', true);
-              resetSendState();
-            }
+
+      // First immediate poll (uses worker long poll — up to 15s)
+      const found = await doPoll();
+      if (found) return;
+
+      // Start self-clocking recursive polls
+      const scheduleNext = () => {
+        if (answerReceived || !pc || pc.signalingState === 'closed') return;
+        pollTimer = setTimeout(async () => {
+          const ok = await doPoll();
+          if (!ok && !answerReceived) scheduleNext();
+        }, 1500);
+      };
+
+      scheduleNext();
+
+      // Safety timeout: stop polling after 30s total
+      setTimeout(() => {
+        if (!answerReceived) {
+          clearTimeout(pollTimer);
+          pollTimer = null;
+          if (!isConnected) {
+            setSendConn('idle', '等待超时，请重试');
+            showToast('接收方未加入', true);
+            resetSendState();
           }
-        }, 30000);
-      }
+        }
+      }, 30000);
     }
 
     // ===== SENDER: Send queued files =====
@@ -685,7 +700,8 @@
       dc = null;
       isConnected = false;
       sendingNow = false;
-      if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+      answerReceived = false;
+      clearTimeout(pollTimer); pollTimer = null;
       $('roomDisplay').classList.remove('show');
       $('disconnectBtn').style.display = 'none';
       $('sendFilesBtn').style.display = 'none';

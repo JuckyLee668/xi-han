@@ -388,8 +388,8 @@
     // ===== CONFIG =====
     const SIGNAL_URL = 'https://signal.xi-han.top';
     const STUN = ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'];
-    const CHUNK_SIZE = 262144;  // 256KB per chunk
-    const MAX_BUFFER = 1048576; // 1MB buffer threshold
+    const CHUNK_SIZE = 1048576;   // 1MB per chunk
+    const MAX_BUFFER = 16777216;  // 16MB buffer threshold
 
     // ===== DOM =====
     const $ = id => document.getElementById(id);
@@ -665,18 +665,20 @@
           mime: file.type || 'application/octet-stream', index: i, total: batch.length
         }));
 
+        // Read entire file as ArrayBuffer upfront — avoids per-chunk Blob overhead
+        const fileBuf = await file.arrayBuffer();
         let offset = 0;
-        while (offset < file.size) {
-          // Wait if buffer is full
+        const fileSize = fileBuf.byteLength;
+
+        while (offset < fileSize) {
           await waitSendBuffer();
 
-          const end = Math.min(offset + CHUNK_SIZE, file.size);
-          const chunk = file.slice(offset, end);
-          const buf = await chunk.arrayBuffer();
-          dc.send(buf);
+          const end = Math.min(offset + CHUNK_SIZE, fileSize);
+          const chunk = fileBuf.slice(offset, end);
+          dc.send(chunk);
           offset = end;
 
-          const pct = Math.round((offset / file.size) * 100);
+          const pct = Math.round((offset / fileSize) * 100);
           pf.style.width = pct + '%';
           pl.textContent = '发送: ' + file.name + ' (' + (i + 1) + '/' + batch.length + ')';
           pp.textContent = pct + '%';

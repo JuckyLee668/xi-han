@@ -763,11 +763,10 @@
 
     // ==================== RECEIVER ====================
     let recvPc = null;
-    let recvDcs = [];       // Array of data channels indexed by label
+    let recvDcs = new Array(NUM_CHANNELS);
     let recvConnected = false;
     let recvFilesDone = 0;
-    let recvSegBufs = [];   // Per-channel byte buffers for current file
-    let recvSegCount = 0;   // How many segments expected for current file
+    let recvFileCtx = null;  // {file, segSize} — current transfer context
 
     $('roomInput').addEventListener('input', () => {
       const v = $('roomInput').value.replace(/\D/g, '').slice(0, 6);
@@ -795,16 +794,24 @@
         }
 
         recvPc = new RTCPeerConnection({ iceServers: [{ urls: STUN }] });
-        recvDcs = [];
+        recvDcs = new Array(NUM_CHANNELS);
 
         recvPc.ondatachannel = (event) => {
           const dc = event.channel;
           const label = dc.label || '';
           const ci = parseInt(label.split('-')[1]);
-          if (!isNaN(ci) && ci >= 0 && ci < NUM_CHANNELS) {
-            recvDcs[ci] = dc;
-            setupRecvChannel(dc, ci);
+          if (isNaN(ci) || ci < 0 || ci >= NUM_CHANNELS) return;
+          recvDcs[ci] = dc;
+          // If a transfer is already in progress, init this channel's segment state
+          if (recvFileCtx) {
+            const segSize = recvFileCtx.segSize;
+            const start = ci * segSize;
+            const end = Math.min(start + segSize, recvFileCtx.size);
+            dc._segSize = end - start;
+            dc._bufs = [];
+            dc._received = 0;
           }
+          setupRecvChannel(dc, ci);
         };
 
         recvPc.oniceconnectionstatechange = () => {
@@ -860,11 +867,6 @@
 
       ch.binaryType = 'arraybuffer';
 
-      // Per-channel state
-      let chBufs = [];        // This channel's chunks for current segment
-      let chReceived = 0;     // Bytes received on this channel
-      let chSegSize = 0;      // Expected segment size
-
       ch.onmessage = (event) => {
         if (typeof event.data === 'string') {
           if (ci !== 0) return;  // Only channel 0 processes JSON
@@ -872,34 +874,22 @@
           try {
             const msg = JSON.parse(event.data);
             if (msg.type === 'file-start') {
-              // Prepare for new file
-              recvSegCount = msg.segments || 1;
-              recvSegBufs = [];
-              for (let s = 0; s < recvSegCount; s++) recvSegBufs[s] = [];
+              const segSize = msg.segSize || Math.ceil(msg.size / NUM_CHANNELS);
+              recvFileCtx = { file: msg, size: msg.size, segSize };
               pr.classList.add('show');
               pl.textContent = '接收: ' + msg.name;
               pp.textContent = '0%';
               pf.style.width = '0%';
 
-              // Reset per-channel state
-              for (let d = 0; d < recvDcs.length; d++) {
-                if (recvDcs[d]) {
-                  // Find the channel's internal state
-                }
-              }
-              // Store file info globally
-              setupRecvChannel._currentFile = msg;
-              setupRecvChannel._fileSize = msg.size;
-
-              // Set segment sizes per channel
-              const segSize = msg.segSize || Math.ceil(msg.size / NUM_CHANNELS);
-              for (let d = 0; d < recvDcs.length; d++) {
-                if (recvDcs[d]) {
+              // Init segment state for channels already received
+              for (let d = 0; d < NUM_CHANNELS; d++) {
+                const dc = recvDcs[d];
+                if (dc) {
                   const start = d * segSize;
                   const end = Math.min(start + segSize, msg.size);
-                  recvDcs[d]._segSize = end - start;
-                  recvDcs[d]._bufs = [];
-                  recvDcs[d]._received = 0;
+                  dc._segSize = end - start;
+                  dc._bufs = [];
+                  dc._received = 0;
                 }
               }
 
@@ -909,7 +899,7 @@
               pp.textContent = '100%';
               showToast('文件接收完成！');
               setTimeout(() => {
-                if (!setupRecvChannel._currentFile) pr.classList.remove('show');
+                if (!recvFileCtx) pr.classList.remove('show');
               }, 3000);
             }
           } catch(e) {}
@@ -927,7 +917,7 @@
             // All channels done?
             let allDone = true;
             let totalBytes = 0;
-            for (let d = 0; d < recvDcs.length; d++) {
+            for (let d = 0; d < NUM_CHANNELS; d++) {
               const dc = recvDcs[d];
               if (!dc) { allDone = false; break; }
               const r = dc._received || 0;
@@ -936,13 +926,14 @@
               totalBytes += r;
             }
 
-            if (allDone && setupRecvChannel._currentFile) {
-              const file = setupRecvChannel._currentFile;
-              const fsize = setupRecvChannel._fileSize || totalBytes;
+            if (allDone && recvFileCtx) {
+              const ctx = recvFileCtx;
+              const fsize = ctx.size;
+              const file = ctx.file;
 
-              // Concatenate all segments
+              // Concatenate all segments in order
               const allParts = [];
-              for (let d = 0; d < recvDcs.length; d++) {
+              for (let d = 0; d < NUM_CHANNELS; d++) {
                 const dc = recvDcs[d];
                 if (dc && dc._bufs) {
                   for (const b of dc._bufs) allParts.push(b);
@@ -967,22 +958,19 @@
                 '<div class="r-info"><div class="r-name">' + esc(file.name) + '</div><div class="r-size">' + fmtSize(blob.size) + '</div></div>' +
                 '<a href="' + url + '" download="' + esc(file.name) + '" class="r-dl"><i class="fas fa-download"></i> 保存</a></div>';
 
-              setupRecvChannel._currentFile = null;
-
-              const pct = Math.round((recvFilesDone / (recvFilesDone + 1)) * 100);
-              pf.style.width = Math.min(pct, 100) + '%';
+              recvFileCtx = null;
+              pf.style.width = '100%';
             }
 
             // Update progress
-            if (setupRecvChannel._currentFile) {
-              const fsize = setupRecvChannel._fileSize || 1;
+            if (recvFileCtx) {
               let totalRcvd = 0;
-              for (let d = 0; d < recvDcs.length; d++) {
+              for (let d = 0; d < NUM_CHANNELS; d++) {
                 totalRcvd += recvDcs[d]?._received || 0;
               }
-              const pct = Math.round((totalRcvd / fsize) * 100);
-              pf.style.width = Math.min(pct, 100) + '%';
-              pp.textContent = Math.min(pct, 100) + '%';
+              const pct = Math.round((totalRcvd / recvFileCtx.size) * 100);
+              pf.style.width = Math.min(pct, 99) + '%';
+              pp.textContent = Math.min(pct, 99) + '%';
             }
           }
         }
@@ -1007,11 +995,10 @@
 
     function resetRecvState() {
       if (recvPc) { try { recvPc.close(); } catch(e) {} recvPc = null; }
-      recvDcs = [];
+      recvDcs = new Array(NUM_CHANNELS);
       recvConnected = false;
       recvFilesDone = 0;
-      recvSegBufs = [];
-      recvSegCount = 0;
+      recvFileCtx = null;
 
       $('joinBtn').disabled = false;
       $('joinBtn').innerHTML = '<i class="fas fa-plug"></i> 加入房间';

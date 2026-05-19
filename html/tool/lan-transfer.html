@@ -79,7 +79,6 @@
     }
     .subtitle { color: rgba(255,255,255,0.5); font-size: 0.9rem; }
 
-    /* Info bar */
     .info-bar {
       background: rgba(255,200,100,0.08);
       border: 1px solid rgba(255,200,100,0.15);
@@ -94,7 +93,6 @@
     }
     .info-bar i { font-size: 1rem; flex-shrink: 0; }
 
-    /* Tabs */
     .tabs {
       display: flex;
       gap: 0;
@@ -126,7 +124,6 @@
     .panel.active { display: block; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
-    /* Drop zone */
     .drop-zone {
       border: 2px dashed rgba(130,220,170,0.25);
       border-radius: 16px;
@@ -145,7 +142,6 @@
     .drop-zone p { color: rgba(255,255,255,0.55); font-size: 0.95rem; }
     .drop-zone .hint { color: rgba(255,255,255,0.3); font-size: 0.8rem; margin-top: 4px; }
 
-    /* File list */
     .file-list { margin-bottom: 14px; }
     .file-item {
       display: flex;
@@ -168,90 +164,61 @@
     .file-item .f-remove:hover { color: #ff6b6b; }
     .empty-files { text-align: center; padding: 10px; color: rgba(255,255,255,0.25); font-size: 0.85rem; }
 
-    /* Signaling code area */
-    .sig-section {
-      margin-top: 14px;
-      padding: 16px;
-      background: rgba(0,0,0,0.2);
+    /* Room code display */
+    .room-section {
+      text-align: center;
+      padding: 24px 20px;
+      background: rgba(255,255,255,0.03);
       border: 1px solid rgba(255,255,255,0.06);
-      border-radius: 12px;
+      border-radius: 14px;
+      margin-bottom: 14px;
       display: none;
     }
-    .sig-section.show { display: block; }
+    .room-section.show { display: block; }
 
-    .sig-label {
-      font-size: 0.82rem;
-      color: rgba(255,255,255,0.4);
-      margin-bottom: 8px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .sig-label i { color: #82dcaa; }
-    .sig-label .step-num {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 22px; height: 22px;
-      border-radius: 50%;
-      background: rgba(130,220,170,0.15);
+    .room-code {
+      font-size: 3rem;
+      font-weight: 800;
+      letter-spacing: 0.15em;
       color: #82dcaa;
-      font-size: 0.75rem;
-      font-weight: 700;
-      margin-right: 4px;
-    }
-
-    .sig-box {
-      background: rgba(0,0,0,0.3);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 10px;
-      padding: 14px;
       font-family: "JetBrains Mono", Consolas, monospace;
-      font-size: 0.72rem;
-      color: rgba(255,255,255,0.5);
-      word-break: break-all;
-      line-height: 1.5;
-      max-height: 160px;
-      overflow-y: auto;
-      margin-bottom: 10px;
-      user-select: all;
+      margin: 8px 0;
     }
-    .sig-box.code-ready {
-      border-color: rgba(130,220,170,0.2);
-      color: rgba(255,255,255,0.7);
-    }
+    .room-code-label { font-size: 0.85rem; color: rgba(255,255,255,0.4); }
+    .room-code-hint { font-size: 0.8rem; color: rgba(255,255,255,0.25); margin-top: 4px; }
 
-    .sig-actions {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
+    /* Input */
+    .input-group { margin-bottom: 14px; text-align: left; }
+    .input-group label {
+      display: block; font-size: 0.85rem; font-weight: 600;
+      color: rgba(255,255,255,0.6); margin-bottom: 8px;
     }
-
-    /* Paste area */
-    .paste-area {
-      margin-top: 10px;
-    }
-    .paste-area textarea {
+    .input-group input {
       width: 100%;
-      min-height: 80px;
-      padding: 12px;
+      padding: 14px 18px;
       border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 10px;
+      border-radius: 12px;
+      font-size: 1.4rem;
+      font-weight: 700;
+      letter-spacing: 0.3em;
+      text-align: center;
       background: rgba(0,0,0,0.25);
-      color: #f5f5ff;
+      color: #64c8ff;
       font-family: "JetBrains Mono", Consolas, monospace;
-      font-size: 0.8rem;
       outline: none;
-      resize: vertical;
       transition: border-color 0.2s;
     }
-    .paste-area textarea:focus {
+    .input-group input:focus {
       border-color: #64c8ff;
       box-shadow: 0 0 0 3px rgba(100,200,255,0.1);
     }
-    .paste-area textarea::placeholder { color: rgba(255,255,255,0.15); }
+    .input-group input::placeholder {
+      letter-spacing: 0.1em;
+      color: rgba(255,255,255,0.2);
+      font-weight: 400;
+    }
 
-    /* Status box */
+    /* Status */
     .status-box {
       margin-top: 12px;
       padding: 12px 16px;
@@ -265,7 +232,6 @@
     .status-box.info { background: rgba(100,200,255,0.1); border: 1px solid rgba(100,200,255,0.2); color: #64c8ff; }
     .status-box.success { background: rgba(130,220,170,0.1); border: 1px solid rgba(130,220,170,0.2); color: #82dcaa; }
     .status-box.error { background: rgba(255,107,107,0.1); border: 1px solid rgba(255,107,107,0.2); color: #ff6b6b; }
-    .status-box.warn { background: rgba(255,200,100,0.1); border: 1px solid rgba(255,200,100,0.2); color: #ffc864; }
 
     /* Progress */
     .progress-wrap { margin-top: 12px; display: none; }
@@ -273,14 +239,12 @@
     .progress-bar {
       width: 100%; height: 8px;
       background: rgba(255,255,255,0.08);
-      border-radius: 4px;
-      overflow: hidden;
+      border-radius: 4px; overflow: hidden;
     }
     .progress-fill {
       height: 100%;
       background: linear-gradient(90deg, #82dcaa, #64c8ff);
-      border-radius: 4px;
-      width: 0%;
+      border-radius: 4px; width: 0%;
       transition: width 0.3s ease;
     }
     .progress-text {
@@ -319,7 +283,6 @@
     }
     .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(130,220,170,0.25); }
     .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
-    .btn-primary:active { transform: translateY(0); }
 
     .btn-blue {
       background: linear-gradient(135deg, #64c8ff, #3498db);
@@ -330,21 +293,6 @@
     .btn-blue:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(100,200,255,0.25); }
     .btn-blue:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
 
-    .btn-copy {
-      background: rgba(255,255,255,0.08);
-      color: rgba(255,255,255,0.7);
-      border: 1px solid rgba(255,255,255,0.1);
-      padding: 10px 18px;
-      border-radius: 10px;
-      font-size: 0.88rem;
-      font-weight: 600;
-      transition: all 0.2s ease;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .btn-copy:hover { background: rgba(255,255,255,0.12); }
-
     .btn-secondary {
       background: rgba(255,255,255,0.06);
       color: rgba(255,255,255,0.55);
@@ -354,27 +302,45 @@
       font-size: 0.88rem;
       font-weight: 600;
       transition: all 0.2s ease;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
     }
     .btn-secondary:hover { background: rgba(255,255,255,0.1); }
 
     .btn-full { width: 100%; justify-content: center; }
-    .btn-connect {
-      background: rgba(130,220,170,0.1);
-      color: #82dcaa;
-      border: 1px solid rgba(130,220,170,0.2);
-      padding: 12px 24px;
-      border-radius: 12px;
-      font-size: 0.95rem;
-      font-weight: 600;
-      transition: all 0.2s ease;
-      display: inline-flex;
-      align-items: center;
+
+    /* Steps */
+    .steps {
+      display: flex;
       gap: 8px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
     }
-    .btn-connect:hover { background: rgba(130,220,170,0.2); }
+    .step {
+      flex: 1;
+      min-width: 100px;
+      padding: 10px 12px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 10px;
+      text-align: center;
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.35);
+      transition: all 0.3s ease;
+    }
+    .step .step-icon { display: block; font-size: 1.3rem; margin-bottom: 4px; }
+    .step.active {
+      border-color: rgba(130,220,170,0.3);
+      color: #82dcaa;
+      background: rgba(130,220,170,0.06);
+    }
+    .step.done {
+      border-color: rgba(130,220,170,0.15);
+      color: rgba(130,220,170,0.6);
+    }
+    .step.recv-active {
+      border-color: rgba(100,200,255,0.3);
+      color: #64c8ff;
+      background: rgba(100,200,255,0.06);
+    }
 
     /* Toast */
     .toast {
@@ -400,7 +366,6 @@
     .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
     .toast.error { border-color: rgba(255,107,107,0.3); color: #ff6b6b; }
 
-    /* Spinner */
     .spinner {
       display: inline-block;
       width: 18px; height: 18px;
@@ -411,61 +376,35 @@
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* Step guide */
-    .steps {
+    /* URL config */
+    .config-bar {
       display: flex;
       gap: 8px;
-      margin-bottom: 16px;
-      flex-wrap: wrap;
-    }
-    .step {
-      flex: 1;
-      min-width: 120px;
-      padding: 10px 12px;
-      background: rgba(255,255,255,0.03);
-      border: 1px solid rgba(255,255,255,0.06);
-      border-radius: 10px;
-      text-align: center;
-      font-size: 0.8rem;
-      color: rgba(255,255,255,0.35);
-      transition: all 0.3s ease;
-    }
-    .step .step-icon {
-      display: block;
-      font-size: 1.3rem;
-      margin-bottom: 4px;
-    }
-    .step.active {
-      border-color: rgba(130,220,170,0.3);
-      color: #82dcaa;
-      background: rgba(130,220,170,0.06);
-    }
-    .step.done {
-      border-color: rgba(130,220,170,0.15);
-      color: rgba(130,220,170,0.6);
-    }
-    .step.recv-active {
-      border-color: rgba(100,200,255,0.3);
-      color: #64c8ff;
-      background: rgba(100,200,255,0.06);
-    }
-
-    .section-title {
-      font-size: 0.9rem;
-      font-weight: 600;
-      color: rgba(255,255,255,0.5);
-      margin-bottom: 10px;
-      display: flex;
+      margin-bottom: 14px;
       align-items: center;
-      gap: 6px;
     }
-    .section-title i { color: #82dcaa; }
+    .config-bar input {
+      flex: 1;
+      padding: 9px 12px;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px;
+      background: rgba(0,0,0,0.2);
+      color: rgba(255,255,255,0.5);
+      font-size: 0.8rem;
+      font-family: "JetBrains Mono", Consolas, monospace;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .config-bar input:focus {
+      border-color: #b8a0ff;
+    }
+    .config-bar input::placeholder { color: rgba(255,255,255,0.15); }
 
     @media (max-width: 768px) {
       body { padding: 12px; }
       .hero-card { padding: 16px; border-radius: 18px; }
-      .step { min-width: 80px; padding: 8px; font-size: 0.72rem; }
-      .sig-box { font-size: 0.65rem; max-height: 120px; }
+      .room-code { font-size: 2.4rem; }
+      .step { min-width: 70px; padding: 8px; font-size: 0.72rem; }
     }
     @media (min-width: 768px) {
       body { padding: 6vh 24px; }
@@ -484,12 +423,19 @@
       <div class="header">
         <i class="fas fa-network-wired header-icon"></i>
         <h1>局域网文件互传</h1>
-        <p class="subtitle">P2P 直连 · 纯浏览器传输 · 无需服务器</p>
+        <p class="subtitle">P2P 直连传输 · 仅信令经过 Worker · 文件不经过服务器</p>
       </div>
 
       <div class="info-bar">
         <i class="fas fa-info-circle"></i>
-        <span>通过互传"连接码"建立 P2P 通道。两部设备需在同一局域网下（同一 WiFi）。不需要任何服务器。</span>
+        <span>通过 Cloudflare Worker 交换连接信息，文件数据走 P2P 直连，不限速。</span>
+      </div>
+
+      <!-- Config -->
+      <div class="config-bar">
+        <i class="fas fa-cloud" style="color:rgba(255,255,255,0.3);font-size:0.85rem;"></i>
+        <input type="text" id="signalUrl" placeholder="https://signaling.你的域名.workers.dev" value="">
+        <button class="btn-secondary" onclick="saveUrl()" style="padding:9px 14px;font-size:0.8rem;">设置</button>
       </div>
 
       <div class="tabs">
@@ -497,41 +443,33 @@
         <button class="tab recv" data-tab="recv"><i class="fas fa-download"></i> 接收文件</button>
       </div>
 
-      <!-- ===== SEND PANEL ===== -->
+      <!-- SEND -->
       <div class="panel active" id="panelSend">
         <div class="steps" id="sendSteps">
           <div class="step active" id="sStep1"><span class="step-icon">①</span>选择文件</div>
-          <div class="step" id="sStep2"><span class="step-icon">②</span>生成连接码</div>
-          <div class="step" id="sStep3"><span class="step-icon">③</span>等待应答</div>
+          <div class="step" id="sStep2"><span class="step-icon">②</span>创建房间</div>
+          <div class="step" id="sStep3"><span class="step-icon">③</span>等待接收方</div>
           <div class="step" id="sStep4"><span class="step-icon">④</span>传输中</div>
         </div>
 
         <div class="drop-zone" id="dropZone">
           <i class="fas fa-cloud-upload-alt"></i>
           <p>拖拽文件到此处，或点击选择</p>
-          <div class="hint">支持任意格式，大文件建议局域网传输</div>
+          <div class="hint">支持任意格式</div>
         </div>
         <input type="file" id="fileInput" multiple hidden>
 
         <div class="file-list" id="fileList"><div class="empty-files">暂无选择文件</div></div>
 
-        <!-- Step 2: Send Offer -->
-        <div class="sig-section" id="sigOffer">
-          <div class="sig-label"><span class="step-num">②</span>将以下连接码 <strong style="color:#82dcaa;">复制</strong> 发给接收方</div>
-          <div class="sig-box" id="offerBox"></div>
-          <div class="sig-actions">
-            <button class="btn-copy" onclick="copySig('offerBox')"><i class="fas fa-copy"></i> 复制连接码</button>
-            <button class="btn-secondary" onclick="resetSender()"><i class="fas fa-redo"></i> 重新生成</button>
-          </div>
+        <div id="sendActions" style="text-align:center;">
+          <button class="btn-primary btn-full" id="createRoomBtn" disabled><i class="fas fa-play"></i> 创建房间</button>
         </div>
 
-        <!-- Step 3: Paste Answer -->
-        <div class="sig-section" id="sigAnswer">
-          <div class="sig-label"><span class="step-num">③</span>将接收方回复的应答码 <strong style="color:#64c8ff;">粘贴</strong> 到下方</div>
-          <div class="paste-area">
-            <textarea id="answerInput" placeholder="粘贴接收方回复的应答码..." rows="3"></textarea>
-          </div>
-          <button class="btn-connect btn-full" id="connectBtn" disabled><i class="fas fa-link"></i> 建立连接</button>
+        <div class="room-section" id="roomDisplay">
+          <div class="room-code-label">📋 房间号</div>
+          <div class="room-code" id="roomCode">------</div>
+          <button class="btn-secondary" onclick="copyRoom()" style="margin-top:6px;"><i class="fas fa-copy"></i> 复制房间号</button>
+          <div class="room-code-hint">告诉接收方输入这个房间号</div>
         </div>
 
         <div class="status-box" id="sendStatus"></div>
@@ -544,33 +482,20 @@
         </div>
       </div>
 
-      <!-- ===== RECEIVE PANEL ===== -->
+      <!-- RECEIVE -->
       <div class="panel" id="panelRecv">
         <div class="steps" id="recvSteps">
-          <div class="step recv-active" id="rStep1"><span class="step-icon">①</span>粘贴连接码</div>
-          <div class="step" id="rStep2"><span class="step-icon">②</span>生成应答码</div>
+          <div class="step recv-active" id="rStep1"><span class="step-icon">①</span>输入房间号</div>
+          <div class="step" id="rStep2"><span class="step-icon">②</span>等待连接</div>
           <div class="step" id="rStep3"><span class="step-icon">③</span>传输中</div>
         </div>
 
-        <!-- Step 1: Paste Offer -->
-        <div class="section-title"><i class="fas fa-paste"></i> 粘贴发送方给的连接码</div>
-        <div class="paste-area">
-          <textarea id="offerInput" placeholder="粘贴发送方复制的连接码..." rows="4"></textarea>
+        <div class="input-group">
+          <label><i class="fas fa-key"></i> 输入发送方的房间号</label>
+          <input type="text" id="roomInput" placeholder="000000" maxlength="6" autocomplete="off">
         </div>
-        <button class="btn-blue btn-full" id="acceptOfferBtn" disabled><i class="fas fa-check"></i> 接受连接</button>
 
-        <!-- Step 2: Show Answer -->
-        <div class="sig-section" id="sigRecvAnswer">
-          <div class="sig-label"><span class="step-num">②</span>将以下应答码 <strong style="color:#64c8ff;">复制</strong> 发回给发送方</div>
-          <div class="sig-box" id="answerBox"></div>
-          <div class="sig-actions">
-            <button class="btn-copy" onclick="copySig('answerBox')"><i class="fas fa-copy"></i> 复制应答码</button>
-          </div>
-          <div class="status-box info show" style="margin-top:10px;">
-            <i class="fas fa-hourglass-half"></i>
-            <span>等待发送方建立连接...</span>
-          </div>
-        </div>
+        <button class="btn-blue btn-full" id="joinRoomBtn" disabled><i class="fas fa-plug"></i> 加入房间</button>
 
         <div class="status-box" id="recvStatus"></div>
         <div class="progress-wrap" id="recvProgress">
@@ -588,7 +513,10 @@
   <div class="toast" id="toast"><i class="fas fa-check-circle"></i> <span id="toastMsg"></span></div>
 
   <script>
-    // ===== CONST =====
+    // ===== CONFIG =====
+    const STORAGE_KEY = 'xi_han_signal_url';
+    let SIGNAL_URL = localStorage.getItem(STORAGE_KEY) || '';
+
     const STUN = [
       'stun:stun.l.google.com:19302',
       'stun:stun1.l.google.com:19302',
@@ -599,6 +527,7 @@
     const $ = id => document.getElementById(id);
     const toast = $('toast');
     const toastMsg = $('toastMsg');
+    let currentCode = '';
 
     function showToast(msg, err = false) {
       toastMsg.textContent = msg;
@@ -621,15 +550,55 @@
       return d.innerHTML;
     }
 
+    function setStatus(el, msg, type = 'info') {
+      el.className = 'status-box ' + type + ' show';
+      const icons = { info: 'fa-info-circle', success: 'fa-check-circle', error: 'fa-times-circle' };
+      el.innerHTML = '<i class="fas ' + (icons[type] || 'fa-info-circle') + '"></i> <span>' + msg + '</span>';
+    }
+
+    function step(el, state) { el.className = 'step ' + state; }
+
+    // ===== Signal URL =====
+    function saveUrl() {
+      const v = $('signalUrl').value.trim().replace(/\/+$/, '');
+      if (v) {
+        SIGNAL_URL = v;
+        localStorage.setItem(STORAGE_KEY, v);
+        showToast('信令服务器地址已保存');
+      } else {
+        showToast('请输入 Worker 地址', true);
+      }
+    }
+
+    // Restore saved URL
+    if (SIGNAL_URL) $('signalUrl').value = SIGNAL_URL;
+
     // ===== TABS =====
     document.querySelectorAll('.tab').forEach(tab => {
       tab.addEventListener('click', () => {
+        if (!SIGNAL_URL) { showToast('请先设置信令服务器地址', true); return; }
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
         document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
         tab.classList.add('active');
         $('panel' + tab.dataset.tab.charAt(0).toUpperCase() + tab.dataset.tab.slice(1)).classList.add('active');
       });
     });
+
+    // ===== SIGNALING API =====
+    async function api(path, opts = {}) {
+      if (!SIGNAL_URL) throw new Error('请先设置信令服务器地址');
+      const r = await fetch(SIGNAL_URL + path, {
+        headers: { 'Content-Type': 'application/json' },
+        ...opts,
+      });
+      if (!r.ok) {
+        const err = await r.text().catch(() => r.statusText);
+        throw new Error(err || r.statusText);
+      }
+      const text = await r.text();
+      // Some endpoints return raw text
+      try { return JSON.parse(text); } catch(e) { return text; }
+    }
 
     // ===== FILE SELECTION =====
     const dropZone = $('dropZone');
@@ -644,25 +613,25 @@
 
     function addFiles(files) {
       selectedFiles = selectedFiles.concat(files);
-      renderFiles();
+      renderFileList();
     }
 
     function removeFile(i) {
       selectedFiles.splice(i, 1);
-      renderFiles();
+      renderFileList();
     }
 
-    function renderFiles() {
+    function renderFileList() {
       const el = $('fileList');
       if (selectedFiles.length === 0) {
         el.innerHTML = '<div class="empty-files">暂无选择文件</div>';
+        $('createRoomBtn').disabled = true;
         return;
       }
       el.innerHTML = selectedFiles.map((f, i) => {
         const icon = f.type.startsWith('image/') ? 'fa-file-image' :
                      f.type.startsWith('video/') ? 'fa-file-video' :
                      f.type.startsWith('audio/') ? 'fa-file-audio' :
-                     f.type.includes('pdf') ? 'fa-file-pdf' :
                      (f.type.includes('zip') || f.type.includes('rar') || f.type.includes('tar')) ? 'fa-file-archive' :
                      'fa-file';
         return '<div class="file-item">' +
@@ -670,39 +639,7 @@
           '<div class="f-info"><div class="f-name">' + esc(f.name) + '</div><div class="f-size">' + fmtSize(f.size) + '</div></div>' +
           '<button class="f-remove" onclick="removeFile(' + i + ')"><i class="fas fa-times"></i></button></div>';
       }).join('');
-    }
-
-    // ===== SIGNALING HELPERS =====
-    function encodeSDP(sdp) {
-      // Compress SDP: remove whitespace, base64
-      const json = JSON.stringify(sdp);
-      return btoa(unescape(encodeURIComponent(json)));
-    }
-
-    function decodeSDP(str) {
-      const json = decodeURIComponent(escape(atob(str)));
-      return JSON.parse(json);
-    }
-
-    function copySig(boxId) {
-      const box = $(boxId);
-      const text = box.textContent;
-      if (!text) return;
-      navigator.clipboard.writeText(text).then(() => {
-        showToast('已复制到剪贴板');
-      }).catch(() => {
-        const ta = document.createElement('textarea');
-        ta.value = text;
-        document.body.appendChild(ta);
-        ta.select();
-        document.execCommand('copy');
-        document.body.removeChild(ta);
-        showToast('已复制到剪贴板');
-      });
-    }
-
-    function step(el, state) {
-      el.className = 'step ' + state;
+      $('createRoomBtn').disabled = false;
     }
 
     // ===== SENDER =====
@@ -710,39 +647,28 @@
     let senderDc = null;
     let sending = false;
 
-    // Listen for paste in answer input
-    $('answerInput').addEventListener('input', () => {
-      $('connectBtn').disabled = !$('answerInput').value.trim();
-    });
+    $('createRoomBtn').addEventListener('click', startSend);
 
-    // "创建连接并生成连接码" happens when files are selected and user completes file selection
-    // We auto-create the offer when files are selected and we need to start
-
-    // Actually, let me re-think the flow. The user selects files, then we auto-generate the offer.
-    // Let me add the auto-generation or a manual trigger.
-
-    // Auto-generate offer when files change
-    let offerGenerated = false;
-
-    function watchFilesForOffer() {
-      // This triggers when user has files and clicks somewhere
-      // Actually, let me make an explicit button "生成连接码"
-    }
-
-    // I'll add a button below the file list. Let me modify renderFiles to include or add a separate div.
-
-    // Let me set up the auto-offer generation. When files are selected, we show a "生成连接码" button.
-    // I need to add a container for this button. Let me use a simpler approach:
-    // Overwrite the drop zone or use a separate action area.
-
-    // ===== SENDER: Generate Offer =====
-    async function generateOffer() {
+    async function startSend() {
       if (selectedFiles.length === 0) { showToast('请先选择文件', true); return; }
+      if (!SIGNAL_URL) { showToast('请先设置信令服务器地址', true); return; }
 
       step($('sStep1'), 'done');
       step($('sStep2'), 'active');
+      $('createRoomBtn').disabled = true;
+      $('createRoomBtn').innerHTML = '<span class="spinner"></span> 创建中...';
 
       try {
+        // 1. Create room
+        const room = await api('/room', { method: 'POST' });
+        currentCode = room.code;
+        $('roomCode').textContent = currentCode;
+        $('roomDisplay').classList.add('show');
+        step($('sStep2'), 'done');
+        step($('sStep3'), 'active');
+        setStatus($('sendStatus'), '房间已创建，等待接收方加入...', 'info');
+
+        // 2. Create WebRTC offer
         senderPc = new RTCPeerConnection({ iceServers: [{ urls: STUN }] });
 
         senderDc = senderPc.createDataChannel('fileTransfer', { ordered: true });
@@ -750,82 +676,91 @@
         senderDc.onopen = () => {
           step($('sStep3'), 'done');
           step($('sStep4'), 'active');
-          status($('sendStatus'), '连接已建立，开始发送文件...', 'success');
-          sendAllFiles();
+          setStatus($('sendStatus'), '连接已建立，开始发送文件...', 'success');
+          sendFiles();
         };
 
         senderDc.onclose = () => {
           if (!sending) return;
-          status($('sendStatus'), '传输已断开', 'warn');
+          setStatus($('sendStatus'), '传输已断开', 'error');
         };
 
         senderPc.oniceconnectionstatechange = () => {
-          if (senderPc.iceConnectionState === 'connected' || senderPc.iceConnectionState === 'completed') {
-            // Connected - file transfer will start via dc.onopen
-          }
           if (senderPc.iceConnectionState === 'disconnected' || senderPc.iceConnectionState === 'failed') {
-            status($('sendStatus'), '连接断开', 'error');
+            setStatus($('sendStatus'), '连接断开', 'error');
           }
         };
 
-        senderPc.onicecandidate = (e) => {
+        // ICE candidate gathering complete → store offer
+        senderPc.onicecandidate = async (e) => {
           if (!e.candidate) {
-            // All candidates gathered - SDP is ready
-            const encoded = encodeSDP(senderPc.localDescription);
-            $('offerBox').textContent = encoded;
-            $('offerBox').classList.add('code-ready');
-            $('sigOffer').classList.add('show');
-            $('sigAnswer').classList.add('show');
-            step($('sStep2'), 'done');
-            step($('sStep3'), 'active');
-            showToast('连接码已生成，复制后发给接收方');
+            // All candidates gathered
+            const offerData = JSON.stringify(senderPc.localDescription);
+            await api('/room/' + currentCode + '/offer', {
+              method: 'PUT',
+              body: offerData,
+              headers: { 'Content-Type': 'text/plain' },
+            });
+            setStatus($('sendStatus'), '等待接收方应答...', 'info');
+
+            // Start polling for answer
+            pollForAnswer();
           }
         };
 
-        const offer = await senderPc.createOffer({ iceRestart: false });
+        const offer = await senderPc.createOffer();
         await senderPc.setLocalDescription(offer);
 
-        // The onicecandidate handler above will display the offer when gathering completes.
-        // But if candidates gather instantly, we need a fallback.
-        // setTimeout to check if offer was displayed
-        setTimeout(() => {
-          if (!$('offerBox').textContent && senderPc.localDescription) {
-            const encoded = encodeSDP(senderPc.localDescription);
-            $('offerBox').textContent = encoded;
-            $('offerBox').classList.add('code-ready');
-            $('sigOffer').classList.add('show');
-            $('sigAnswer').classList.add('show');
-            step($('sStep2'), 'done');
-            step($('sStep3'), 'active');
+        // Fallback: if candidates gather instantly
+        setTimeout(async () => {
+          if (senderPc && senderPc.localDescription && !$('roomDisplay').classList.contains('polling')) {
+            const offerData = JSON.stringify(senderPc.localDescription);
+            await api('/room/' + currentCode + '/offer', {
+              method: 'PUT',
+              body: offerData,
+              headers: { 'Content-Type': 'text/plain' },
+            });
+            pollForAnswer();
           }
-        }, 1000);
+        }, 1500);
 
       } catch (e) {
-        status($('sendStatus'), '生成连接码失败: ' + e.message, 'error');
+        setStatus($('sendStatus'), '创建失败: ' + e.message, 'error');
+        showToast('创建房间失败', true);
         console.error(e);
+        cleanupSender();
       }
     }
 
-    // ===== SENDER: Connect with Answer =====
-    $('connectBtn').addEventListener('click', async () => {
-      const raw = $('answerInput').value.trim();
-      if (!raw) { showToast('请粘贴应答码', true); return; }
+    let polling = false;
+
+    async function pollForAnswer() {
+      if (polling) return;
+      polling = true;
+      $('roomDisplay').classList.add('polling');
 
       try {
-        const answer = decodeSDP(raw);
-        await senderPc.setRemoteDescription(new RTCSessionDescription(answer));
-        status($('sendStatus'), '连接建立中...', 'info');
-        $('connectBtn').disabled = true;
-        $('connectBtn').innerHTML = '<span class="spinner"></span> 连接中...';
-        step($('sStep3'), 'done');
+        const answerData = await api('/room/' + currentCode + '/answer');
+        if (answerData && answerData !== 'null') {
+          const answer = JSON.parse(answerData);
+          await senderPc.setRemoteDescription(new RTCSessionDescription(answer));
+          setStatus($('sendStatus'), '连接已建立', 'success');
+          return;
+        }
       } catch (e) {
-        status($('sendStatus'), '应答码无效: ' + e.message, 'error');
-        showToast('应答码解析失败', true);
+        // Timeout or error - receiver might still be joining
+        console.log('Poll timeout, retrying...');
       }
-    });
 
-    // ===== SENDER: Send Files =====
-    async function sendAllFiles() {
+      if (senderPc && senderPc.signalingState !== 'closed') {
+        polling = false;
+        pollForAnswer(); // retry
+      } else {
+        polling = false;
+      }
+    }
+
+    async function sendFiles() {
       sending = true;
       const pr = $('sendProgress');
       const pf = $('sendProgressFill');
@@ -833,7 +768,6 @@
       const pp = $('sendProgressPct');
       pr.classList.add('show');
 
-      // Send file count
       senderDc.send(JSON.stringify({ type: 'meta', count: selectedFiles.length }));
 
       for (let i = 0; i < selectedFiles.length; i++) {
@@ -841,11 +775,9 @@
 
         senderDc.send(JSON.stringify({
           type: 'file-start',
-          name: file.name,
-          size: file.size,
+          name: file.name, size: file.size,
           mime: file.type || 'application/octet-stream',
-          index: i,
-          total: selectedFiles.length
+          index: i, total: selectedFiles.length
         }));
 
         const CHUNK = 16384;
@@ -856,7 +788,6 @@
           const buf = await chunk.arrayBuffer();
           senderDc.send(buf);
           offset += CHUNK;
-
           const pct = Math.round((offset / file.size) * 100);
           pf.style.width = pct + '%';
           pl.textContent = '发送: ' + file.name + ' (' + (i + 1) + '/' + selectedFiles.length + ')';
@@ -869,52 +800,34 @@
       pl.textContent = '✅ 全部发送完成！';
       pp.textContent = '100%';
       step($('sStep4'), 'done');
-      status($('sendStatus'), '所有文件发送成功！', 'success');
+      setStatus($('sendStatus'), '所有文件发送成功！', 'success');
       showToast('所有文件已发送');
 
-      setTimeout(resetSender, 5000);
+      // Cleanup room
+      try { await api('/room/' + currentCode, { method: 'DELETE' }); } catch(e) {}
+      setTimeout(cleanupSender, 5000);
     }
 
-    function resetSender() {
+    function cleanupSender() {
       if (senderPc) { try { senderPc.close(); } catch(e) {} senderPc = null; }
       senderDc = null;
       sending = false;
-      $('sigOffer').classList.remove('show');
-      $('sigAnswer').classList.remove('show');
-      $('offerBox').textContent = '';
-      $('answerInput').value = '';
-      $('connectBtn').disabled = true;
-      $('connectBtn').innerHTML = '<i class="fas fa-link"></i> 建立连接';
-      $('sendStatus').className = 'status-box';
-      $('sendProgress').classList.remove('show');
-      $('sendProgressFill').style.width = '0%';
-      step($('sStep1'), 'active');
-      step($('sStep2'), '');
-      step($('sStep3'), '');
-      step($('sStep4'), '');
+      polling = false;
+      $('createRoomBtn').disabled = false;
+      $('createRoomBtn').innerHTML = '<i class="fas fa-play"></i> 创建房间';
     }
 
-    // ===== Add "generate offer" trigger after file selection =====
-    // I'll add a hidden button/div that appears when files are selected
-    // Let me modify renderFiles to include a generate button
-
-    // Override renderFiles to add the generate button
-    const _origRender = renderFiles;
-    renderFiles = function() {
-      _origRender();
-      const el = $('fileList');
-      if (selectedFiles.length > 0) {
-        // Add generate button
-        const btn = document.createElement('div');
-        btn.style.marginTop = '10px';
-        btn.style.textAlign = 'center';
-        btn.innerHTML = '<button class="btn-primary btn-full" id="genOfferBtn"><i class="fas fa-link"></i> 生成连接码</button>';
-        el.appendChild(btn);
-        $('genOfferBtn').addEventListener('click', generateOffer);
-      }
-      // Reset offer state when files change
-      resetSender();
-    };
+    function copyRoom() {
+      navigator.clipboard.writeText(currentCode).then(() => showToast('房间号已复制')).catch(() => {
+        const ta = document.createElement('textarea');
+        ta.value = currentCode;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        showToast('房间号已复制');
+      });
+    }
 
     // ===== RECEIVER =====
     let receiverPc = null;
@@ -924,22 +837,38 @@
     let fileCount = 0;
     let filesDone = 0;
 
-    $('offerInput').addEventListener('input', () => {
-      $('acceptOfferBtn').disabled = !$('offerInput').value.trim();
+    $('roomInput').addEventListener('input', () => {
+      const v = $('roomInput').value.replace(/\D/g, '').slice(0, 6);
+      $('roomInput').value = v;
+      $('joinRoomBtn').disabled = v.length !== 6;
     });
 
-    $('acceptOfferBtn').addEventListener('click', acceptOffer);
+    $('joinRoomBtn').addEventListener('click', startReceive);
 
-    async function acceptOffer() {
-      const raw = $('offerInput').value.trim();
-      if (!raw) { showToast('请粘贴发送方的连接码', true); return; }
+    async function startReceive() {
+      const code = $('roomInput').value.trim();
+      if (code.length !== 6) { showToast('请输入6位房间号', true); return; }
+      if (!SIGNAL_URL) { showToast('请先设置信令服务器地址', true); return; }
 
+      currentCode = code;
       step($('rStep1'), 'done');
       step($('rStep2'), 'active');
+      $('joinRoomBtn').disabled = true;
+      $('joinRoomBtn').innerHTML = '<span class="spinner"></span> 连接中...';
 
       try {
-        const offer = decodeSDP(raw);
+        // 1. Poll for offer
+        setStatus($('recvStatus'), '正在获取连接信息...', 'info');
+        const offerData = await api('/room/' + code + '/offer');
+        if (!offerData || offerData === 'null') {
+          setStatus($('recvStatus'), '未找到该房间，请确认房间号', 'error');
+          cleanupReceiver();
+          return;
+        }
 
+        const offer = JSON.parse(offerData);
+
+        // 2. Create WebRTC answer
         receiverPc = new RTCPeerConnection({ iceServers: [{ urls: STUN }] });
 
         receiverPc.ondatachannel = (event) => {
@@ -953,18 +882,20 @@
             step($('rStep3'), 'active');
           }
           if (receiverPc.iceConnectionState === 'disconnected' || receiverPc.iceConnectionState === 'failed') {
-            status($('recvStatus'), '连接断开', 'error');
+            setStatus($('recvStatus'), '连接断开', 'error');
           }
         };
 
         receiverPc.onicecandidate = async (e) => {
           if (!e.candidate) {
-            // All candidates gathered - show answer
-            const encoded = encodeSDP(receiverPc.localDescription);
-            $('answerBox').textContent = encoded;
-            $('answerBox').classList.add('code-ready');
-            $('sigRecvAnswer').classList.add('show');
-            showToast('应答码已生成，复制后发回给发送方');
+            // Store answer
+            const answerData = JSON.stringify(receiverPc.localDescription);
+            await api('/room/' + code + '/answer', {
+              method: 'PUT',
+              body: answerData,
+              headers: { 'Content-Type': 'text/plain' },
+            });
+            setStatus($('recvStatus'), '已加入房间，等待文件传输...', 'success');
           }
         };
 
@@ -972,23 +903,24 @@
         const answer = await receiverPc.createAnswer();
         await receiverPc.setLocalDescription(answer);
 
-        // Fallback if candidates gather instantly
-        setTimeout(() => {
-          if (!$('answerBox').textContent && receiverPc.localDescription) {
-            const encoded = encodeSDP(receiverPc.localDescription);
-            $('answerBox').textContent = encoded;
-            $('answerBox').classList.add('code-ready');
-            $('sigRecvAnswer').classList.add('show');
+        // Fallback
+        setTimeout(async () => {
+          if (receiverPc && receiverPc.localDescription) {
+            const answerData = JSON.stringify(receiverPc.localDescription);
+            await api('/room/' + code + '/answer', {
+              method: 'PUT',
+              body: answerData,
+              headers: { 'Content-Type': 'text/plain' },
+            });
+            setStatus($('recvStatus'), '已加入房间，等待文件传输...', 'success');
           }
-        }, 1000);
-
-        $('acceptOfferBtn').disabled = true;
-        $('acceptOfferBtn').innerHTML = '<span class="spinner"></span> 等待连接...';
+        }, 1500);
 
       } catch (e) {
-        status($('recvStatus'), '连接码无效: ' + e.message, 'error');
-        showToast('连接码解析失败', true);
+        setStatus($('recvStatus'), '连接失败: ' + e.message, 'error');
+        showToast('连接失败', true);
         console.error(e);
+        cleanupReceiver();
       }
     }
 
@@ -1006,10 +938,9 @@
         if (typeof event.data === 'string') {
           try {
             const msg = JSON.parse(event.data);
-
             if (msg.type === 'meta') {
               fileCount = msg.count;
-              status(st, '准备接收 ' + fileCount + ' 个文件...', 'success');
+              setStatus(st, '准备接收 ' + fileCount + ' 个文件...', 'success');
             } else if (msg.type === 'file-start') {
               currentFile = msg;
               currentFileBuf = [];
@@ -1021,37 +952,33 @@
               pf.style.width = '100%';
               pl.textContent = '✅ 全部接收完成！';
               pp.textContent = '100%';
-              status(st, '所有文件接收完成！', 'success');
+              setStatus(st, '所有文件接收完成！', 'success');
               showToast('文件接收完成！');
+              try { api('/room/' + currentCode, { method: 'DELETE' }); } catch(e) {}
             }
           } catch(e) {}
         } else {
-          // Binary chunk
           if (currentFile) {
             const bytes = new Uint8Array(event.data);
             currentFileBuf.push(bytes);
-
             const received = currentFileBuf.reduce((a, b) => a + b.length, 0);
             const pct = Math.round((received / currentFile.size) * 100);
             pf.style.width = pct + '%';
             pp.textContent = pct + '%';
 
             if (received >= currentFile.size) {
-              // File complete
               const allBytes = new Uint8Array(received);
               let pos = 0;
               for (const b of currentFileBuf) { allBytes.set(b, pos); pos += b.length; }
-
               const blob = new Blob([allBytes], { type: currentFile.mime });
               const url = URL.createObjectURL(blob);
-
               filesDone++;
+
               const icon = currentFile.mime.startsWith('image/') ? 'fa-file-image' :
-                           currentFile.mime.startsWith('video/') ? 'fa-file-video' :
-                           'fa-file';
+                           currentFile.mime.startsWith('video/') ? 'fa-file-video' : 'fa-file';
 
               if (filesDone === 1) {
-                rf.innerHTML = '<div style="margin-top:14px;font-size:0.85rem;color:rgba(255,255,255,0.4);margin-bottom:4px;">📥 已接收文件:</div>';
+                rf.innerHTML = '<div style="margin-top:14px;font-size:0.85rem;color:rgba(255,255,255,0.4);margin-bottom:4px;">📥 已接收:</div>';
               }
               rf.innerHTML += '<div class="received-item">' +
                 '<i class="fas ' + icon + ' r-icon"></i>' +
@@ -1064,21 +991,23 @@
           }
         }
       };
-
-      dc.onclose = () => {};
     }
 
-    // ===== Utility =====
-    function status(el, msg, type = 'info') {
-      el.className = 'status-box ' + type + ' show';
-      const icons = { info: 'fa-info-circle', success: 'fa-check-circle', error: 'fa-times-circle', warn: 'fa-exclamation-triangle' };
-      el.innerHTML = '<i class="fas ' + (icons[type] || 'fa-info-circle') + '"></i> <span>' + msg + '</span>';
+    function cleanupReceiver() {
+      if (receiverPc) { try { receiverPc.close(); } catch(e) {} receiverPc = null; }
+      receiverDc = null;
+      currentFile = null;
+      currentFileBuf = [];
+      $('joinRoomBtn').disabled = false;
+      $('joinRoomBtn').innerHTML = '<i class="fas fa-plug"></i> 加入房间';
     }
 
-    // ===== Cleanup =====
     window.addEventListener('beforeunload', () => {
-      if (senderPc) try { senderPc.close(); } catch(e) {}
-      if (receiverPc) try { receiverPc.close(); } catch(e) {}
+      cleanupSender();
+      cleanupReceiver();
+      if (currentCode) {
+        try { fetch(SIGNAL_URL + '/room/' + currentCode, { method: 'DELETE' }); } catch(e) {}
+      }
     });
   </script>
 </body>

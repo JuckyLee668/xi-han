@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0f1324">
+  <title>Markdown → HTML 转换器</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: "Inter", "Microsoft YaHei", "PingFang SC", sans-serif;
+      background: linear-gradient(135deg, #0f1324 0%, #1a1f3a 25%, #0d0f1f 50%, #1a1f3a 75%, #0f1324 100%);
+      background-attachment: fixed;
+      color: #f5f5ff;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(circle at 20% 50%, rgba(184, 160, 255, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(100, 200, 255, 0.06) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .page-wrapper {
+      position: relative;
+      z-index: 1;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .hero-card {
+      background: rgba(22, 28, 48, 0.92);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 24px;
+      padding: 28px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
+      backdrop-filter: blur(14px);
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .back-link {
+      color: rgba(255,255,255,0.5);
+      text-decoration: none;
+      font-size: 0.9rem;
+      transition: color 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .back-link:hover { color: #b8a0ff; }
+
+    .header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .header-icon {
+      font-size: 2.5rem;
+      color: #b8a0ff;
+      margin-bottom: 10px;
+      display: block;
+    }
+
+    h1 {
+      font-size: clamp(1.6rem, 3.5vw, 2.2rem);
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      background: linear-gradient(135deg, #b8a0ff, #64c8ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 6px;
+    }
+
+    .subtitle {
+      color: rgba(255,255,255,0.5);
+      font-size: 0.95rem;
+    }
+
+    /* Toolbar */
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+      align-items: center;
+    }
+
+    .toolbar button {
+      background: linear-gradient(135deg, #b8a0ff, #8b6fe8);
+      color: white;
+      padding: 10px 18px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 0.88rem;
+      font-weight: 600;
+      transition: all 0.25s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .toolbar button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(184, 160, 255, 0.3);
+    }
+
+    .toolbar button:active { transform: translateY(0); }
+
+    .toolbar button.secondary {
+      background: rgba(255,255,255,0.08);
+      color: rgba(255,255,255,0.75);
+    }
+    .toolbar button.secondary:hover {
+      background: rgba(255,255,255,0.12);
+      box-shadow: none;
+    }
+
+    .toolbar button.success {
+      background: linear-gradient(135deg, #82dcaa, #5cc48a);
+    }
+    .toolbar button.success:hover {
+      box-shadow: 0 6px 20px rgba(130, 220, 170, 0.3);
+    }
+
+    .toolbar .right-group {
+      margin-left: auto;
+      display: flex;
+      gap: 10px;
+    }
+
+    /* Split editor */
+    .editor-split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      min-height: 500px;
+    }
+
+    .editor-pane {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .pane-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-bottom: none;
+      border-radius: 12px 12px 0 0;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: rgba(255,255,255,0.6);
+    }
+    .pane-header i { color: #b8a0ff; }
+    .pane-header .count {
+      margin-left: auto;
+      font-weight: 400;
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.35);
+    }
+
+    .editor-input {
+      flex: 1;
+      min-height: 450px;
+      padding: 16px;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 0 0 12px 12px;
+      background: rgba(0,0,0,0.3);
+      color: #f5f5ff;
+      font-family: "JetBrains Mono", "Fira Code", Consolas, monospace;
+      font-size: 0.9rem;
+      line-height: 1.7;
+      resize: vertical;
+      outline: none;
+      transition: border-color 0.2s;
+      tab-size: 2;
+    }
+    .editor-input:focus {
+      border-color: #b8a0ff;
+      box-shadow: 0 0 0 3px rgba(184, 160, 255, 0.1);
+    }
+    .editor-input::placeholder { color: rgba(255,255,255,0.2); }
+
+    /* Preview pane */
+    .preview-output {
+      flex: 1;
+      min-height: 450px;
+      padding: 16px;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 0 0 12px 12px;
+      background: rgba(0,0,0,0.25);
+      color: #f5f5ff;
+      font-size: 0.95rem;
+      line-height: 1.75;
+      overflow-y: auto;
+      word-wrap: break-word;
+    }
+
+    .preview-output:empty::before {
+      content: "预览将实时显示...";
+      color: rgba(255,255,255,0.2);
+      font-style: italic;
+    }
+
+    /* Markdown preview styles */
+    .preview-output h1,
+    .preview-output h2,
+    .preview-output h3,
+    .preview-output h4 {
+      margin-top: 1.2em;
+      margin-bottom: 0.5em;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .preview-output h1 { font-size: 1.8rem; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 0.3em; }
+    .preview-output h2 { font-size: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 0.2em; }
+    .preview-output h3 { font-size: 1.25rem; }
+    .preview-output p { margin: 0.8em 0; }
+    .preview-output a { color: #b8a0ff; text-decoration: underline; }
+    .preview-output a:hover { color: #d0bfff; }
+    .preview-output strong { color: #fff; }
+    .preview-output em { color: rgba(255,255,255,0.85); }
+    .preview-output code {
+      background: rgba(184,160,255,0.12);
+      color: #d0bfff;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: "JetBrains Mono", Consolas, monospace;
+      font-size: 0.85em;
+    }
+    .preview-output pre {
+      background: rgba(0,0,0,0.35);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      padding: 16px;
+      overflow-x: auto;
+      margin: 1em 0;
+    }
+    .preview-output pre code {
+      background: none;
+      padding: 0;
+      font-size: 0.85rem;
+      line-height: 1.6;
+    }
+    .preview-output blockquote {
+      border-left: 3px solid #b8a0ff;
+      padding: 8px 16px;
+      margin: 1em 0;
+      background: rgba(184,160,255,0.05);
+      border-radius: 0 8px 8px 0;
+      color: rgba(255,255,255,0.75);
+    }
+    .preview-output ul, .preview-output ol {
+      padding-left: 1.8em;
+      margin: 0.6em 0;
+    }
+    .preview-output li { margin: 0.3em 0; }
+    .preview-output img {
+      max-width: 100%;
+      border-radius: 8px;
+      margin: 1em 0;
+    }
+    .preview-output table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1em 0;
+      font-size: 0.9rem;
+    }
+    .preview-output th, .preview-output td {
+      padding: 10px 14px;
+      border: 1px solid rgba(255,255,255,0.1);
+      text-align: left;
+    }
+    .preview-output th {
+      background: rgba(184,160,255,0.1);
+      font-weight: 600;
+      color: #d8c4ff;
+    }
+    .preview-output tr:nth-child(even) { background: rgba(255,255,255,0.03); }
+    .preview-output hr {
+      border: none;
+      height: 1px;
+      background: rgba(255,255,255,0.1);
+      margin: 1.5em 0;
+    }
+    .preview-output input[type="checkbox"] {
+      accent-color: #b8a0ff;
+      margin-right: 6px;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: rgba(22,28,48,0.96);
+      border: 1px solid rgba(130,220,170,0.3);
+      color: #82dcaa;
+      padding: 14px 24px;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      opacity: 0;
+      transition: all 0.3s ease;
+      pointer-events: none;
+      z-index: 999;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* Sample selector */
+    .sample-select {
+      padding: 9px 14px;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      font-size: 0.85rem;
+      background: rgba(0,0,0,0.25);
+      color: rgba(255,255,255,0.7);
+      cursor: pointer;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .sample-select:focus { border-color: #b8a0ff; }
+    .sample-select option { background: #1a1f3a; color: #f5f5ff; }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      body { padding: 12px; }
+      .hero-card { padding: 16px; border-radius: 18px; }
+      .editor-split { grid-template-columns: 1fr; min-height: auto; }
+      .editor-input, .preview-output { min-height: 300px; }
+      .toolbar .right-group { margin-left: 0; }
+      .toolbar { flex-direction: column; align-items: stretch; }
+      .toolbar button { justify-content: center; }
+      .sample-select { width: 100%; }
+    }
+
+    @media (min-width: 768px) {
+      body { padding: 6vh 24px; }
+      .hero-card { padding: 36px; border-radius: 32px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page-wrapper">
+    <div class="hero-card">
+      <div class="top-bar">
+        <div></div>
+        <a href="../tools.html" class="back-link"><i class="fas fa-arrow-left"></i> 返回工具</a>
+      </div>
+
+      <div class="header">
+        <i class="fas fa-code header-icon"></i>
+        <h1>Markdown → HTML 转换器</h1>
+        <p class="subtitle">实时预览 · 一键复制 · 支持代码高亮</p>
+      </div>
+
+      <div class="toolbar">
+        <select class="sample-select" id="sampleSelect">
+          <option value="" disabled selected>📄 加载示例...</option>
+          <option value="readme">README 文档</option>
+          <option value="blog">博客文章</option>
+          <option value="cheatsheet">Markdown 语法演示</option>
+        </select>
+        <div class="right-group">
+          <button id="clearBtn" class="secondary"><i class="fas fa-trash"></i> 清空</button>
+          <button id="copyHtmlBtn" class="secondary"><i class="fas fa-copy"></i> 复制 HTML</button>
+          <button id="downloadHtmlBtn" class="success"><i class="fas fa-download"></i> 下载 HTML</button>
+        </div>
+      </div>
+
+      <div class="editor-split">
+        <div class="editor-pane">
+          <div class="pane-header">
+            <i class="fab fa-markdown"></i> Markdown
+            <span class="count" id="charCount">0 字符</span>
+          </div>
+          <textarea class="editor-input" id="mdInput" placeholder="在此输入 Markdown 内容..." spellcheck="false"></textarea>
+        </div>
+        <div class="editor-pane">
+          <div class="pane-header">
+            <i class="fas fa-eye"></i> 预览
+            <span class="count" id="htmlSize"></span>
+          </div>
+          <div class="preview-output" id="preview"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"><i class="fas fa-check-circle"></i> <span id="toastMsg"></span></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>
+    // Configure marked with highlight.js
+    marked.setOptions({
+      breaks: true,
+      gfm: true,
+      highlight: function(code, lang) {
+        if (lang && hljs.getLanguage(lang)) {
+          try { return hljs.highlight(code, { language: lang }).value; } catch (e) {}
+        }
+        try { return hljs.highlightAuto(code).value; } catch (e) {}
+        return code;
+      }
+    });
+
+    const mdInput = document.getElementById('mdInput');
+    const preview = document.getElementById('preview');
+    const charCount = document.getElementById('charCount');
+    const htmlSize = document.getElementById('htmlSize');
+    const toast = document.getElementById('toast');
+    const toastMsg = document.getElementById('toastMsg');
+
+    // Render markdown
+    function render() {
+      const raw = mdInput.value;
+      charCount.textContent = raw.length + ' 字符';
+      if (!raw.trim()) {
+        preview.innerHTML = '';
+        htmlSize.textContent = '';
+        return;
+      }
+      try {
+        const html = marked.parse(raw);
+        preview.innerHTML = html;
+        // Re-run hljs on rendered blocks
+        preview.querySelectorAll('pre code').forEach(b => {
+          hljs.highlightElement(b);
+        });
+        htmlSize.textContent = html.length + ' bytes';
+      } catch (e) {
+        preview.innerHTML = `<span style="color:#ff6b6b;"><i class="fas fa-exclamation-triangle"></i> 解析错误: ${e.message}</span>`;
+      }
+    }
+
+    // Debounce render
+    let renderTimer;
+    mdInput.addEventListener('input', () => {
+      clearTimeout(renderTimer);
+      renderTimer = setTimeout(render, 150);
+    });
+
+    // Toast
+    function showToast(msg, icon = 'fa-check-circle') {
+      toastMsg.textContent = msg;
+      toast.querySelector('i').className = 'fas ' + icon;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2500);
+    }
+
+    // Copy HTML
+    document.getElementById('copyHtmlBtn').addEventListener('click', () => {
+      const html = preview.innerHTML;
+      if (!html) { showToast('没有内容可复制', 'fa-exclamation-circle'); return; }
+      const full = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Markdown</title></head><body>' +
+        preview.innerHTML.replace(/<br>/g, '<br>') + '</body></html>';
+      navigator.clipboard.writeText(full).then(() => showToast('HTML 已复制到剪贴板')).catch(() => {
+        // Fallback
+        const ta = document.createElement('textarea');
+        ta.value = full; document.body.appendChild(ta);
+        ta.select(); document.execCommand('copy');
+        document.body.removeChild(ta);
+        showToast('HTML 已复制到剪贴板');
+      });
+    });
+
+    // Download HTML
+    document.getElementById('downloadHtmlBtn').addEventListener('click', () => {
+      const raw = mdInput.value.trim();
+      if (!raw) { showToast('请先输入 Markdown 内容', 'fa-exclamation-circle'); return; }
+      const html = marked.parse(raw);
+      const full = `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Markdown 转换</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      max-width: 800px; margin: 0 auto; padding: 20px;
+      line-height: 1.7; color: #333;
+    }
+    pre { background: #f5f5f5; padding: 16px; border-radius: 6px; overflow-x: auto; }
+    code { background: #f0f0f0; padding: 2px 5px; border-radius: 3px; font-size: 0.9em; }
+    pre code { background: none; padding: 0; }
+    img { max-width: 100%; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid #ddd; padding: 8px 12px; }
+    blockquote { border-left: 4px solid #b8a0ff; margin: 0; padding: 4px 16px; color: #666; }
+  </style>
+</head>
+<body>
+${html}
+</body>
+</html>`;
+      const blob = new Blob([full], { type: 'text/html;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'output.html';
+      document.body.appendChild(a); a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast('HTML 文件已下载');
+    });
+
+    // Clear
+    document.getElementById('clearBtn').addEventListener('click', () => {
+      mdInput.value = '';
+      render();
+      showToast('已清空');
+    });
+
+    // Sample markdowns
+    const samples = {
+      readme: `# 我的项目
+
+## 简介
+
+一个简单而强大的工具，帮助你快速完成任务。
+
+## 安装
+
+\`\`\`bash
+npm install my-project
+\`\`\`
+
+## 使用
+
+\`\`\`javascript
+import { hello } from 'my-project';
+
+// 打印欢迎信息
+hello('World');
+// => Hello, World!
+\`\`\`
+
+## 特性
+
+- 🚀 **高性能** - 极速响应
+- 🎨 **可定制** - 丰富的配置选项
+- 📦 **轻量级** - 无多余依赖
+
+## API
+
+| 方法 | 描述 | 版本 |
+|------|------|------|
+| \`hello()\` | 打印欢迎信息 | 1.0.0 |
+| \`config()\` | 配置参数 | 1.2.0 |
+
+> **提示**: 更多信息请查阅文档。
+`,
+
+      blog: `# 如何写出好的技术博客
+
+> 发表于 2024 年 1 月 15 日 · 预计阅读 5 分钟
+
+## 为什么要写技术博客？
+
+写技术博客不仅可以帮助**巩固知识**，还能让他人从你的经验中受益。
+
+## 结构的重要性
+
+一篇好的技术文章应该具备以下结构：
+
+1. **引言** — 解释问题的背景
+2. **正文** — 逐步展开解决方案
+3. **总结** — 回顾核心要点
+
+### 代码示例
+
+\`\`\`python
+def fibonacci(n):
+    """计算斐波那契数列的第 n 项"""
+    a, b = 0, 1
+    for _ in range(n):
+        a, b = b, a + b
+    return a
+
+print(fibonacci(10))  # 输出: 55
+\`\`\`
+
+## 写作技巧
+
+- **简洁**：用最少的文字表达清楚
+- **配图**：一张好图胜过千言万语
+- **示例**：附上可运行的代码片段
+
+> *"写作就是思考的过程。"* — 佚名
+
+---
+
+感谢阅读！如果你觉得有帮助，欢迎分享。
+`,
+
+      cheatsheet: `# Markdown 语法速查
+
+## 标题
+
+\`\`\`
+# H1
+## H2
+### H3
+#### H4
+\`\`\`
+
+## 文本样式
+
+- **粗体** — \`**粗体**\`
+- *斜体* — \`*斜体*\`
+- ~~删除线~~ — \`~~删除线~~\`
+- \`行内代码\` — 反引号包裹
+
+## 列表
+
+### 无序列表
+- 苹果
+- 香蕉
+  - 香蕉牛奶
+- 橘子
+
+### 有序列表
+1. 第一步
+2. 第二步
+3. 第三步
+
+## 代码块
+
+\`\`\`json
+{
+  "name": "项目",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "webpack"
+  }
+}
+\`\`\`
+
+## 引用
+
+> 这是一段引用文字
+>
+> — 作者
+
+## 表格
+
+| 名称 | 价格 | 库存 |
+|------|------|------|
+| 苹果 | ¥5   | 100  |
+| 香蕉 | ¥3   | 200  |
+
+## 任务列表
+
+- [x] 已完成任务
+- [ ] 未完成任务
+- [ ] 待办事项
+
+## 链接与图片
+
+[链接文字](https://example.com)
+
+![替代文字](https://via.placeholder.com/400x200)
+`
+    };
+
+    document.getElementById('sampleSelect').addEventListener('change', function() {
+      if (this.value && samples[this.value]) {
+        mdInput.value = samples[this.value];
+        render();
+        showToast('已加载示例文档');
+      }
+      this.value = '';
+    });
+
+    // Initial render with sample
+    mdInput.value = samples.cheatsheet;
+    render();
+  </script>
+</body>
+</html>

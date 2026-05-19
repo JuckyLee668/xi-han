@@ -388,8 +388,8 @@
     // ===== CONFIG =====
     const SIGNAL_URL = 'https://signal.xi-han.top';
     const STUN = ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'];
-    const CHUNK_SIZE = 262144;   // 256KB per chunk
-    const MAX_SENDS_BEFORE_YIELD = 8; // 每发 2MB 让出一次
+    const CHUNK_SIZE = 65536;    // 64KB per chunk
+    const MAX_SENDS_BEFORE_YIELD = 2; // 每发 128KB 让出一次
 
     // ===== DOM =====
     const $ = id => document.getElementById(id);
@@ -655,11 +655,17 @@
         let sendCount = 0;
         while (offset < fsize) {
           const end = Math.min(offset + CHUNK_SIZE, fsize);
-          dc.send(fileBuf.slice(offset, end));
+          try {
+            dc.send(fileBuf.slice(offset, end));
+          } catch(e) {
+            // Send failed — buffer full, let the browser catch up
+            await new Promise(r => setTimeout(r, 50));
+            continue;
+          }
           offset = end;
           sendCount++;
 
-          // Yield to event loop every 8 sends so browser can flush SCTP buffer
+          // Yield to event loop so browser can flush SCTP buffer
           if (sendCount % MAX_SENDS_BEFORE_YIELD === 0) {
             await new Promise(r => setTimeout(r, 0));
           }

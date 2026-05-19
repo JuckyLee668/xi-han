@@ -390,6 +390,7 @@
     const STUN = ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'];
     const CHUNK_SIZE = 1048576;   // 1MB per chunk
     const MAX_BUFFER = 16777216;  // 16MB buffer threshold
+    const NUM_CHANNELS = 4;       // 多路并行 DataChannel 数量
 
     // ===== DOM =====
     const $ = id => document.getElementById(id);
@@ -488,12 +489,12 @@
     }
 
     // ===== SENDER STATE =====
-    let pc = null;           // PeerConnection (shared, stays alive)
-    let dc = null;           // DataChannel
+    let pc = null;
+    let dcs = [];            // DataChannel array (4 channels)
+    let channelsOpen = 0;
     let isConnected = false;
     let roomCode = '';
     let sendingNow = false;
-    let fileQueue = [];       // For sequential sending within a batch
 
     function setSendConn(state, text, badge = '') {
       const bar = $('sendConnBar');
@@ -523,24 +524,33 @@
 
         setSendConn('waiting', '等待接收方加入...', '房间 ' + roomCode);
 
-        // Setup WebRTC
         pc = new RTCPeerConnection({ iceServers: [{ urls: STUN }] });
-        dc = pc.createDataChannel('fileTransfer', { ordered: true });
-        dc.bufferedAmountLowThreshold = MAX_BUFFER / 2;
+        dcs = [];
+        channelsOpen = 0;
 
-        dc.onopen = () => {
-          isConnected = true;
-          setSendConn('connected', '已连接 — 可随时添加文件发送', '房间 ' + roomCode);
-          $('createRoomBtn').style.display = 'none';
-          $('disconnectBtn').style.display = 'inline-flex';
-          $('sendFilesBtn').style.display = 'inline-flex';
-          showToast('接收方已加入！');
-          flushSendQueue();
-        };
+        // Create 4 parallel DataChannels
+        for (let i = 0; i < NUM_CHANNELS; i++) {
+          const dc = pc.createDataChannel('ft-' + i, { ordered: true });
+          dc.bufferedAmountLowThreshold = MAX_BUFFER / 2;
+          dcs.push(dc);
 
-        dc.onclose = () => {
-          if (isConnected) { showToast('连接已断开', true); resetSendState(); }
-        };
+          dc.onopen = () => {
+            channelsOpen++;
+            if (channelsOpen === NUM_CHANNELS) {
+              isConnected = true;
+              setSendConn('connected', '已连接 — 可随时添加文件发送', '房间 ' + roomCode);
+              $('createRoomBtn').style.display = 'none';
+              $('disconnectBtn').style.display = 'inline-flex';
+              $('sendFilesBtn').style.display = 'inline-flex';
+              showToast('接收方已加入！');
+              flushSendQueue();
+            }
+          };
+
+          dc.onclose = () => {
+            if (isConnected) { showToast('连接已断开', true); resetSendState(); }
+          };
+        }
 
         pc.oniceconnectionstatechange = () => {
           if (pc.iceConnectionState === 'disconnected' || pc.iceConnectionState === 'failed') {
@@ -600,11 +610,9 @@
         return false;
       };
 
-      // First immediate poll (uses worker long poll — up to 15s)
       const found = await doPoll();
       if (found) return;
 
-      // Start self-clocking recursive polls
       const scheduleNext = () => {
         if (answerReceived || !pc || pc.signalingState === 'closed') return;
         pollTimer = setTimeout(async () => {
@@ -615,7 +623,6 @@
 
       scheduleNext();
 
-      // Safety timeout: stop polling after 30s total
       setTimeout(() => {
         if (!answerReceived) {
           clearTimeout(pollTimer);
@@ -626,23 +633,31 @@
             resetSendState();
           }
         }
-      }, 600000);
+      }, 30000);
     }
 
-    // ===== SENDER: Send queued files =====
+    // ===== SENDER: Multi-channel file transfer =====
 
-    function waitSendBuffer() {
+    function waitBuf(dc) {
       return new Promise(resolve => {
-        if (dc.bufferedAmount < MAX_BUFFER) {
-          resolve();
-        } else {
-          dc.addEventListener('bufferedamountlow', () => resolve(), { once: true });
-        }
+        if (dc.bufferedAmount < MAX_BUFFER) resolve();
+        else dc.addEventListener('bufferedamountlow', () => resolve(), { once: true });
       });
     }
 
+    async function sendSegment(dc, data) {
+      let off = 0;
+      const len = data.byteLength;
+      while (off < len) {
+        await waitBuf(dc);
+        const end = Math.min(off + CHUNK_SIZE, len);
+        dc.send(data.slice(off, end));
+        off = end;
+      }
+    }
+
     async function flushSendQueue() {
-      if (sendingNow || !dc || dc.readyState !== 'open' || pendingFiles.length === 0) return;
+      if (sendingNow || !isConnected || pendingFiles.length === 0) return;
 
       sendingNow = true;
       $('sendFilesBtn').disabled = true;
@@ -656,38 +671,39 @@
       pendingFiles = [];
       renderSendFiles();
 
-      dc.send(JSON.stringify({ type: 'meta', count: batch.length }));
+      for (let fi = 0; fi < batch.length; fi++) {
+        const file = batch[fi];
+        const fileBuf = await file.arrayBuffer();
+        const fsize = fileBuf.byteLength;
+        const segSize = Math.ceil(fsize / NUM_CHANNELS);
 
-      for (let i = 0; i < batch.length; i++) {
-        const file = batch[i];
-        dc.send(JSON.stringify({
-          type: 'file-start', name: file.name, size: file.size,
-          mime: file.type || 'application/octet-stream', index: i, total: batch.length
+        // Broadcast file metadata on channel 0
+        dcs[0].send(JSON.stringify({
+          type: 'file-start', name: file.name, size: fsize,
+          mime: file.type || 'application/octet-stream',
+          index: fi, total: batch.length, segments: NUM_CHANNELS, segSize
         }));
 
-        // Read entire file as ArrayBuffer upfront — avoids per-chunk Blob overhead
-        const fileBuf = await file.arrayBuffer();
-        let offset = 0;
-        const fileSize = fileBuf.byteLength;
-
-        while (offset < fileSize) {
-          await waitSendBuffer();
-
-          const end = Math.min(offset + CHUNK_SIZE, fileSize);
-          const chunk = fileBuf.slice(offset, end);
-          dc.send(chunk);
-          offset = end;
-
-          const pct = Math.round((offset / fileSize) * 100);
-          pf.style.width = pct + '%';
-          pl.textContent = '发送: ' + file.name + ' (' + (i + 1) + '/' + batch.length + ')';
-          pp.textContent = pct + '%';
+        // Send each segment on its channel in parallel
+        const tasks = [];
+        for (let ci = 0; ci < NUM_CHANNELS; ci++) {
+          const start = ci * segSize;
+          const end = Math.min(start + segSize, fsize);
+          if (start >= fsize) break;
+          const segData = fileBuf.slice(start, end);
+          tasks.push(sendSegment(dcs[ci], segData));
         }
+        await Promise.all(tasks);
+
+        const pct = Math.round(((fi + 1) / batch.length) * 100);
+        pf.style.width = pct + '%';
+        pl.textContent = file.name + ' (' + (fi + 1) + '/' + batch.length + ')';
+        pp.textContent = pct + '%';
       }
 
-      dc.send(JSON.stringify({ type: 'done' }));
+      dcs[0].send(JSON.stringify({ type: 'done' }));
       pf.style.width = '100%';
-      pl.textContent = '✅ 发送完成';
+      pl.textContent = '✅ 全部发送完成';
       pp.textContent = '100%';
       showToast('文件发送完成');
 
@@ -702,7 +718,7 @@
     // ===== SENDER: Manual send trigger =====
     $('sendFilesBtn').addEventListener('click', () => {
       if (pendingFiles.length === 0) { showToast('请先选择文件', true); return; }
-      if (!dc || dc.readyState !== 'open') { showToast('连接未就绪', true); return; }
+      if (!isConnected) { showToast('连接未就绪', true); return; }
       flushSendQueue();
     });
 
@@ -715,7 +731,8 @@
 
     function resetSendState() {
       if (pc) { try { pc.close(); } catch(e) {} pc = null; }
-      dc = null;
+      dcs = [];
+      channelsOpen = 0;
       isConnected = false;
       sendingNow = false;
       answerReceived = false;
@@ -746,12 +763,11 @@
 
     // ==================== RECEIVER ====================
     let recvPc = null;
-    let recvDc = null;
+    let recvDcs = [];       // Array of data channels indexed by label
     let recvConnected = false;
-    let recvCurrentFile = null;
-    let recvFileBuf = [];
-    let recvFileCount = 0;
     let recvFilesDone = 0;
+    let recvSegBufs = [];   // Per-channel byte buffers for current file
+    let recvSegCount = 0;   // How many segments expected for current file
 
     $('roomInput').addEventListener('input', () => {
       const v = $('roomInput').value.replace(/\D/g, '').slice(0, 6);
@@ -779,10 +795,16 @@
         }
 
         recvPc = new RTCPeerConnection({ iceServers: [{ urls: STUN }] });
+        recvDcs = [];
 
         recvPc.ondatachannel = (event) => {
-          recvDc = event.channel;
-          setupRecvChannel(recvDc);
+          const dc = event.channel;
+          const label = dc.label || '';
+          const ci = parseInt(label.split('-')[1]);
+          if (!isNaN(ci) && ci >= 0 && ci < NUM_CHANNELS) {
+            recvDcs[ci] = dc;
+            setupRecvChannel(dc, ci);
+          }
         };
 
         recvPc.oniceconnectionstatechange = () => {
@@ -794,10 +816,7 @@
             $('recvDisconnectBtn').style.display = 'inline-flex';
           }
           if (recvPc.iceConnectionState === 'disconnected' || recvPc.iceConnectionState === 'failed') {
-            if (recvConnected) {
-              showToast('连接已断开', true);
-              resetRecvState();
-            }
+            if (recvConnected) { showToast('连接已断开', true); resetRecvState(); }
           }
         };
 
@@ -832,7 +851,7 @@
       }
     }
 
-    function setupRecvChannel(ch) {
+    function setupRecvChannel(ch, ci) {
       const pr = $('recvProgress');
       const pf = $('recvProgressFill');
       const pl = $('recvProgressLabel');
@@ -841,71 +860,136 @@
 
       ch.binaryType = 'arraybuffer';
 
+      // Per-channel state
+      let chBufs = [];        // This channel's chunks for current segment
+      let chReceived = 0;     // Bytes received on this channel
+      let chSegSize = 0;      // Expected segment size
+
       ch.onmessage = (event) => {
         if (typeof event.data === 'string') {
+          if (ci !== 0) return;  // Only channel 0 processes JSON
+
           try {
             const msg = JSON.parse(event.data);
-            if (msg.type === 'meta') {
-              recvFileCount = msg.count;
-            } else if (msg.type === 'file-start') {
-              recvCurrentFile = msg;
-              recvFileBuf = [];
+            if (msg.type === 'file-start') {
+              // Prepare for new file
+              recvSegCount = msg.segments || 1;
+              recvSegBufs = [];
+              for (let s = 0; s < recvSegCount; s++) recvSegBufs[s] = [];
               pr.classList.add('show');
               pl.textContent = '接收: ' + msg.name;
               pp.textContent = '0%';
               pf.style.width = '0%';
+
+              // Reset per-channel state
+              for (let d = 0; d < recvDcs.length; d++) {
+                if (recvDcs[d]) {
+                  // Find the channel's internal state
+                }
+              }
+              // Store file info globally
+              setupRecvChannel._currentFile = msg;
+              setupRecvChannel._fileSize = msg.size;
+
+              // Set segment sizes per channel
+              const segSize = msg.segSize || Math.ceil(msg.size / NUM_CHANNELS);
+              for (let d = 0; d < recvDcs.length; d++) {
+                if (recvDcs[d]) {
+                  const start = d * segSize;
+                  const end = Math.min(start + segSize, msg.size);
+                  recvDcs[d]._segSize = end - start;
+                  recvDcs[d]._bufs = [];
+                  recvDcs[d]._received = 0;
+                }
+              }
+
             } else if (msg.type === 'done') {
               pf.style.width = '100%';
               pl.textContent = '✅ 接收完成';
               pp.textContent = '100%';
               showToast('文件接收完成！');
-              // Keep connection alive, hide progress after a bit
               setTimeout(() => {
-                if (!recvCurrentFile) {
-                  pr.classList.remove('show');
-                }
+                if (!setupRecvChannel._currentFile) pr.classList.remove('show');
               }, 3000);
             }
           } catch(e) {}
         } else {
-          if (recvCurrentFile) {
-            const bytes = new Uint8Array(event.data);
-            recvFileBuf.push(bytes);
-            const received = recvFileBuf.reduce((a, b) => a + b.length, 0);
-            const pct = Math.round((received / recvCurrentFile.size) * 100);
-            pf.style.width = pct + '%';
-            pp.textContent = pct + '%';
+          // Binary data
+          const bytes = new Uint8Array(event.data);
+          const buf = ch._bufs || [];
+          buf.push(bytes);
+          ch._bufs = buf;
+          ch._received = (ch._received || 0) + bytes.length;
 
-            if (received >= recvCurrentFile.size) {
-              const allBytes = new Uint8Array(received);
+          // Check if this segment is complete
+          const segSize = ch._segSize || 0;
+          if (segSize > 0 && ch._received >= segSize) {
+            // All channels done?
+            let allDone = true;
+            let totalBytes = 0;
+            for (let d = 0; d < recvDcs.length; d++) {
+              const dc = recvDcs[d];
+              if (!dc) { allDone = false; break; }
+              const r = dc._received || 0;
+              const s = dc._segSize || 0;
+              if (s > 0 && r < s) { allDone = false; }
+              totalBytes += r;
+            }
+
+            if (allDone && setupRecvChannel._currentFile) {
+              const file = setupRecvChannel._currentFile;
+              const fsize = setupRecvChannel._fileSize || totalBytes;
+
+              // Concatenate all segments
+              const allParts = [];
+              for (let d = 0; d < recvDcs.length; d++) {
+                const dc = recvDcs[d];
+                if (dc && dc._bufs) {
+                  for (const b of dc._bufs) allParts.push(b);
+                }
+              }
+
+              const allBytes = new Uint8Array(fsize);
               let pos = 0;
-              for (const b of recvFileBuf) { allBytes.set(b, pos); pos += b.length; }
-              const blob = new Blob([allBytes], { type: recvCurrentFile.mime });
+              for (const b of allParts) {
+                allBytes.set(b, pos);
+                pos += b.length;
+              }
+
+              const blob = new Blob([allBytes], { type: file.mime });
               const url = URL.createObjectURL(blob);
               recvFilesDone++;
 
-              const icon = recvCurrentFile.mime.startsWith('image/') ? 'fa-file-image' : recvCurrentFile.mime.startsWith('video/') ? 'fa-file-video' : 'fa-file';
-
-              if (recvFilesDone === 1) {
-                rf.innerHTML = '<div class="recv-header">📥 已接收文件:</div>';
-              }
+              const icon = file.mime.startsWith('image/') ? 'fa-file-image' : file.mime.startsWith('video/') ? 'fa-file-video' : 'fa-file';
+              if (recvFilesDone === 1) rf.innerHTML = '<div class="recv-header">📥 已接收文件:</div>';
               rf.innerHTML += '<div class="received-item">' +
                 '<i class="fas ' + icon + ' r-icon"></i>' +
-                '<div class="r-info"><div class="r-name">' + esc(recvCurrentFile.name) + '</div><div class="r-size">' + fmtSize(blob.size) + '</div></div>' +
-                '<a href="' + url + '" download="' + esc(recvCurrentFile.name) + '" class="r-dl"><i class="fas fa-download"></i> 保存</a></div>';
+                '<div class="r-info"><div class="r-name">' + esc(file.name) + '</div><div class="r-size">' + fmtSize(blob.size) + '</div></div>' +
+                '<a href="' + url + '" download="' + esc(file.name) + '" class="r-dl"><i class="fas fa-download"></i> 保存</a></div>';
 
-              recvCurrentFile = null;
-              recvFileBuf = [];
+              setupRecvChannel._currentFile = null;
+
+              const pct = Math.round((recvFilesDone / (recvFilesDone + 1)) * 100);
+              pf.style.width = Math.min(pct, 100) + '%';
+            }
+
+            // Update progress
+            if (setupRecvChannel._currentFile) {
+              const fsize = setupRecvChannel._fileSize || 1;
+              let totalRcvd = 0;
+              for (let d = 0; d < recvDcs.length; d++) {
+                totalRcvd += recvDcs[d]?._received || 0;
+              }
+              const pct = Math.round((totalRcvd / fsize) * 100);
+              pf.style.width = Math.min(pct, 100) + '%';
+              pp.textContent = Math.min(pct, 100) + '%';
             }
           }
         }
       };
 
       ch.onclose = () => {
-        if (recvConnected) {
-          showToast('连接已断开', true);
-          resetRecvState();
-        }
+        if (recvConnected) { showToast('连接已断开', true); resetRecvState(); }
       };
     }
 
@@ -923,12 +1007,11 @@
 
     function resetRecvState() {
       if (recvPc) { try { recvPc.close(); } catch(e) {} recvPc = null; }
-      recvDc = null;
+      recvDcs = [];
       recvConnected = false;
-      recvCurrentFile = null;
-      recvFileBuf = [];
-      recvFileCount = 0;
       recvFilesDone = 0;
+      recvSegBufs = [];
+      recvSegCount = 0;
 
       $('joinBtn').disabled = false;
       $('joinBtn').innerHTML = '<i class="fas fa-plug"></i> 加入房间';

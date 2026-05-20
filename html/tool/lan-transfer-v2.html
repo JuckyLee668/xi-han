@@ -247,8 +247,8 @@ h1{font-size:clamp(1.6rem,4vw,2.2rem);font-weight:800;letter-spacing:-.04em;
 'use strict';
 
 const SIGNAL_URL = 'https://xfer.xi-han.top';
-const CHUNK_SIZE = 256 * 1024;
-const MAX_BUFFER = 32 * 1024 * 1024;         // 32MB — flow control kicks in above this
+const CHUNK_SIZE = 64 * 1024;                  // Fits Chrome SCTP max message size
+const MAX_BUFFER = 32 * 1024 * 1024;           // Unused — event-driven pump instead
 // LAN-only: no STUN needed. Host candidates (192.168.x.x) are sufficient.
 // Adding Google STUN in China blocks ICE gathering for 10-30s.
 const ICE_SERVERS = [];
@@ -751,32 +751,28 @@ async function startFileTransfer() {
     var lastUIUpdate = 0;
     var chunkCount = 0;
 
+    // Event-driven pump: keeps SCTP buffer full, resumes on bufferedamountlow
+    dc.bufferedAmountLowThreshold = CHUNK_SIZE;
+    var BURST = CHUNK_SIZE * 2;  // Send up to 2 chunks before waiting
+
     while (offset < file.size) {
-      // Burst-send up to 2MB before checking flow control
-      var burstSent = 0;
-      while (offset < file.size && burstSent < 2 * 1024 * 1024) {
+      // Fill buffer while there's room
+      while (offset < file.size && dc.bufferedAmount < BURST) {
         var end = Math.min(offset + CHUNK_SIZE, file.size);
         var chunk = await new Promise(function(resolve) {
           var fr = new FileReader();
           fr.onload = function() { resolve(new Uint8Array(fr.result)); };
-          fr.onerror = function(e) { console.error('FileReader error:', e); resolve(null); };
           fr.readAsArrayBuffer(file.slice(offset, end));
         });
-        
-        if (!chunk) { setStatus('文件读取失败', 'error'); return; }
 
         dc.send(chunk);
         offset = end;
-        burstSent += chunk.byteLength;
         fileSentLocal += chunk.byteLength;
         totalSent += chunk.byteLength;
         chunkCount++;
 
-        if (chunkCount % 64 === 0) {
-          console.log('#' + chunkCount, fmtSize(totalSent), 'buf=' + fmtSize(dc.bufferedAmount));
-        }
+        if (chunkCount % 128 === 0) console.log('#' + chunkCount, fmtSize(totalSent));
 
-        // UI update
         var now = Date.now();
         if (now - lastUIUpdate >= 200) {
           var pct = Math.min(100, (fileSentLocal / file.size) * 100);
@@ -803,10 +799,17 @@ async function startFileTransfer() {
         }
       }
 
-      // After burst, wait for buffer to drain before next burst
-      while (dc.bufferedAmount > 2 * 1024 * 1024) {
-        await new Promise(function(r) { setTimeout(r, 20); });
-      }
+      if (offset >= file.size) break;
+
+      // Wait for SCTP buffer to drain
+      await new Promise(function(resolve) {
+        var h = function() {
+          dc.removeEventListener('bufferedamountlow', h);
+          resolve();
+        };
+        dc.addEventListener('bufferedamountlow', h);
+        if (dc.bufferedAmount < BURST) { dc.removeEventListener('bufferedamountlow', h); resolve(); }
+      });
     }
 
     // Signal end of file

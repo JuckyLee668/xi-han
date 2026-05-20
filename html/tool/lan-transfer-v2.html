@@ -749,25 +749,31 @@ async function startFileTransfer() {
     var fileSentLocal = 0;
     var startTime = Date.now();
     var lastUIUpdate = 0;
+    var chunkCount = 0;
 
     while (offset < file.size) {
       // Read one chunk
       var end = Math.min(offset + CHUNK_SIZE, file.size);
       var chunk = await new Promise(function(resolve) {
-        var reader = new FileReader();
-        reader.onload = function() { resolve(new Uint8Array(reader.result)); };
-        reader.readAsArrayBuffer(file.slice(offset, end));
+        var fr = new FileReader();
+        fr.onload = function() { resolve(new Uint8Array(fr.result)); };
+        fr.onerror = function(e) { console.error('FileReader error:', e); resolve(null); };
+        fr.readAsArrayBuffer(file.slice(offset, end));
       });
+      
+      if (!chunk) { setStatus('文件读取失败', 'error'); break; }
 
-      // Flow control: spin-wait while buffer is full
-      while (dc.bufferedAmount > MAX_BUFFER) {
-        await new Promise(function(r) { setTimeout(r, 10); });
-      }
-
+      // DEBUG: no flow control — isolate the issue
       dc.send(chunk);
       offset = end;
       fileSentLocal += chunk.byteLength;
       totalSent += chunk.byteLength;
+      chunkCount++;
+
+      // Log every 64th chunk (~16MB) and first 5 chunks
+      if (chunkCount < 5 || chunkCount % 64 === 0) {
+        console.log('#' + chunkCount, 'chunk=' + fmtSize(chunk.byteLength), 'total=' + fmtSize(totalSent), 'buf=' + fmtSize(dc.bufferedAmount), 'time=' + ((Date.now()-startTime)/1000).toFixed(1) + 's');
+      }
 
       // UI update every 200ms
       var now = Date.now();

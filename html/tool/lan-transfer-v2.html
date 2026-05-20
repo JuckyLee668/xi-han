@@ -248,7 +248,7 @@ h1{font-size:clamp(1.6rem,4vw,2.2rem);font-weight:800;letter-spacing:-.04em;
 
 const SIGNAL_URL = 'https://xfer.xi-han.top';
 const CHUNK_SIZE = 256 * 1024;
-const MAX_BUFFER = 64 * 1024 * 1024;         // 64MB buffer for LAN speeds
+const MAX_BUFFER = 32 * 1024 * 1024;         // 32MB — flow control kicks in above this
 // LAN-only: no STUN needed. Host candidates (192.168.x.x) are sufficient.
 // Adding Google STUN in China blocks ICE gathering for 10-30s.
 const ICE_SERVERS = [];
@@ -737,7 +737,7 @@ async function startFileTransfer() {
     progressBar.style.width = '0%';
     statSent.textContent = '0 / ' + fmtSize(file.size);
 
-    // Send file metadata
+    // Classic File.slice() + FileReader approach — reliable and battle-tested
     dc.send(JSON.stringify({
       type: 'file-start',
       name: file.name,
@@ -745,64 +745,56 @@ async function startFileTransfer() {
       mime: file.type || 'application/octet-stream',
     }));
 
-    // Read file as stream
-    const reader = file.stream().getReader();
-    let fileSent = 0;
-    const startTime = Date.now();
+    var offset = 0;
+    var fileSentLocal = 0;
+    var startTime = Date.now();
+    var lastUIUpdate = 0;
 
-    try {
-      // Throttle DOM updates to every 500ms
-      let lastUIUpdate = 0;
+    while (offset < file.size) {
+      // Read one chunk
+      var end = Math.min(offset + CHUNK_SIZE, file.size);
+      var chunk = await new Promise(function(resolve) {
+        var reader = new FileReader();
+        reader.onload = function() { resolve(new Uint8Array(reader.result)); };
+        reader.readAsArrayBuffer(file.slice(offset, end));
+      });
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        for (let offset = 0; offset < value.byteLength; offset += CHUNK_SIZE) {
-          const end = Math.min(offset + CHUNK_SIZE, value.byteLength);
-          // Only slice if needed (most chunks already fit)
-          const chunk = (offset === 0 && end === value.byteLength) ? value : value.slice(offset, end);
-
-          // Fast spin-wait flow control (no event-based race conditions)
-          while (dc.bufferedAmount >= MAX_BUFFER) {
-            await new Promise(function(r) { setTimeout(r, 20); });
-          }
-
-          dc.send(chunk);
-          fileSent += chunk.byteLength;
-          totalSent += chunk.byteLength;
-
-          // Throttled UI updates
-          const now = Date.now();
-          if (now - lastUIUpdate >= 500) {
-            const pct = Math.min(100, (fileSent / file.size) * 100);
-            progressPercent.textContent = pct.toFixed(1) + '%';
-            progressBar.style.width = pct + '%';
-            statSent.textContent = fmtSize(fileSent) + ' / ' + fmtSize(file.size);
-
-            // Speed calc
-            const elapsed = now - lastSampleTime;
-            if (elapsed >= 500) {
-              const sampleBytes = totalSent - lastSampleBytes;
-              const speed = sampleBytes / (elapsed / 1000);
-              speedSamples.push(speed);
-              if (speedSamples.length > 4) speedSamples.shift();
-              const avgSpeed = speedSamples.reduce(function(a,b){return a+b;},0) / speedSamples.length;
-              statSpeed.textContent = (avgSpeed / 1048576).toFixed(1) + ' MB/s';
-              speedHistory.push(avgSpeed / 1048576);
-              if (speedHistory.length > 60) speedHistory.shift();
-              drawSpeedGraph();
-              var remaining = totalSize - totalSent;
-              if (avgSpeed > 0) statETA.textContent = fmtTime(remaining / avgSpeed);
-              lastSampleBytes = totalSent;
-              lastSampleTime = now;
-            }
-            lastUIUpdate = now;
-          }
-        }
+      // Flow control: spin-wait while buffer is full
+      while (dc.bufferedAmount > MAX_BUFFER) {
+        await new Promise(function(r) { setTimeout(r, 10); });
       }
-    } finally {
-      reader.releaseLock();
+
+      dc.send(chunk);
+      offset = end;
+      fileSentLocal += chunk.byteLength;
+      totalSent += chunk.byteLength;
+
+      // UI update every 200ms
+      var now = Date.now();
+      if (now - lastUIUpdate >= 200) {
+        var pct = Math.min(100, (fileSentLocal / file.size) * 100);
+        progressPercent.textContent = pct.toFixed(1) + '%';
+        progressBar.style.width = pct + '%';
+        statSent.textContent = fmtSize(fileSentLocal) + ' / ' + fmtSize(file.size);
+
+        var elapsed = now - lastSampleTime;
+        if (elapsed >= 200 && totalSent > lastSampleBytes) {
+          var sampleBytes = totalSent - lastSampleBytes;
+          var speed = sampleBytes / (elapsed / 1000);
+          speedSamples.push(speed);
+          if (speedSamples.length > 4) speedSamples.shift();
+          var avgSpeed = speedSamples.reduce(function(a,b){return a+b;},0) / speedSamples.length;
+          statSpeed.textContent = (avgSpeed / 1048576).toFixed(1) + ' MB/s';
+          speedHistory.push(avgSpeed / 1048576);
+          if (speedHistory.length > 60) speedHistory.shift();
+          drawSpeedGraph();
+          var remaining = totalSize - totalSent;
+          if (avgSpeed > 0) statETA.textContent = fmtTime(remaining / avgSpeed);
+          lastSampleBytes = totalSent;
+          lastSampleTime = now;
+        }
+        lastUIUpdate = now;
+      }
     }
 
     // Signal end of file

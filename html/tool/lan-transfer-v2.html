@@ -249,13 +249,9 @@ h1{font-size:clamp(1.6rem,4vw,2.2rem);font-weight:800;letter-spacing:-.04em;
 const SIGNAL_URL = 'https://xfer.xi-han.top';
 const CHUNK_SIZE = 256 * 1024;
 const MAX_BUFFER = 16 * 1024 * 1024;
-const ICE_SERVERS = [
-  { urls: 'stun:stun.l.google.com:19302' },
-  { urls: 'stun:stun1.l.google.com:19302' },
-  { urls: 'stun:stun2.l.google.com:19302' },
-  { urls: 'stun:stun3.l.google.com:19302' },
-  { urls: 'stun:stun4.l.google.com:19302' },
-];
+// LAN-only: no STUN needed. Host candidates (192.168.x.x) are sufficient.
+// Adding Google STUN in China blocks ICE gathering for 10-30s.
+const ICE_SERVERS = [];
 
 // ===== DOM REFS =====
 const $ = id => document.getElementById(id);
@@ -477,11 +473,11 @@ function waitForIceComplete(pc) {
       }
     };
     pc.addEventListener('icegatheringstatechange', handler);
-    // Safety timeout: resolve after 10s even if gathering hangs
+    // Host candidates are instant — timeout after 3s
     setTimeout(function() {
       pc.removeEventListener('icegatheringstatechange', handler);
       resolve();
-    }, 10000);
+    }, 3000);
   });
 }
 
@@ -501,6 +497,15 @@ async function startReceive(room) {
 
   pc.onicegatheringstatechange = () => {
     console.log('ICE gathering:', pc.iceGatheringState);
+  };
+
+  // Log ICE candidates for debugging
+  pc.onicecandidate = function(e) {
+    if (e.candidate) {
+      console.log('ICE candidate:', e.candidate.candidate);
+    } else {
+      console.log('ICE candidates done (null candidate)');
+    }
   };
 
   pc.ondatachannel = (e) => {

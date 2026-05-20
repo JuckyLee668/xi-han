@@ -738,57 +738,52 @@ async function startFileTransfer() {
     const startTime = Date.now();
 
     try {
+      // Throttle DOM updates to every 500ms
+      let lastUIUpdate = 0;
+
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
 
-        // value is a Uint8Array from the stream reader
-        // Split into CHUNK_SIZE pieces if needed
         for (let offset = 0; offset < value.byteLength; offset += CHUNK_SIZE) {
           const end = Math.min(offset + CHUNK_SIZE, value.byteLength);
           const chunk = value.slice(offset, end);
 
-          // Flow control: wait if buffer is full
+          // Fast spin-wait flow control (no event-based race conditions)
           while (dc.bufferedAmount >= MAX_BUFFER) {
-            await new Promise(function(r) {
-              dc.addEventListener('bufferedamountlow', r, { once: true });
-              // Guard: re-check after adding listener (prevents race condition)
-              if (dc.bufferedAmount < MAX_BUFFER) {
-                dc.removeEventListener('bufferedamountlow', r);
-                r();
-              }
-            });
+            await new Promise(function(r) { setTimeout(r, 20); });
           }
 
           dc.send(chunk);
           fileSent += chunk.byteLength;
           totalSent += chunk.byteLength;
 
-          // Update progress
-          const pct = Math.min(100, (fileSent / file.size) * 100);
-          progressPercent.textContent = pct.toFixed(1) + '%';
-          progressBar.style.width = pct + '%';
-          statSent.textContent = fmtSize(fileSent) + ' / ' + fmtSize(file.size);
-
-          // Speed calculation (every 1s)
+          // Throttled UI updates
           const now = Date.now();
-          const elapsed = now - lastSampleTime;
-          if (elapsed >= 1000) {
-            const sampleBytes = totalSent - lastSampleBytes;
-            const speed = sampleBytes / (elapsed / 1000);
-            speedSamples.push(speed);
-            if (speedSamples.length > 3) speedSamples.shift();
-            const avgSpeed = speedSamples.reduce((a,b)=>a+b,0) / speedSamples.length;
-            statSpeed.textContent = (avgSpeed / 1048576).toFixed(1) + ' MB/s';
-            speedHistory.push(avgSpeed / 1048576);
-            if (speedHistory.length > 60) speedHistory.shift();
-            drawSpeedGraph();
+          if (now - lastUIUpdate >= 500) {
+            const pct = Math.min(100, (fileSent / file.size) * 100);
+            progressPercent.textContent = pct.toFixed(1) + '%';
+            progressBar.style.width = pct + '%';
+            statSent.textContent = fmtSize(fileSent) + ' / ' + fmtSize(file.size);
 
-            const totalRemaining = totalSize - totalSent;
-            if (avgSpeed > 0) statETA.textContent = fmtTime(totalRemaining / avgSpeed);
-
-            lastSampleBytes = totalSent;
-            lastSampleTime = now;
+            // Speed calc
+            const elapsed = now - lastSampleTime;
+            if (elapsed >= 500) {
+              const sampleBytes = totalSent - lastSampleBytes;
+              const speed = sampleBytes / (elapsed / 1000);
+              speedSamples.push(speed);
+              if (speedSamples.length > 4) speedSamples.shift();
+              const avgSpeed = speedSamples.reduce(function(a,b){return a+b;},0) / speedSamples.length;
+              statSpeed.textContent = (avgSpeed / 1048576).toFixed(1) + ' MB/s';
+              speedHistory.push(avgSpeed / 1048576);
+              if (speedHistory.length > 60) speedHistory.shift();
+              drawSpeedGraph();
+              var remaining = totalSize - totalSent;
+              if (avgSpeed > 0) statETA.textContent = fmtTime(remaining / avgSpeed);
+              lastSampleBytes = totalSent;
+              lastSampleTime = now;
+            }
+            lastUIUpdate = now;
           }
         }
       }

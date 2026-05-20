@@ -763,16 +763,33 @@ async function startFileTransfer() {
       
       if (!chunk) { setStatus('文件读取失败', 'error'); break; }
 
-      // DEBUG: no flow control — isolate the issue
+      // Flow control: wait for buffer to drain before sending more
+      if (dc.bufferedAmount >= 16 * 1024 * 1024) {
+        dc.bufferedAmountLowThreshold = 4 * 1024 * 1024;
+        await new Promise(function(resolve) {
+          var handler = function() {
+            if (dc.bufferedAmount < 8 * 1024 * 1024) {
+              dc.removeEventListener('bufferedamountlow', handler);
+              resolve();
+            }
+          };
+          dc.addEventListener('bufferedamountlow', handler);
+          if (dc.bufferedAmount < 8 * 1024 * 1024) {
+            dc.removeEventListener('bufferedamountlow', handler);
+            resolve();
+          }
+        });
+      }
+
       dc.send(chunk);
       offset = end;
       fileSentLocal += chunk.byteLength;
       totalSent += chunk.byteLength;
       chunkCount++;
 
-      // Log every 64th chunk (~16MB) and first 5 chunks
-      if (chunkCount < 5 || chunkCount % 64 === 0) {
-        console.log('#' + chunkCount, 'chunk=' + fmtSize(chunk.byteLength), 'total=' + fmtSize(totalSent), 'buf=' + fmtSize(dc.bufferedAmount), 'time=' + ((Date.now()-startTime)/1000).toFixed(1) + 's');
+      // Log every 64th chunk (~16MB)
+      if (chunkCount % 64 === 0) {
+        console.log('#' + chunkCount, fmtSize(totalSent), 'buf=' + fmtSize(dc.bufferedAmount));
       }
 
       // UI update every 200ms

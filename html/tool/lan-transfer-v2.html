@@ -463,6 +463,21 @@ function drawSpeedGraph() {
   ctx.fillStyle = fillGrad; ctx.fill();
 }
 
+// Helper: wait for ICE gathering to complete
+function waitForIceComplete(pc) {
+  return new Promise(resolve => {
+    if (pc.iceGatheringState === 'complete') { resolve(); return; }
+    pc.addEventListener('icegatheringstatechange', function onIce() {
+      if (pc.iceGatheringState === 'complete') {
+        pc.removeEventListener('icegatheringstatechange', onIce);
+        resolve();
+      }
+    });
+    // Safety timeout: resolve after 10s even if gathering hangs
+    setTimeout(resolve, 10000);
+  });
+}
+
 // ===== WEBRTC (Receiver) =====
 async function startReceive(room) {
   roomCodeVal = room;
@@ -488,11 +503,16 @@ async function startReceive(room) {
   const offer = await getOffer(room);
   if (!offer) { setStatus('未找到发送端，请确认房间号正确', 'error'); return; }
 
+  setStatus('正在建立 P2P 连接...', '');
   await pc.setRemoteDescription(new RTCSessionDescription(offer));
   const answer = await pc.createAnswer();
   await pc.setLocalDescription(answer);
 
-  // Send answer back
+  // CRITICAL: Wait for ICE candidates to be gathered before sending answer
+  setStatus('收集网络信息...', '');
+  await waitForIceComplete(pc);
+
+  // Send complete answer (with all ICE candidates embedded)
   await putAnswer(room, pc.localDescription);
   setStatus('已发送应答，等待 P2P 连接...', '');
 }
@@ -533,22 +553,20 @@ async function startSend() {
 
   setupDataChannel(dc, 'send');
 
-  // Create and send offer
+  // Create and send offer AFTER ICE gathering completes
   const offer = await pc.createOffer();
   await pc.setLocalDescription(offer);
+
+  // CRITICAL: Wait for ICE gathering before sending offer
+  setStatus('收集网络信息...', '');
+  await waitForIceComplete(pc);
+
+  // Send complete offer (with all ICE candidates embedded)
   await putOffer(roomCodeVal, pc.localDescription);
   setStatus('已发送连接请求，等待应答...', '');
 
-  // Wait for answer
+  // Wait for answer (worker does 15s long-poll, enough for receiver's ICE gathering)
   let answer = await pollAnswer(roomCodeVal);
-  // If first poll returns null, retry with shorter polls
-  if (!answer) {
-    for (let i = 0; i < 20; i++) {
-      answer = await pollAnswer(roomCodeVal);
-      if (answer) break;
-      await new Promise(r => setTimeout(r, 1500));
-    }
-  }
   if (!answer) { setStatus('等待应答超时', 'error'); return; }
 
   await pc.setRemoteDescription(new RTCSessionDescription(answer));

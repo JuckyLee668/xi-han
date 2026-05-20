@@ -763,25 +763,19 @@ async function startFileTransfer() {
       
       if (!chunk) { setStatus('文件读取失败', 'error'); break; }
 
-      // Flow control: wait for buffer to drain before sending more
-      if (dc.bufferedAmount >= 16 * 1024 * 1024) {
-        dc.bufferedAmountLowThreshold = 4 * 1024 * 1024;
-        await new Promise(function(resolve) {
-          var handler = function() {
-            if (dc.bufferedAmount < 8 * 1024 * 1024) {
-              dc.removeEventListener('bufferedamountlow', handler);
-              resolve();
-            }
-          };
-          dc.addEventListener('bufferedamountlow', handler);
-          if (dc.bufferedAmount < 8 * 1024 * 1024) {
-            dc.removeEventListener('bufferedamountlow', handler);
-            resolve();
-          }
-        });
+      // Flow control: wait if buffer > 8MB (SCTP limit ~16MB, leave headroom)
+      while (dc.bufferedAmount > 8 * 1024 * 1024) {
+        await new Promise(function(r) { setTimeout(r, 5); });
       }
 
-      dc.send(chunk);
+      try {
+        dc.send(chunk);
+      } catch(e) {
+        // Safety: if send fails, wait and retry
+        console.warn('send blocked, retrying...');
+        await new Promise(function(r) { setTimeout(r, 200); });
+        dc.send(chunk);
+      }
       offset = end;
       fileSentLocal += chunk.byteLength;
       totalSent += chunk.byteLength;

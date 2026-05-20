@@ -752,65 +752,60 @@ async function startFileTransfer() {
     var chunkCount = 0;
 
     while (offset < file.size) {
-      // Read one chunk
-      var end = Math.min(offset + CHUNK_SIZE, file.size);
-      var chunk = await new Promise(function(resolve) {
-        var fr = new FileReader();
-        fr.onload = function() { resolve(new Uint8Array(fr.result)); };
-        fr.onerror = function(e) { console.error('FileReader error:', e); resolve(null); };
-        fr.readAsArrayBuffer(file.slice(offset, end));
-      });
-      
-      if (!chunk) { setStatus('文件读取失败', 'error'); break; }
+      // Burst-send up to 2MB before checking flow control
+      var burstSent = 0;
+      while (offset < file.size && burstSent < 2 * 1024 * 1024) {
+        var end = Math.min(offset + CHUNK_SIZE, file.size);
+        var chunk = await new Promise(function(resolve) {
+          var fr = new FileReader();
+          fr.onload = function() { resolve(new Uint8Array(fr.result)); };
+          fr.onerror = function(e) { console.error('FileReader error:', e); resolve(null); };
+          fr.readAsArrayBuffer(file.slice(offset, end));
+        });
+        
+        if (!chunk) { setStatus('文件读取失败', 'error'); return; }
 
-      // Flow control: wait if buffer > 8MB (SCTP limit ~16MB, leave headroom)
-      while (dc.bufferedAmount > 8 * 1024 * 1024) {
-        await new Promise(function(r) { setTimeout(r, 5); });
-      }
-
-      try {
         dc.send(chunk);
-      } catch(e) {
-        // Safety: if send fails, wait and retry
-        console.warn('send blocked, retrying...');
-        await new Promise(function(r) { setTimeout(r, 200); });
-        dc.send(chunk);
-      }
-      offset = end;
-      fileSentLocal += chunk.byteLength;
-      totalSent += chunk.byteLength;
-      chunkCount++;
+        offset = end;
+        burstSent += chunk.byteLength;
+        fileSentLocal += chunk.byteLength;
+        totalSent += chunk.byteLength;
+        chunkCount++;
 
-      // Log every 64th chunk (~16MB)
-      if (chunkCount % 64 === 0) {
-        console.log('#' + chunkCount, fmtSize(totalSent), 'buf=' + fmtSize(dc.bufferedAmount));
-      }
-
-      // UI update every 200ms
-      var now = Date.now();
-      if (now - lastUIUpdate >= 200) {
-        var pct = Math.min(100, (fileSentLocal / file.size) * 100);
-        progressPercent.textContent = pct.toFixed(1) + '%';
-        progressBar.style.width = pct + '%';
-        statSent.textContent = fmtSize(fileSentLocal) + ' / ' + fmtSize(file.size);
-
-        var elapsed = now - lastSampleTime;
-        if (elapsed >= 200 && totalSent > lastSampleBytes) {
-          var sampleBytes = totalSent - lastSampleBytes;
-          var speed = sampleBytes / (elapsed / 1000);
-          speedSamples.push(speed);
-          if (speedSamples.length > 4) speedSamples.shift();
-          var avgSpeed = speedSamples.reduce(function(a,b){return a+b;},0) / speedSamples.length;
-          statSpeed.textContent = (avgSpeed / 1048576).toFixed(1) + ' MB/s';
-          speedHistory.push(avgSpeed / 1048576);
-          if (speedHistory.length > 60) speedHistory.shift();
-          drawSpeedGraph();
-          var remaining = totalSize - totalSent;
-          if (avgSpeed > 0) statETA.textContent = fmtTime(remaining / avgSpeed);
-          lastSampleBytes = totalSent;
-          lastSampleTime = now;
+        if (chunkCount % 64 === 0) {
+          console.log('#' + chunkCount, fmtSize(totalSent), 'buf=' + fmtSize(dc.bufferedAmount));
         }
-        lastUIUpdate = now;
+
+        // UI update
+        var now = Date.now();
+        if (now - lastUIUpdate >= 200) {
+          var pct = Math.min(100, (fileSentLocal / file.size) * 100);
+          progressPercent.textContent = pct.toFixed(1) + '%';
+          progressBar.style.width = pct + '%';
+          statSent.textContent = fmtSize(fileSentLocal) + ' / ' + fmtSize(file.size);
+          var elapsed = now - lastSampleTime;
+          if (elapsed >= 200 && totalSent > lastSampleBytes) {
+            var sampleBytes = totalSent - lastSampleBytes;
+            var speed = sampleBytes / (elapsed / 1000);
+            speedSamples.push(speed);
+            if (speedSamples.length > 4) speedSamples.shift();
+            var avgSpeed = speedSamples.reduce(function(a,b){return a+b;},0) / speedSamples.length;
+            statSpeed.textContent = (avgSpeed / 1048576).toFixed(1) + ' MB/s';
+            speedHistory.push(avgSpeed / 1048576);
+            if (speedHistory.length > 60) speedHistory.shift();
+            drawSpeedGraph();
+            var remaining = totalSize - totalSent;
+            if (avgSpeed > 0) statETA.textContent = fmtTime(remaining / avgSpeed);
+            lastSampleBytes = totalSent;
+            lastSampleTime = now;
+          }
+          lastUIUpdate = now;
+        }
+      }
+
+      // After burst, wait for buffer to drain before next burst
+      while (dc.bufferedAmount > 2 * 1024 * 1024) {
+        await new Promise(function(r) { setTimeout(r, 20); });
       }
     }
 

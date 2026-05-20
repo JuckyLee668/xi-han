@@ -609,82 +609,95 @@ function setupDataChannel(channel, role) {
   channel.onerror = (e) => { console.error('DC error:', e); };
 
   if (role === 'receive') {
-    let fileMeta = null, receivedChunks = [], totalBytes = 0;
-    const speedSamples = [], SAMPLE_INTERVAL = 1000;
-    let lastSampleBytes = 0, lastSampleTime = Date.now();
+    // Receiver: keep onmessage SYNCHRONOUS and FAST.
+    // SCTP backpressure is triggered when the JS handler is slow —
+    // DOM updates in the hot path kill throughput.
+    var queue = [];            // ArrayBuffer queue (fast push, no DOM)
+    var fileMeta = null;
+    var totalBytes = 0;
+    var lastUIUpdate = 0;
+    var lastSpeedSample = 0;
+    var lastSampleBytes = 0;
+    var speedSamples = [];
 
-    channel.onmessage = async (e) => {
+    channel.onmessage = function(e) {
       if (typeof e.data === 'string') {
-        const msg = JSON.parse(e.data);
+        var msg = JSON.parse(e.data);
         if (msg.type === 'file-start') {
           fileMeta = msg;
-          receivedChunks = [];
+          queue = [];
           totalBytes = 0;
+          lastUIUpdate = lastSpeedSample = Date.now();
           lastSampleBytes = 0;
-          lastSampleTime = Date.now();
-          speedSamples.length = 0;
-          setStatus(`接收中: ${msg.name}`, 'connected');
+          speedSamples = [];
           progressFile.textContent = msg.name;
           progressPercent.textContent = '0%';
           progressBar.style.width = '0%';
-        } else if (msg.type === 'file-end') {
-          // Assemble and download
-          const blob = new Blob(receivedChunks, { type: fileMeta.mime || 'application/octet-stream' });
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url; a.download = fileMeta.name;
-          document.body.appendChild(a); a.click(); document.body.removeChild(a);
-          setTimeout(() => URL.revokeObjectURL(url), 5000);
-
-          setStatus(`✅ ${fileMeta.name} 接收完成 (${fmtSize(totalBytes)})`, 'connected');
-          progressPercent.textContent = '100%';
-          progressBar.style.width = '100%';
-          statSent.textContent = fmtSize(totalBytes);
+          statSent.textContent = '0 / ' + fmtSize(msg.size);
           statSpeed.textContent = '0 MB/s';
-          statETA.textContent = '完成';
-          fileMeta = null;
-          showToast('文件接收完成！');
+          statETA.textContent = '--';
+          setStatus('接收中: ' + msg.name, 'connected');
+        } else if (msg.type === 'file-end') {
+          queueDone();
         } else if (msg.type === 'transfer-complete') {
           setStatus('所有文件传输完成 ✅', 'connected');
           cleanup();
-        } else if (msg.type === 'error') {
-          setStatus('传输错误: ' + msg.message, 'error');
         }
       } else if (e.data instanceof ArrayBuffer) {
-        receivedChunks.push(new Blob([e.data]));
+        queue.push(e.data);  // Fast path: no DOM, no Blob allocation
         totalBytes += e.data.byteLength;
-
-        // Update progress
-        if (fileMeta && fileMeta.size) {
-          const pct = Math.min(100, (totalBytes / fileMeta.size) * 100);
-          progressPercent.textContent = pct.toFixed(1) + '%';
-          progressBar.style.width = pct + '%';
-          statSent.textContent = fmtSize(totalBytes) + ' / ' + fmtSize(fileMeta.size);
-        }
-
-        // Speed calculation
-        const now = Date.now();
-        const elapsed = now - lastSampleTime;
-        if (elapsed >= SAMPLE_INTERVAL) {
-          const sampleBytes = totalBytes - lastSampleBytes;
-          const speed = sampleBytes / (elapsed / 1000);
-          speedSamples.push(speed);
-          if (speedSamples.length > 3) speedSamples.shift();
-          const avgSpeed = speedSamples.reduce((a,b)=>a+b,0) / speedSamples.length;
-          statSpeed.textContent = (avgSpeed / 1048576).toFixed(1) + ' MB/s';
-          speedHistory.push(avgSpeed / 1048576);
-          if (speedHistory.length > 60) speedHistory.shift();
-          drawSpeedGraph();
-
-          if (fileMeta && fileMeta.size && avgSpeed > 0) {
-            const remaining = fileMeta.size - totalBytes;
-            statETA.textContent = fmtTime(remaining / avgSpeed);
-          }
-          lastSampleBytes = totalBytes;
-          lastSampleTime = now;
-        }
       }
     };
+
+    // UI updates on a 500ms timer (off the hot path)
+    var uiTimer = setInterval(function() {
+      if (!fileMeta || queue.length === 0) return;
+      var now = Date.now();
+      if (now - lastUIUpdate < 400) return;
+      lastUIUpdate = now;
+
+      var pct = Math.min(100, (totalBytes / fileMeta.size) * 100);
+      progressPercent.textContent = pct.toFixed(1) + '%';
+      progressBar.style.width = pct + '%';
+      statSent.textContent = fmtSize(totalBytes) + ' / ' + fmtSize(fileMeta.size);
+
+      // Speed
+      if (now - lastSpeedSample >= 500) {
+        var sampleBytes = totalBytes - lastSampleBytes;
+        var speed = sampleBytes / ((now - lastSpeedSample) / 1000);
+        speedSamples.push(speed);
+        if (speedSamples.length > 4) speedSamples.shift();
+        var avgSpeed = speedSamples.reduce(function(a,b){return a+b;},0) / speedSamples.length;
+        statSpeed.textContent = (avgSpeed / 1048576).toFixed(1) + ' MB/s';
+        speedHistory.push(avgSpeed / 1048576);
+        if (speedHistory.length > 60) speedHistory.shift();
+        drawSpeedGraph();
+        var remaining = fileMeta.size - totalBytes;
+        if (avgSpeed > 0) statETA.textContent = fmtTime(remaining / avgSpeed);
+        lastSampleBytes = totalBytes;
+        lastSpeedSample = now;
+      }
+    }, 200);
+
+    function queueDone() {
+      clearInterval(uiTimer);
+      // Assemble all ArrayBuffers into one Blob
+      var blob = new Blob(queue, { type: fileMeta.mime || 'application/octet-stream' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url; a.download = fileMeta.name;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(function() { URL.revokeObjectURL(url); }, 5000);
+
+      setStatus('✅ ' + fileMeta.name + ' 接收完成 (' + fmtSize(totalBytes) + ')', 'connected');
+      progressPercent.textContent = '100%';
+      progressBar.style.width = '100%';
+      statSent.textContent = fmtSize(totalBytes);
+      statSpeed.textContent = '0 MB/s';
+      statETA.textContent = '完成';
+      showToast('文件接收完成！');
+      fileMeta = null; queue = [];
+    }
   }
 }
 
@@ -747,7 +760,8 @@ async function startFileTransfer() {
 
         for (let offset = 0; offset < value.byteLength; offset += CHUNK_SIZE) {
           const end = Math.min(offset + CHUNK_SIZE, value.byteLength);
-          const chunk = value.slice(offset, end);
+          // Only slice if needed (most chunks already fit)
+          const chunk = (offset === 0 && end === value.byteLength) ? value : value.slice(offset, end);
 
           // Fast spin-wait flow control (no event-based race conditions)
           while (dc.bufferedAmount >= MAX_BUFFER) {

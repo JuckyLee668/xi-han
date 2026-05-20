@@ -587,6 +587,8 @@ async function startSend() {
 
 // ===== DataChannel Setup =====
 function setupDataChannel(channel, role) {
+  channel.binaryType = 'arraybuffer';  // MUST be arraybuffer for binary chunks
+
   channel.onopen = () => {
     if (role === 'receive') setStatus('DataChannel 已打开', 'connected');
   };
@@ -677,6 +679,23 @@ function setupDataChannel(channel, role) {
 
 // ===== File Transfer (Sender) =====
 async function startFileTransfer() {
+  // Wait for DataChannel to actually open (may fire after ICE connected)
+  if (dc && dc.readyState !== 'open') {
+    setStatus('等待 DataChannel 就绪...', '');
+    await new Promise(function(resolve, reject) {
+      var timeout = setTimeout(function() {
+        reject(new Error('DataChannel 超时'));
+      }, 10000);
+      dc.addEventListener('open', function() {
+        clearTimeout(timeout);
+        resolve();
+      }, { once: true });
+    }).catch(function() {
+      setStatus('DataChannel 连接超时', 'error');
+      return;
+    });
+    if (dc.readyState !== 'open') return;
+  }
   if (!dc || dc.readyState !== 'open') {
     setStatus('DataChannel 未就绪', 'error'); return;
   }

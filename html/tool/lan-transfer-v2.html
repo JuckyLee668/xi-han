@@ -246,12 +246,15 @@ h1{font-size:clamp(1.6rem,4vw,2.2rem);font-weight:800;letter-spacing:-.04em;
 (function(){
 'use strict';
 
-const SIGNAL_URL = 'https://xfer.xi-han.top'; // Signaling worker URL
-const CHUNK_SIZE = 256 * 1024;               // 256KB chunks
-const MAX_BUFFER = 16 * 1024 * 1024;         // 16MB buffer threshold
+const SIGNAL_URL = 'https://xfer.xi-han.top';
+const CHUNK_SIZE = 256 * 1024;
+const MAX_BUFFER = 16 * 1024 * 1024;
 const ICE_SERVERS = [
   { urls: 'stun:stun.l.google.com:19302' },
   { urls: 'stun:stun1.l.google.com:19302' },
+  { urls: 'stun:stun2.l.google.com:19302' },
+  { urls: 'stun:stun3.l.google.com:19302' },
+  { urls: 'stun:stun4.l.google.com:19302' },
 ];
 
 // ===== DOM REFS =====
@@ -467,14 +470,18 @@ function drawSpeedGraph() {
 function waitForIceComplete(pc) {
   return new Promise(resolve => {
     if (pc.iceGatheringState === 'complete') { resolve(); return; }
-    pc.addEventListener('icegatheringstatechange', function onIce() {
+    var handler = function() {
       if (pc.iceGatheringState === 'complete') {
-        pc.removeEventListener('icegatheringstatechange', onIce);
+        pc.removeEventListener('icegatheringstatechange', handler);
         resolve();
       }
-    });
+    };
+    pc.addEventListener('icegatheringstatechange', handler);
     // Safety timeout: resolve after 10s even if gathering hangs
-    setTimeout(resolve, 10000);
+    setTimeout(function() {
+      pc.removeEventListener('icegatheringstatechange', handler);
+      resolve();
+    }, 10000);
   });
 }
 
@@ -487,10 +494,13 @@ async function startReceive(room) {
   pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
 
   pc.oniceconnectionstatechange = () => {
-    if (pc.iceConnectionState === 'connected') setStatus('已连接，等待文件...', 'connected');
-    if (pc.iceConnectionState === 'failed' || pc.iceConnectionState === 'disconnected') {
-      setStatus('连接断开', 'error');
-    }
+    var st = pc.iceConnectionState;
+    setStatus('ICE: ' + st, st === 'connected' ? 'connected' : st === 'failed' ? 'error' : '');
+    if (st === 'connected') setStatus('已连接，等待文件...', 'connected');
+  };
+
+  pc.onicegatheringstatechange = () => {
+    console.log('ICE gathering:', pc.iceGatheringState);
   };
 
   pc.ondatachannel = (e) => {
@@ -542,13 +552,16 @@ async function startSend() {
   dc.bufferedAmountLowThreshold = MAX_BUFFER / 2;
 
   pc.oniceconnectionstatechange = () => {
-    if (pc.iceConnectionState === 'connected') {
+    var st = pc.iceConnectionState;
+    setStatus('ICE: ' + st, st === 'connected' ? 'connected' : st === 'failed' ? 'error' : '');
+    if (st === 'connected') {
       setStatus('已连接，准备发送文件...', 'connected');
       startFileTransfer();
     }
-    if (pc.iceConnectionState === 'failed' || pc.iceConnectionState === 'disconnected') {
-      setStatus('连接断开', 'error');
-    }
+  };
+
+  pc.onicegatheringstatechange = () => {
+    console.log('ICE gathering:', pc.iceGatheringState);
   };
 
   setupDataChannel(dc, 'send');

@@ -347,7 +347,7 @@ async function putAnswer(code, sdp) {
 }
 
 async function pollAnswer(code) {
-  // Uses worker's 15s long-poll
+  // Immediate read — Worker no longer long-polls
   const data = await apiCall(`/room/${code}/answer`);
   if (data && data !== 'null') {
     try { return typeof data === 'string' ? JSON.parse(data) : data; } catch(e) { return data; }
@@ -583,9 +583,15 @@ async function startSend() {
   await putOffer(roomCodeVal, pc.localDescription);
   setStatus('已发送连接请求，等待应答...', '');
 
-  // Wait for answer (worker does 15s long-poll, enough for receiver's ICE gathering)
-  let answer = await pollAnswer(roomCodeVal);
-  if (!answer) { setStatus('等待应答超时', 'error'); return; }
+  // Retry-based answer polling (beats KV eventual consistency across edge nodes)
+  setStatus('等待接收端应答...', '');
+  let answer = null;
+  for (let i = 0; i < 40; i++) {
+    answer = await pollAnswer(roomCodeVal);
+    if (answer) break;
+    await new Promise(r => setTimeout(r, 800));
+  }
+  if (!answer) { setStatus('等待应答超时 (40次重试)', 'error'); return; }
 
   await pc.setRemoteDescription(new RTCSessionDescription(answer));
 }

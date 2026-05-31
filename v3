@@ -117,9 +117,9 @@
     {
       "type": "vless",
       "tag": "l0speed",
-      "server": "104.234.36.155",
-      "server_port": 9008,
-      "uuid": "5c87e0f0-5c7d-4d0b-85e8-99f2d88f04f2",
+      "server": "59.152.126.229",
+      "server_port": 28124,
+      "uuid": "7df9274a-a831-4b22-9b09-32a49861be7b",
       "flow": "xtls-rprx-vision",
       "tls": {
         "enabled": true,
@@ -130,7 +130,7 @@
         },
         "reality": {
           "enabled": true,
-          "public_key": "FyQTstL9AhRcO6ZiyDkTQYRLkma7USEU-l_insSodC8"
+          "public_key": "BttI5U1_Sp6cg-euteoHmzY-pfE8jYw1ubdGYyuXNUY"
         }
       }
     },

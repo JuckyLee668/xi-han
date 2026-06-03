@@ -1,0 +1,26 @@
+{
+  "count": 3,
+  "nodes": [
+    {
+      "tag": "l0speed",
+      "type": "vless",
+      "server": "104.234.36.155",
+      "port": 9008,
+      "file": "l0speed.json"
+    },
+    {
+      "tag": "l2speed",
+      "type": "vless",
+      "server": "209.146.116.246",
+      "port": 9000,
+      "file": "l2speed.json"
+    },
+    {
+      "tag": "l3speed",
+      "type": "vless",
+      "server": "38.146.29.202",
+      "port": 48468,
+      "file": "l3speed.json"
+    }
+  ]
+}

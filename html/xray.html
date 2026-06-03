@@ -240,6 +240,15 @@
             </article>
 
             <article class="card">
+              <h3>v2rayN (Windows)</h3>
+              <p class="meta">自动同步最新版 Windows 桌面客户端</p>
+              <div class="actions">
+                <a class="btn btn-primary" href="/proxy/files/v2rayN.zip"><i class="fas fa-download"></i> 本站下载</a>
+                <a class="btn btn-ghost" href="https://github.com/2dust/v2rayN/releases" target="_blank" rel="noopener"><i class="fas fa-external-link-alt"></i> 官方发布页</a>
+              </div>
+            </article>
+
+            <article class="card">
               <h3>v2rayNG (Android)</h3>
               <p class="meta">自动同步最新版 arm64-v8a APK</p>
               <div class="actions">
@@ -289,6 +298,14 @@
 
           <p class="note">提示：如果你使用的是 v2rayNG，可优先导入 v2；如果使用 sing-box 客户端，可直接使用 v3。</p>
         </section>
+
+        <section class="panel">
+          <h2><i class="fas fa-file-code"></i> 节点配置下载（Xray Core 单节点 config.json）</h2>
+          <div class="cards" id="node-list">
+            <p class="meta" style="padding:8px 0">加载中...</p>
+          </div>
+          <p class="note" id="node-note"></p>
+        </section>
       </div>
     </div>
   </div>
@@ -308,6 +325,38 @@
         document.body.removeChild(t);
         alert('已复制: ' + text);
       }
+    }
+
+    // Load node manifest and render cards
+    fetch('/proxy/nodes/manifest.json')
+      .then(r => r.json())
+      .then(m => {
+        const list = document.getElementById('node-list');
+        if (!m.nodes || m.nodes.length === 0) {
+          list.innerHTML = '<p class="meta" style="padding:8px 0">暂无节点配置</p>';
+          return;
+        }
+        list.innerHTML = m.nodes.map(n => `
+          <article class="card">
+            <h3>${n.tag}</h3>
+            <p class="meta">${n.type.toUpperCase()} · ${n.server}:${n.port}</p>
+            <div class="actions">
+              <a class="btn btn-primary" href="/proxy/nodes/${n.file}"><i class="fas fa-download"></i> 下载 config.json</a>
+              <button class="btn btn-ghost" onclick="copyNodeUrl('${n.file}')"><i class="fas fa-copy"></i> 复制链接</button>
+            </div>
+          </article>
+        `).join('');
+        document.getElementById('node-note').textContent =
+          `共 ${m.count} 个节点 · 将下载的 config.json 放到 Xray Core 目录下使用，配合 Xray.exe 启动`;
+      })
+      .catch(() => {
+        document.getElementById('node-list').innerHTML =
+          '<p class="meta" style="padding:8px 0">节点信息加载失败（manifest.json 不可用）</p>';
+      });
+
+    function copyNodeUrl(file) {
+      const url = window.location.origin + '/proxy/nodes/' + file;
+      navigator.clipboard.writeText(url).then(() => alert('已复制链接: ' + url)).catch(() => {});
     }
   </script>
 </body>

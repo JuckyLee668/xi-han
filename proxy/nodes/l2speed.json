@@ -1,0 +1,55 @@
+{
+  "log": {
+    "loglevel": "warning"
+  },
+  "inbounds": [
+    {
+      "tag": "socks-in",
+      "port": 10808,
+      "protocol": "socks",
+      "settings": {
+        "auth": "noauth",
+        "udp": true,
+        "ip": "127.0.0.1"
+      },
+      "listen": "127.0.0.1"
+    },
+    {
+      "tag": "http-in",
+      "port": 10809,
+      "protocol": "http",
+      "settings": {},
+      "listen": "127.0.0.1"
+    }
+  ],
+  "outbounds": [
+    {
+      "protocol": "vless",
+      "settings": {
+        "vnext": [
+          {
+            "address": "209.146.116.246",
+            "port": 9000,
+            "users": [
+              {
+                "id": "419dd275-26b3-4229-8389-c2ea22a85bf1",
+                "encryption": "none",
+                "flow": "xtls-rprx-vision"
+              }
+            ]
+          }
+        ]
+      },
+      "streamSettings": {
+        "network": "tcp",
+        "security": "reality",
+        "realitySettings": {
+          "serverName": "aws.amazon.com",
+          "fingerprint": "chrome",
+          "publicKey": "etuNmSS7NhxAg5o_sNtBnZRXwuJ85oNJdQvyHOKMaDA",
+          "shortId": ""
+        }
+      }
+    }
+  ]
+}

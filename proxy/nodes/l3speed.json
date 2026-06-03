@@ -1,0 +1,55 @@
+{
+  "log": {
+    "loglevel": "warning"
+  },
+  "inbounds": [
+    {
+      "tag": "socks-in",
+      "port": 10808,
+      "protocol": "socks",
+      "settings": {
+        "auth": "noauth",
+        "udp": true,
+        "ip": "127.0.0.1"
+      },
+      "listen": "127.0.0.1"
+    },
+    {
+      "tag": "http-in",
+      "port": 10809,
+      "protocol": "http",
+      "settings": {},
+      "listen": "127.0.0.1"
+    }
+  ],
+  "outbounds": [
+    {
+      "protocol": "vless",
+      "settings": {
+        "vnext": [
+          {
+            "address": "38.146.29.202",
+            "port": 48468,
+            "users": [
+              {
+                "id": "be1860fa-8ace-4d77-ac7a-50bdd65a3c02",
+                "encryption": "none",
+                "flow": "xtls-rprx-vision"
+              }
+            ]
+          }
+        ]
+      },
+      "streamSettings": {
+        "network": "tcp",
+        "security": "reality",
+        "realitySettings": {
+          "serverName": "www.paypal.com",
+          "fingerprint": "chrome",
+          "publicKey": "NrW1258lxejR7G51NrPq3mty6Zr6E98HQIEzhglWmSo",
+          "shortId": ""
+        }
+      }
+    }
+  ]
+}

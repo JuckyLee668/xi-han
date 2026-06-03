@@ -73,7 +73,7 @@ jobs:
 
           mkdir -p proxy/meta proxy/files
 
-          MAX_BYTES=$((200 * 1024 * 1024))
+          MAX_BYTES=$((95 * 1024 * 1024))
 
           get_asset() {
             local repo="$1"
@@ -129,9 +129,6 @@ jobs:
           fetch_asset "2dust/v2rayNG" "arm64-v8a\\.apk$" \
             "proxy/files/v2rayNG.apk" "proxy/meta/v2rayNG"
 
-          fetch_asset "2dust/v2rayN" "v2rayN-windows-64-desktop\\.zip$" \
-            "/tmp/v2rayN.zip" "proxy/meta/v2rayN"
-
           fetch_asset "SagerNet/sing-box" "windows-amd64.*\\.zip$" \
             "proxy/files/sing-box.zip" "proxy/meta/sing-box"
 
@@ -139,44 +136,13 @@ jobs:
             "proxy/files/sing-box.apk" "proxy/meta/sing-box-android"
 
       # =========================
-      # 🔹 Upload large packages to Release
-      # =========================
-      - name: Upload large packages to GitHub Release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          set -euo pipefail
-
-          RELEASE_TAG="proxy-packages"
-          REPO="${{ github.repository }}"
-
-          if [ ! -f /tmp/v2rayN.zip ]; then
-            echo "No v2rayN.zip to upload"
-          else
-            # Delete old release if exists
-            gh release delete "$RELEASE_TAG" -y 2>/dev/null || true
-
-            # Create release + upload
-            gh release create "$RELEASE_TAG" \
-              /tmp/v2rayN.zip \
-              --title "Proxy Packages" \
-              --notes "Auto-synced proxy client packages (large files >100MB)" \
-              --target "${{ github.ref_name }}"
-
-            echo "Uploaded v2rayN.zip to release $RELEASE_TAG"
-          fi
-
-      # =========================
-      # 🔹 Commit (small files only)
+      # 🔹 Commit
       # =========================
       - name: Commit changes
         run: |
           set -euo pipefail
 
-          # Remove v2rayN.zip from working tree if it leaked
-          rm -f proxy/files/v2rayN.zip
-
-          git add proxy/src proxy/meta proxy/files
+          git add proxy
 
           if git diff --cached --quiet; then
             echo "No changes"

@@ -4,8 +4,8 @@
     {
       "tag": "l0speed",
       "type": "vless",
-      "server": "104.234.36.155",
-      "port": 9008,
+      "server": "59.152.126.229",
+      "port": 28124,
       "file": "l0speed.json"
     },
     {

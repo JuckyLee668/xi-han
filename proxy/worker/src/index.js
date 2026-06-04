@@ -86,6 +86,20 @@ async function proxyFetch(request, upstreamUrl, proxyBase) {
   const responseHeaders = new Headers(response.headers);
   responseHeaders.set('Access-Control-Allow-Origin', '*');
 
+  // GitHub's Content-Security-Policy restricts resources to github.githubassets.com
+  // but we serve them via xi-han.top. Patch CSP to allow our proxy domain.
+  const csp = responseHeaders.get('Content-Security-Policy');
+  if (csp) {
+    const proxyHost = new URL(proxyBase).host;
+    const patched = csp.replace(/(\S+-src\s+)([^;]+)/gi, (match, directive, sources) => {
+      return directive + proxyHost + ' ' + sources;
+    });
+    responseHeaders.set('Content-Security-Policy', patched);
+  }
+
+  // Strip GitHub-specific cookies (domain mismatch causes warnings)
+  responseHeaders.delete('set-cookie');
+
   const contentType = responseHeaders.get('Content-Type') || '';
   const isText = contentType.includes('text/') ||
     contentType.includes('application/json') ||

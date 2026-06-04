@@ -46,6 +46,12 @@ export default {
       return proxyFetch(request, xrayUrl, proxyBase);
     }
 
+    // GitHub search (from the top-right search bar, navigates to /search?q=xxx)
+    if (pathname.startsWith('/search') || pathname.startsWith('/search/')) {
+      const upstream = `https://github.com${pathname}${url.search}`;
+      return proxyFetch(request, upstream, proxyBase);
+    }
+
     // Parse: /<domain>/<path> → https://<domain>/<path>
     const firstSlash = pathname.indexOf('/', 1);
     const hostPrefix = firstSlash === -1 ? pathname.slice(1) : pathname.slice(1, firstSlash);

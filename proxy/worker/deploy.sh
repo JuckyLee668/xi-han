@@ -58,7 +58,9 @@ if echo "$DEPLOY_OUTPUT" | grep -q "Uploaded\|Deployed"; then
   echo "     /xray          → Xray 订阅页"
   echo "     /xray.html     → Xray 订阅页"
   echo ""
-  echo "   从 GitHub 页面点击的相对路径（如 /login）也会自动代理"
+  echo "   从 GitHub 页面点击的相对路径（如 /login、/session）也会自动转发到 GitHub"
+  echo ""
+  echo "   ⚠️ 不支持登录（Cookie 域名不匹配），仅限公开访问"
 else
   echo "❌ 部署失败，请检查上面的错误信息"
   exit 1

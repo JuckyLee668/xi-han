@@ -1,6 +1,9 @@
-# Worker 代理部署文档
+# Worker 代理 — GitHub 只读代理
 
-为 `xi-han.top` 提供 GitHub 全套代理访问（页面、API、资源文件、下载），国内可直接访问。
+为 `xi-han.top` 提供 GitHub 代理访问（页面浏览、Release 下载、API 调用），国内可直接访问。
+
+> ⚠️ **只读代理** — 不支持登录、Issues、PR 等需要 GitHub Cookie 的操作。
+> GitHub 的 session cookie 绑定 `domain=.github.com`，浏览器不会设置到 `xi-han.top`。
 
 ## 目录结构
 
@@ -18,10 +21,10 @@ proxy/worker/
 
 | 域名 | 用途 |
 |------|------|
-| `github.com` | GitHub 页面、Releases、下载 |
+| `github.com` | 公开仓库浏览、Releases、下载 |
 | `raw.githubusercontent.com` | raw 文件 |
-| `gist.github.com` | Gist |
-| `api.github.com` | API |
+| `gist.github.com` | 公开 Gist |
+| `api.github.com` | 公开 API |
 | `github.githubassets.com` | CSS/JS/字体（页面渲染必需） |
 | `avatars.githubusercontent.com` | 头像 |
 | `user-images.githubusercontent.com` | 用户上传的图片 |
@@ -31,9 +34,22 @@ proxy/worker/
 
 ## 特殊功能
 
-- **HTML 链接自动重写** — 页面中的所有 `github.com` / `githubusercontent.com` 链接自动替换为代理链接，点击即走代理
+- **HTML 链接自动重写** — 页面中所有 `github.com` / `githubusercontent.com` / `githubassets.com` 链接自动替换为代理链接
 - **相对路径导航** — 从代理页面点击的相对路径（如 `/login`、`/session`）自动转发到 GitHub
+- **CSP 自动修补** — 自动修改 GitHub 的 Content-Security-Policy，允许从 `xi-han.top` 加载资源（CSS、JS、字体等）
 - **Xray 页面** — `/xray` 和 `/xray.html` 映射到 `/html/xray.html`
+
+## 限制
+
+| 功能 | 支持 |
+|------|------|
+| 浏览公开仓库、Releases | ✅ |
+| 下载 Release 文件 | ✅ |
+| 查看 raw 文件 | ✅ |
+| 调用公开 API | ✅ |
+| **登录** | ❌ Cookie 域名不匹配 |
+| **Issues / PR / 评论区** | ❌ 需登录 |
+| **私有仓库** | ❌ 需登录 |
 
 ## 部署
 

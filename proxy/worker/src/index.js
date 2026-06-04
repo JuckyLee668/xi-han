@@ -62,10 +62,11 @@ export default {
       return proxyFetch(request, upstream, proxyBase);
     }
 
-    // Relative-path navigation from a proxied GitHub page (e.g. /login, /session)
+    // Relative-path navigation from a proxied GitHub page, or direct user/repo path
     const referer = request.headers.get('Referer') || '';
     const fromGitHubProxy = referer.includes('/github.com/') || referer.includes('/github.githubassets.com/');
-    if (fromGitHubProxy) {
+    const looksLikeGitHubPath = !hostPrefix.includes('.') && hostPrefix.length > 0;
+    if (fromGitHubProxy || looksLikeGitHubPath) {
       const upstream = `https://github.com${pathname}${url.search}`;
       return proxyFetch(request, upstream, proxyBase);
     }

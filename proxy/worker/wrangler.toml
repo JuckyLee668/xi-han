@@ -3,15 +3,9 @@ main = "src/index.js"
 compatibility_date = "2025-06-01"
 workers_dev = true
 
-# Routes — requests matching these patterns are handled by the Worker.
-# Other paths pass through to the GitHub Pages origin directly.
+# Single catch-all route. Worker logic decides what to proxy vs pass through.
 routes = [
-  { pattern = "xi-han.top/github.com/*", zone_id = "3f0eb5bfae4141643302df794b1ecb47" },
-  { pattern = "xi-han.top/raw.githubusercontent.com/*", zone_id = "3f0eb5bfae4141643302df794b1ecb47" },
-  { pattern = "xi-han.top/gist.github.com/*", zone_id = "3f0eb5bfae4141643302df794b1ecb47" },
-  { pattern = "xi-han.top/api.github.com/*", zone_id = "3f0eb5bfae4141643302df794b1ecb47" },
-  { pattern = "xi-han.top/xray", zone_id = "3f0eb5bfae4141643302df794b1ecb47" },
-  { pattern = "xi-han.top/xray.html", zone_id = "3f0eb5bfae4141643302df794b1ecb47" },
+  { pattern = "xi-han.top/*", zone_id = "3f0eb5bfae4141643302df794b1ecb47" },
 ]
 
 [placement]

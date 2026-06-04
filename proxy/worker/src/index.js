@@ -1,5 +1,4 @@
-// xi-han.top Proxy Worker — GitHub read-only proxy + Xray page alias
-// ⚠️ 不支持登录（Cookie 绑定 github.com 域名），仅限公开访问
+// xi-han.top Proxy Worker — GitHub proxy + Xray page alias
 // Deploy: cd proxy/worker && bash deploy.sh
 //
 // Routes (wrangler.toml):

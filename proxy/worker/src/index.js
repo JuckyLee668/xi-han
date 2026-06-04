@@ -31,10 +31,7 @@ const ASSET_DOMAINS = new Set([
 
 const ALL_DOMAINS = new Set([...GITHUB_DOMAINS, ...ASSET_DOMAINS]);
 
-// Match any valid domain name (e.g. google.com, www.github.com)
-const DOMAIN_RE = /^[a-zA-Z0-9][a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-// Common file extensions on GitHub Pages root — exclude from domain proxy
-const FILE_EXT_RE = /\.(html?|css|js|json|xml|md|txt|png|jpg|jpeg|gif|svg|ico|pdf|zip|gz|tar|woff2?|ttf|eot|map|ya?ml|toml)$/i;
+// Match any github.com or githubusercontent.com URL in HTML
 const GITHUB_URL_RE = /(href|src|action)=["']https?:\/\/((?:[^\/"']*\.)?github\.com|(?:[^\/"']*\.)?githubusercontent\.com|(?:[^\/"']*\.)?githubassets\.com|(?:[^\/"']*\.)?s3\.amazonaws\.com)([^"']*)["']/gi;
 
 export default {
@@ -65,7 +62,7 @@ export default {
     const hostPrefix = firstSlash === -1 ? pathname.slice(1) : pathname.slice(1, firstSlash);
     const rest = firstSlash === -1 ? '' : pathname.slice(firstSlash);
 
-    if (ALL_DOMAINS.has(hostPrefix) || (DOMAIN_RE.test(hostPrefix) && !FILE_EXT_RE.test(hostPrefix))) {
+    if (ALL_DOMAINS.has(hostPrefix)) {
       const upstream = `https://${hostPrefix}${rest}${url.search}`;
       return proxyFetch(request, upstream, proxyBase);
     }

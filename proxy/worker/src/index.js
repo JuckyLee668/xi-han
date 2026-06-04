@@ -52,6 +52,11 @@ export default {
       return proxyFetch(request, upstream, proxyBase);
     }
 
+    // Whitelist: /html/* → serve local GitHub Pages (xray page, assets, etc.)
+    if (pathname.startsWith('/html/')) {
+      return fetch(request);
+    }
+
     // Parse: /<domain>/<path> → https://<domain>/<path>
     const firstSlash = pathname.indexOf('/', 1);
     const hostPrefix = firstSlash === -1 ? pathname.slice(1) : pathname.slice(1, firstSlash);

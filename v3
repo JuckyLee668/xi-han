@@ -138,19 +138,19 @@
       "type": "vless",
       "tag": "l2speed",
       "server": "209.146.116.246",
-      "server_port": 9000,
-      "uuid": "419dd275-26b3-4229-8389-c2ea22a85bf1",
+      "server_port": 6554,
+      "uuid": "b0e701b1-4ed3-4723-bedb-3c226615746f",
       "flow": "xtls-rprx-vision",
       "tls": {
         "enabled": true,
-        "server_name": "aws.amazon.com",
+        "server_name": "www.amazon.com",
         "utls": {
           "enabled": true,
           "fingerprint": "chrome"
         },
         "reality": {
           "enabled": true,
-          "public_key": "etuNmSS7NhxAg5o_sNtBnZRXwuJ85oNJdQvyHOKMaDA"
+          "public_key": "amtipF-wr0neEEgx2JeN1Gr4m-_eGPtDOnVTbsNxhzY"
         }
       }
     },

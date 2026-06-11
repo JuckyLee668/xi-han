@@ -12,7 +12,7 @@
       "tag": "l2speed",
       "type": "vless",
       "server": "209.146.116.246",
-      "port": 9000,
+      "port": 6554,
       "file": "l2speed.json"
     },
     {

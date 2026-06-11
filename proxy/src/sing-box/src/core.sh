@@ -771,7 +771,7 @@ manage() {
     fi
     [[ $is_test_run && ! $is_new_install ]] && {
         sleep 2
-        if [[ ! $(pgrep -f $is_run_bin 2>/dev/null || grep -l "$is_run_bin" /proc/*/cmdline 2>/dev/null) ]]; then
+        if [[ ! $(pgrep -f $is_run_bin) ]]; then
             is_run_fail=${is_do_name_msg,,}
             [[ ! $is_no_manage_msg ]] && {
                 msg
@@ -1324,7 +1324,7 @@ get() {
             }
         fi
         is_no_manage_msg=1
-        if [[ ! $(pgrep -f $is_core_bin 2>/dev/null || grep -l "$is_core_bin" /proc/*/cmdline 2>/dev/null) ]]; then
+        if [[ ! $(pgrep -f $is_core_bin) ]]; then
             _yellow "\n测试运行 $is_core_name ..\n"
             manage start &>/dev/null
             if [[ $is_run_fail == $is_core ]]; then
@@ -1337,7 +1337,7 @@ get() {
             _green "\n$is_core_name 正在运行, 跳过测试\n"
         fi
         if [[ $is_caddy ]]; then
-            if [[ ! $(pgrep -f $is_caddy_bin 2>/dev/null || grep -l "$is_caddy_bin" /proc/*/cmdline 2>/dev/null) ]]; then
+            if [[ ! $(pgrep -f $is_caddy_bin) ]]; then
                 _yellow "\n测试运行 Caddy ..\n"
                 manage start caddy &>/dev/null
                 if [[ $is_run_fail == 'caddy' ]]; then

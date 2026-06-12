@@ -18,6 +18,7 @@ const GITHUB_DOMAINS = new Set([
   'raw.githubusercontent.com',
   'gist.github.com',
   'api.github.com',
+  'codeload.github.com',
 ]);
 
 const ASSET_DOMAINS = new Set([
@@ -32,7 +33,7 @@ const ASSET_DOMAINS = new Set([
 const ALL_DOMAINS = new Set([...GITHUB_DOMAINS, ...ASSET_DOMAINS]);
 
 // Match any github.com or githubusercontent.com URL in HTML
-const GITHUB_URL_RE = /(href|src|action)=["']https?:\/\/((?:[^\/"']*\.)?github\.com|(?:[^\/"']*\.)?githubusercontent\.com|(?:[^\/"']*\.)?githubassets\.com|(?:[^\/"']*\.)?s3\.amazonaws\.com)([^"']*)["']/gi;
+const GITHUB_URL_RE = /(href|src|action)=["']https?:\/\/((?:[^\/"']*\.)?github\.com|(?:[^\/"']*\.)?githubusercontent\.com|(?:[^\/"']*\.)?githubassets\.com|(?:[^\/"']*\.)?codeload\.github\.com|(?:[^\/"']*\.)?s3\.amazonaws\.com)([^"']*)["']/gi;
 
 export default {
   async fetch(request, env) {

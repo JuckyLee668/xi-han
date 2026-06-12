@@ -88,25 +88,68 @@ get_latest_release() {
     echo "$tag"
 }
 
-# ── 下载文件 (镜像优先 → GitHub 直连兜底) ──
+# ── 下载文件 (镜像优先 → GitHub 直连兜底, 带重试) ──
 download() {
-    local url_path="$1"   # e.g. /XTLS/Xray-core/releases/download/...
+    local url_path="$1"
     local output="$2"
+    local url
+    local source_name
+    local retries=3
+    local http_code
 
-    # 镜像优先
-    if [ -n "$MIRROR_BASE" ]; then
-        if curl -fsSL --connect-timeout 15 -o "$output" \
-            "${MIRROR_BASE}${url_path}" 2>/dev/null; then
+    # 构造下载 URL
+    do_download() {
+        local target_url="$1"
+        local out="$2"
+        local name="$3"
+        http_code=$(curl -sSL --connect-timeout 15 --max-time 120 \
+            -w '%{http_code}' -o "$out" "$target_url" 2>&1) || true
+        if [ "$http_code" = "200" ]; then
             return 0
         fi
-        info "镜像下载失败, 切换 GitHub 直连..."
-    fi
-
-    curl -fsSL --connect-timeout 20 -o "$output" \
-        "${GITHUB_BASE}${url_path}" || {
-        err "下载失败: ${GITHUB_BASE}${url_path}"
+        # 清理失败的文件（可能是部分下载）
+        rm -f "$out"
         return 1
     }
+
+    for attempt in $(seq 1 $retries); do
+        # 镜像优先
+        if [ -n "$MIRROR_BASE" ]; then
+            url="${MIRROR_BASE}${url_path}"
+            source_name="镜像 (${url})"
+            if do_download "$url" "$output" "镜像"; then
+                return 0
+            fi
+            if [ $attempt -lt $retries ]; then
+                info "镜像下载失败 (attempt ${attempt}/${retries}), 重试..."
+                sleep 1
+                continue
+            fi
+        fi
+
+        # GitHub 直连
+        url="${GITHUB_BASE}${url_path}"
+        source_name="GitHub (${url})"
+        if do_download "$url" "$output" "GitHub"; then
+            return 0
+        fi
+
+        if [ $attempt -lt $retries ]; then
+            info "GitHub 下载失败 (attempt ${attempt}/${retries}), 重试..."
+            sleep 2
+        fi
+    done
+
+    # 全部失败, 给出诊断
+    err "下载失败: ${source_name} (HTTP ${http_code})"
+    info "提示: 检查网络连通性..."
+    curl -sI --connect-timeout 5 "https://github.com" 2>&1 | grep -q "HTTP" && \
+        ok "GitHub 可达" || err "GitHub 不可达"
+    if [ -n "$MIRROR_BASE" ]; then
+        curl -sI --connect-timeout 5 "${MIRROR_BASE}" 2>&1 | grep -q "HTTP" && \
+            ok "镜像可达" || err "镜像不可达"
+    fi
+    return 1
 }
 
 # ═══════════════════════════════════════════════

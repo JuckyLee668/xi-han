@@ -40,7 +40,8 @@ detect_arch() {
     esac
 }
 
-# ── 检测发行版 ──
+# ── 检测发行版 → 输出 v2rayA deb 包使用的发行版名 ──
+# v2rayA 只发布 installer_debian_*.deb (Ubuntu 兼容)
 detect_os() {
     if [ ! -f /etc/os-release ]; then
         err "仅支持 Debian/Ubuntu 系系统"
@@ -48,7 +49,8 @@ detect_os() {
     fi
     . /etc/os-release
     case "$ID" in
-        debian|ubuntu|kali) echo "$ID" ;;
+        debian) echo "debian" ;;
+        ubuntu|kali) echo "debian" ;;  # 共用 debian 的 deb
         *) err "不支持的系统: $ID (仅 Debian/Ubuntu)"; exit 1 ;;
     esac
 }

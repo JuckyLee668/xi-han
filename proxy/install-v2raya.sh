@@ -53,29 +53,36 @@ detect_os() {
     esac
 }
 
-# ── 获取最新版本号 ──
+# ── 获取最新版本号 (解析 /releases/latest 页面 HTML, 不走 API) ──
+# GitHub API (api.github.com) 国内访问慢, 镜像也代理不了.
+# 而 github.com/.../releases/latest 的 HTML 中包含 tag 信息,
+# 镜像和直连都能拿到.
 get_latest_release() {
-    local repo="$1"        # e.g. "v2rayA/v2rayA"
-    local api_url="$2"     # "releases/latest" or "releases"
-    local tag_filter="$3"  # grep pattern for tag_name
-
-    local url="${GITHUB_BASE}/${repo}/${api_url}"
+    local repo="$1"        # e.g. "XTLS/Xray-core"
+    local html
     local tag
 
-    # 尝试从镜像获取 API 数据
+    # 镜像优先
     if [ -n "$MIRROR_BASE" ]; then
-        tag=$(curl -sfL --connect-timeout 10 \
-            "${MIRROR_BASE}/${repo}/${api_url}" 2>/dev/null \
-            | grep -o '"tag_name": *"[^"]*"' | head -1 | cut -d'"' -f4) \
-        || tag=""
+        html=$(curl -sfL --connect-timeout 15 \
+            "${MIRROR_BASE}/${repo}/releases/latest" 2>/dev/null) || html=""
     fi
 
     # 失败则直连 GitHub
+    if [ -z "$html" ]; then
+        html=$(curl -sfL --connect-timeout 15 \
+            "${GITHUB_BASE}/${repo}/releases/latest" 2>/dev/null) || {
+            err "无法访问 ${repo}/releases/latest"
+            return 1
+        }
+    fi
+
+    # 从 HTML 提取 tag: href="/repo/releases/tag/vX.Y.Z"
+    tag=$(echo "$html" | grep -oP "href=\"/${repo}/releases/tag/[^\"]*\"" \
+        | head -1 | sed 's|.*/tag/||;s|"||')
     if [ -z "$tag" ]; then
-        tag=$(curl -sfL --connect-timeout 15 \
-            "https://api.github.com/repos/${repo}/${api_url}" \
-            | grep -o '"tag_name": *"[^"]*"' | head -1 | cut -d'"' -f4) \
-        || { err "无法获取 ${repo} 最新版本"; return 1; }
+        err "无法从页面提取 ${repo} 版本号"
+        return 1
     fi
 
     echo "$tag"
@@ -128,8 +135,8 @@ main() {
 
     # ── 4. 获取最新版本 ──
     info "获取最新版本号..."
-    XRAY_VER="${XRAY_VER:-$(get_latest_release XTLS/Xray-core releases/latest latest)}"
-    V2RAYA_VER="${V2RAYA_VER:-$(get_latest_release v2rayA/v2rayA releases/latest latest)}"
+    XRAY_VER="${XRAY_VER:-$(get_latest_release XTLS/Xray-core)}"
+    V2RAYA_VER="${V2RAYA_VER:-$(get_latest_release v2rayA/v2rayA)}"
     ok "Xray-core: ${XRAY_VER}  |  v2rayA: ${V2RAYA_VER}"
 
     # 去掉版本号前的 'v' 用于文件名

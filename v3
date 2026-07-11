@@ -158,19 +158,19 @@
       "type": "vless",
       "tag": "l3speed",
       "server": "38.146.29.202",
-      "server_port": 48468,
-      "uuid": "be1860fa-8ace-4d77-ac7a-50bdd65a3c02",
+      "server_port": 26773,
+      "uuid": "f1e4d15f-49b9-46ad-b3ec-a93348d58444",
       "flow": "xtls-rprx-vision",
       "tls": {
         "enabled": true,
-        "server_name": "www.paypal.com",
+        "server_name": "dash.cloudflare.com",
         "utls": {
           "enabled": true,
           "fingerprint": "chrome"
         },
         "reality": {
           "enabled": true,
-          "public_key": "NrW1258lxejR7G51NrPq3mty6Zr6E98HQIEzhglWmSo"
+          "public_key": "5pjbCUMMV-5FfDbHjHNURg9rR7XUgNESwthSfuSPhxk"
         }
       }
     }

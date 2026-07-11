@@ -29,10 +29,10 @@
         "vnext": [
           {
             "address": "38.146.29.202",
-            "port": 48468,
+            "port": 26773,
             "users": [
               {
-                "id": "be1860fa-8ace-4d77-ac7a-50bdd65a3c02",
+                "id": "f1e4d15f-49b9-46ad-b3ec-a93348d58444",
                 "encryption": "none",
                 "flow": "xtls-rprx-vision"
               }
@@ -44,9 +44,9 @@
         "network": "tcp",
         "security": "reality",
         "realitySettings": {
-          "serverName": "www.paypal.com",
+          "serverName": "dash.cloudflare.com",
           "fingerprint": "chrome",
-          "publicKey": "NrW1258lxejR7G51NrPq3mty6Zr6E98HQIEzhglWmSo",
+          "publicKey": "5pjbCUMMV-5FfDbHjHNURg9rR7XUgNESwthSfuSPhxk",
           "shortId": ""
         }
       }

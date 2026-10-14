@@ -1,55 +1,385 @@
-mixed-port: 7890
-allow-lan: false
-mode: rule
-log-level: info
-external-controller: 127.0.0.1:9090
-proxies:
-- name: l2
-  type: vless
-  server: 209.146.116.246
-  port: 32939
-  uuid: 13d51e23-ce3c-4805-90f3-f488fe8cf39b
-  udp: true
-  tls: true
-  skip-cert-verify: false
-  flow: xtls-rprx-vision
-  servername: www.amazon.com
-  client-fingerprint: chrome
-  reality-opts:
-    public-key: 21t9Ey0k3VVeeB4CqGW7BfAsiizk2jKafI2Rmb6SXI
-    short-id: ''
-  network: tcp
-- name: l3
-  type: vless
-  server: 38.146.29.202
-  port: 46280
-  uuid: c62e67e0-8539-4fc6-880e-6d2900c2290d
-  udp: true
-  tls: true
-  skip-cert-verify: false
-  flow: xtls-rprx-vision
-  servername: aws.amazon.com
-  client-fingerprint: chrome
-  reality-opts:
-    public-key: 9KmjLOYz8mte0v2XYM3TJ8I_AR8bTKvL9if67PFoFz0
-    short-id: ''
-  network: tcp
-proxy-groups:
-- name: 🚀 节点选择
-  type: select
-  proxies:
-  - ♻️ 自动选择
-  - DIRECT
-  - l2
-  - l3
-- name: ♻️ 自动选择
-  type: url-test
-  url: http://www.gstatic.com/generate_204
-  interval: 300
-  tolerance: 50
-  proxies:
-  - l2
-  - l3
-rules:
-- GEOIP,CN,DIRECT
-- MATCH,🚀 节点选择
+name: Build Clash Subscription
+
+on:
+  push:
+    paths:
+      - v2
+  workflow_dispatch:
+
+concurrency:
+  group: clash-build
+  cancel-in-progress: true
+
+jobs:
+  build-clash-subscription:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install PyYAML
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet --disable-pip-version-check pyyaml
+
+      - name: Decode v2 and generate v3 (Clash config)
+        run: |
+          set -euo pipefail
+
+          if [ ! -s v2 ]; then
+            echo "v2 file is missing or empty"
+            exit 1
+          fi
+
+          if ! tr -d '\r\n' < v2 | base64 --decode > /tmp/v1.links 2>/tmp/v2_decode_error.log; then
+            echo "Failed to decode v2 as base64:"
+            cat /tmp/v2_decode_error.log
+            exit 1
+          fi
+
+          if [ ! -s /tmp/v1.links ]; then
+            echo "Decoded links from v2 are empty"
+            exit 1
+          fi
+
+          echo "decoded_nonempty_lines=$(grep -c . /tmp/v1.links || true)"
+
+          cat >/tmp/gen_clash.py <<'PY'
+          import base64
+          import json
+          import sys
+          import urllib.parse
+          from pathlib import Path
+
+          import yaml
+
+
+          # ---------- URL helpers ----------
+          def parse_host_port(netloc):
+              userinfo, hostport = '', netloc
+              if '@' in netloc:
+                  userinfo, hostport = netloc.split('@', 1)
+              if ':' not in hostport:
+                  raise ValueError('missing port')
+              host, port = hostport.rsplit(':', 1)
+              return userinfo, host, int(port)
+
+
+          def qdict(qs):
+              parsed = urllib.parse.parse_qs(qs, keep_blank_values=True)
+              return {k: v[-1] for k, v in parsed.items() if v}
+
+
+          def tag_from(parts, idx):
+              frag = urllib.parse.unquote(parts.fragment or '').strip()
+              return frag if frag else f'node-{idx}'
+
+
+          def add_reality_opts(proxy, q):
+              opts = {}
+              if q.get('pbk'):
+                  opts['public-key'] = q['pbk']
+              opts['short-id'] = q.get('sid', '')
+              proxy['reality-opts'] = opts
+
+
+          def add_transport(proxy, q, net):
+              net = (net or 'tcp').lower()
+              proxy['network'] = net
+              if net == 'ws':
+                  ws_opts = {'path': urllib.parse.unquote(q.get('path', '/'))}
+                  if q.get('host'):
+                      ws_opts['headers'] = {'Host': q['host']}
+                  proxy['ws-opts'] = ws_opts
+              elif net == 'grpc':
+                  proxy['grpc-opts'] = {
+                      'grpc-service-name': q.get('serviceName', ''),
+                  }
+              elif net in ('h2', 'http'):
+                  proxy['network'] = 'h2'
+                  h2_opts = {'path': urllib.parse.unquote(q.get('path', '/'))}
+                  if q.get('host'):
+                      h2_opts['host'] = [q['host']]
+                  proxy['h2-opts'] = h2_opts
+
+
+          # ---------- Protocol parsers ----------
+          def parse_vless(url, idx):
+              parts = urllib.parse.urlsplit(url)
+              user, host, port = parse_host_port(parts.netloc)
+              q = qdict(parts.query)
+
+              proxy = {
+                  'name': tag_from(parts, idx),
+                  'type': 'vless',
+                  'server': host,
+                  'port': port,
+                  'uuid': user,
+                  'udp': True,
+                  'tls': True,
+                  'skip-cert-verify': False,
+              }
+
+              flow = q.get('flow', '').strip()
+              if flow:
+                  proxy['flow'] = flow
+
+              sni = q.get('sni') or q.get('serverName')
+              if sni:
+                  proxy['servername'] = sni
+
+              fp = q.get('fp') or q.get('fingerprint') or 'chrome'
+              proxy['client-fingerprint'] = fp
+
+              sec = (q.get('security') or '').lower()
+              if sec == 'reality':
+                  add_reality_opts(proxy, q)
+
+              add_transport(proxy, q, q.get('type'))
+              return proxy
+
+
+          def parse_trojan(url, idx):
+              parts = urllib.parse.urlsplit(url)
+              password, host, port = parse_host_port(parts.netloc)
+              q = qdict(parts.query)
+
+              proxy = {
+                  'name': tag_from(parts, idx),
+                  'type': 'trojan',
+                  'server': host,
+                  'port': port,
+                  'password': password,
+                  'udp': True,
+                  'skip-cert-verify': False,
+              }
+
+              sni = q.get('sni') or q.get('serverName')
+              if sni:
+                  proxy['sni'] = sni
+
+              fp = q.get('fp') or q.get('fingerprint') or 'chrome'
+              proxy['client-fingerprint'] = fp
+
+              sec = (q.get('security') or '').lower()
+              if sec == 'reality':
+                  add_reality_opts(proxy, q)
+
+              add_transport(proxy, q, q.get('type'))
+              return proxy
+
+
+          def parse_ss(url, idx):
+              raw = url[len('ss://'):]
+              frag = ''
+              if '#' in raw:
+                  raw, frag = raw.split('#', 1)
+              frag = urllib.parse.unquote(frag)
+
+              if '@' in raw and ':' in raw.split('@', 1)[0]:
+                  userinfo, hostport = raw.split('@', 1)
+              else:
+                  if '@' not in raw:
+                      raise ValueError('invalid ss format')
+                  b64, hostport = raw.split('@', 1)
+                  padding = '=' * (-len(b64) % 4)
+                  userinfo = base64.urlsafe_b64decode((b64 + padding).encode()).decode(errors='ignore')
+
+              if ':' not in userinfo or ':' not in hostport:
+                  raise ValueError('invalid ss fields')
+              method, password = userinfo.split(':', 1)
+              host, port = hostport.rsplit(':', 1)
+
+              return {
+                  'name': frag.strip() or f'node-{idx}',
+                  'type': 'ss',
+                  'server': host,
+                  'port': int(port),
+                  'cipher': method,
+                  'password': password,
+                  'udp': True,
+              }
+
+
+          def parse_vmess(url, idx):
+              raw = url[len('vmess://'):].strip()
+              padding = '=' * (-len(raw) % 4)
+              obj = json.loads(base64.b64decode((raw + padding).encode()).decode(errors='ignore'))
+
+              host = obj.get('add') or obj.get('host', '')
+              port = int(obj.get('port', 0))
+
+              proxy = {
+                  'name': obj.get('ps') or f'node-{idx}',
+                  'type': 'vmess',
+                  'server': host,
+                  'port': port,
+                  'uuid': obj.get('id', ''),
+                  'alterId': int(obj.get('aid', 0) or 0),
+                  'cipher': obj.get('scy') or 'auto',
+                  'udp': True,
+              }
+
+              net = (obj.get('net') or 'tcp').lower()
+              proxy['network'] = net
+              if net == 'ws':
+                  ws_opts = {'path': obj.get('path') or '/'}
+                  if obj.get('host'):
+                      ws_opts['headers'] = {'Host': obj['host']}
+                  proxy['ws-opts'] = ws_opts
+              elif net == 'grpc':
+                  proxy['grpc-opts'] = {
+                      'grpc-service-name': obj.get('serviceName', ''),
+                  }
+
+              if (obj.get('tls') or '').lower() in ('tls', '1', 'true'):
+                  proxy['tls'] = True
+                  proxy['servername'] = obj.get('sni') or host
+
+              return proxy
+
+
+          def parse_link(line, idx):
+              s = line.strip()
+              if not s or s.startswith('#'):
+                  return None
+              if s.startswith('vless://'):
+                  return parse_vless(s, idx)
+              if s.startswith('trojan://'):
+                  return parse_trojan(s, idx)
+              if s.startswith('ss://'):
+                  return parse_ss(s, idx)
+              if s.startswith('vmess://'):
+                  return parse_vmess(s, idx)
+              return None
+
+
+          # ---------- Dedup names ----------
+          def dedupe_names(proxies):
+              seen = {}
+              for p in proxies:
+                  name = p['name']
+                  if name in seen:
+                      seen[name] += 1
+                      p['name'] = f'{name} ({seen[name]})'
+                  else:
+                      seen[name] = 0
+
+
+          # ---------- Clash config ----------
+          def build_clash_config(proxies):
+              names = [p['name'] for p in proxies]
+              return {
+                  'mixed-port': 7890,
+                  'allow-lan': False,
+                  'mode': 'rule',
+                  'log-level': 'info',
+                  'external-controller': '127.0.0.1:9090',
+                  'proxies': proxies,
+                  'proxy-groups': [
+                      {
+                          'name': '🚀 节点选择',
+                          'type': 'select',
+                          'proxies': ['♻️ 自动选择', 'DIRECT'] + names,
+                      },
+                      {
+                          'name': '♻️ 自动选择',
+                          'type': 'url-test',
+                          'url': 'http://www.gstatic.com/generate_204',
+                          'interval': 300,
+                          'tolerance': 50,
+                          'proxies': names,
+                      },
+                  ],
+                  'rules': [
+                      'GEOIP,CN,DIRECT',
+                      'MATCH,🚀 节点选择',
+                  ],
+              }
+
+
+          # ---------- Entry ----------
+          def main():
+              in_path = Path(sys.argv[1])
+              out_path = Path(sys.argv[2])
+
+              lines = in_path.read_text(encoding='utf-8', errors='ignore').splitlines()
+              proxies = []
+              idx = 1
+              for raw in lines:
+                  try:
+                      p = parse_link(raw, idx)
+                      if p:
+                          proxies.append(p)
+                          idx += 1
+                  except Exception as e:
+                      print(f'skip invalid line: {e}', file=sys.stderr)
+
+              if not proxies:
+                  raise SystemExit('No valid nodes parsed from decoded v2 content')
+
+              dedupe_names(proxies)
+              config = build_clash_config(proxies)
+
+              with out_path.open('w', encoding='utf-8') as f:
+                  yaml.dump(
+                      config, f,
+                      allow_unicode=True,
+                      sort_keys=False,
+                      default_flow_style=False,
+                  )
+
+              print(f'generated_nodes={len(proxies)}')
+
+
+          if __name__ == '__main__':
+              main()
+          PY
+
+          python3 /tmp/gen_clash.py /tmp/v1.links v3.new
+
+          if [ -f v3 ] && cmp -s v3.new v3; then
+            echo "No changes detected in generated v3"
+            rm -f v3.new
+          else
+            mv v3.new v3
+          fi
+
+      - name: Commit and push when changed
+        run: |
+          set -euo pipefail
+
+          git add -A v3
+
+          if git diff --cached --quiet -- v3; then
+            echo "No generated file changes detected."
+            exit 0
+          fi
+
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action Bot"
+          git commit -m "chore(sub): rebuild v3 (Clash) from v2"
+
+          BRANCH="${GITHUB_REF_NAME}"
+          for i in 1 2 3; do
+            if git push origin HEAD:"${BRANCH}"; then
+              echo "Push succeeded on attempt ${i}"
+              exit 0
+            fi
+
+            echo "Push failed on attempt ${i}, rebasing onto origin/${BRANCH}..."
+            git fetch origin "${BRANCH}"
+            if ! git rebase "origin/${BRANCH}"; then
+              git rebase --abort || true
+              echo "Rebase failed"
+              exit 1
+            fi
+          done
+
+          echo "Push failed after 3 attempts"
+          exit 1

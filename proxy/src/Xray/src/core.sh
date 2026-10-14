@@ -108,8 +108,6 @@ servername_list=(
     www.amazon.com
     www.ebay.com
     www.paypal.com
-    www.cloudflare.com
-    dash.cloudflare.com
     aws.amazon.com
 )
 
@@ -645,6 +643,7 @@ change() {
             get_pbk
             add $net
         else
+            local is_key_net=$net
             [[ $is_new_private_key && ! $is_new_public_key ]] && {
                 err "无法找到 Public key."
             }
@@ -657,6 +656,7 @@ change() {
             is_test_json=1
             # create server $is_protocol-$net | $is_core_bin -test &>/dev/null
             create server $is_protocol-$net
+            net=$is_key_net
             $is_core_bin -test <<<"$is_new_json" &>/dev/null
             if [[ $? != 0 ]]; then
                 err "Private key 无法通过测试."
@@ -664,6 +664,7 @@ change() {
             is_private_key=$is_new_public_key
             # create server $is_protocol-$net | $is_core_bin -test &>/dev/null
             create server $is_protocol-$net
+            net=$is_key_net
             $is_core_bin -test <<<"$is_new_json" &>/dev/null
             if [[ $? != 0 ]]; then
                 err "Public key 无法通过测试."
@@ -1762,7 +1763,7 @@ is_main_menu() {
         show_help
         ;;
     9)
-        ask list is_do_other "启用BBR 查看日志 查看错误日志 测试运行 重装脚本 设置DNS"
+        ask list is_do_other "启用BBR 查看日志 查看错误日志 测试运行 重装脚本 设置DNS 设置出站IP优先级"
         case $REPLY in
         1)
             load bbr.sh
@@ -1783,6 +1784,10 @@ is_main_menu() {
         6)
             load dns.sh
             dns_set
+            ;;
+        7)
+            load ip.sh
+            ip_set
             ;;
         esac
         ;;

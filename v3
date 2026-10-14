@@ -93,16 +93,16 @@
       "outbounds": [
         "auto",
         "direct",
-        "l2speed",
-        "l3speed"
+        "l2",
+        "l3"
       ]
     },
     {
       "type": "urltest",
       "tag": "auto",
       "outbounds": [
-        "l2speed",
-        "l3speed"
+        "l2",
+        "l3"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
@@ -114,10 +114,10 @@
     },
     {
       "type": "vless",
-      "tag": "l2speed",
+      "tag": "l2",
       "server": "209.146.116.246",
-      "server_port": 32939,
-      "uuid": "13d51e23-ce3c-4805-90f3-f488fe8cf39b",
+      "server_port": 38446,
+      "uuid": "ebbea08f-346c-45c7-937d-7084959ddda3",
       "flow": "xtls-rprx-vision",
       "tls": {
         "enabled": true,
@@ -128,16 +128,16 @@
         },
         "reality": {
           "enabled": true,
-          "public_key": "21t9Ey0k3VVeeb4CqGWO7BfAsiizk2jKafI2Rmb6SXI"
+          "public_key": "txMj5fDjDf1-uVr8dmGPmhA_JhagjhzlF0GpVR58fkY"
         }
       }
     },
     {
       "type": "vless",
-      "tag": "l3speed",
+      "tag": "l3",
       "server": "38.146.29.202",
-      "server_port": 46280,
-      "uuid": "c62e67e0-8539-4fc6-880e-6d2900c2290d",
+      "server_port": 56993,
+      "uuid": "50368712-722f-4d5b-8230-78d067e89bcb",
       "flow": "xtls-rprx-vision",
       "tls": {
         "enabled": true,
@@ -148,7 +148,7 @@
         },
         "reality": {
           "enabled": true,
-          "public_key": "9KmjLOYz8mte0v2XYM3TJ8I_AR8bTKvL9if67PFoFz0"
+          "public_key": "w7IYykUk-JA6xrAb52xtWE5HUOtZRKW2BznnhECcBSM"
         }
       }
     }

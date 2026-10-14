@@ -29,10 +29,10 @@
         "vnext": [
           {
             "address": "209.146.116.246",
-            "port": 6554,
+            "port": 32939,
             "users": [
               {
-                "id": "b0e701b1-4ed3-4723-bedb-3c226615746f",
+                "id": "13d51e23-ce3c-4805-90f3-f488fe8cf39b",
                 "encryption": "none",
                 "flow": "xtls-rprx-vision"
               }
@@ -46,7 +46,7 @@
         "realitySettings": {
           "serverName": "www.amazon.com",
           "fingerprint": "chrome",
-          "publicKey": "amtipF-wr0neEEgx2JeN1Gr4m-_eGPtDOnVTbsNxhzY",
+          "publicKey": "21t9Ey0k3VVeeb4CqGWO7BfAsiizk2jKafI2Rmb6SXI",
           "shortId": ""
         }
       }

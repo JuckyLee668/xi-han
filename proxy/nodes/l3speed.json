@@ -29,10 +29,10 @@
         "vnext": [
           {
             "address": "38.146.29.202",
-            "port": 26773,
+            "port": 46280,
             "users": [
               {
-                "id": "f1e4d15f-49b9-46ad-b3ec-a93348d58444",
+                "id": "c62e67e0-8539-4fc6-880e-6d2900c2290d",
                 "encryption": "none",
                 "flow": "xtls-rprx-vision"
               }
@@ -44,9 +44,9 @@
         "network": "tcp",
         "security": "reality",
         "realitySettings": {
-          "serverName": "dash.cloudflare.com",
+          "serverName": "aws.amazon.com",
           "fingerprint": "chrome",
-          "publicKey": "5pjbCUMMV-5FfDbHjHNURg9rR7XUgNESwthSfuSPhxk",
+          "publicKey": "9KmjLOYz8mte0v2XYM3TJ8I_AR8bTKvL9if67PFoFz0",
           "shortId": ""
         }
       }

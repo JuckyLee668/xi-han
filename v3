@@ -1,209 +1,50 @@
-{
-  "log": {
-    "disabled": false,
-    "level": "error",
-    "timestamp": true
-  },
-  "dns": {
-    "rules": [
-      {
-        "clash_mode": "Proxy",
-        "server": "remote"
-      },
-      {
-        "clash_mode": "Direct",
-        "server": "local"
-      },
-      {
-        "rule_set": [
-          "geosite-cn"
-        ],
-        "server": "local"
-      },
-      {
-        "rule_set": [
-          "category-ads-all"
-        ],
-        "server": "block"
-      }
-    ],
-    "servers": [
-      {
-        "type": "https",
-        "server": "1.1.1.1",
-        "detour": "Proxy",
-        "tag": "remote"
-      },
-      {
-        "type": "https",
-        "server": "223.5.5.5",
-        "tag": "local"
-      },
-      {
-        "type": "hosts",
-        "path": [],
-        "predefined": {},
-        "tag": "block"
-      },
-      {
-        "type": "local"
-      }
-    ],
-    "strategy": "ipv4_only"
-  },
-  "experimental": {
-    "cache_file": {
-      "enabled": true
-    }
-  },
-  "inbounds": [
-    {
-      "address": [
-        "172.18.0.1/30",
-        "fdfe:dcba:9876::1/126"
-      ],
-      "route_address": [
-        "0.0.0.0/1",
-        "128.0.0.0/1",
-        "::/1",
-        "8000::/1"
-      ],
-      "route_exclude_address": [
-        "192.168.0.0/16",
-        "10.0.0.0/8",
-        "172.16.0.0/12",
-        "fc00::/7"
-      ],
-      "auto_route": true,
-      "strict_route": true,
-      "type": "tun"
-    },
-    {
-      "listen": "127.0.0.1",
-      "listen_port": 10808,
-      "tag": "mixed-in",
-      "type": "mixed",
-      "users": []
-    }
-  ],
-  "outbounds": [
-    {
-      "type": "selector",
-      "tag": "Proxy",
-      "outbounds": [
-        "auto",
-        "direct",
-        "l2",
-        "l3"
-      ]
-    },
-    {
-      "type": "urltest",
-      "tag": "auto",
-      "outbounds": [
-        "l2",
-        "l3"
-      ],
-      "url": "http://www.gstatic.com/generate_204",
-      "interval": "10m",
-      "tolerance": 50
-    },
-    {
-      "type": "direct",
-      "tag": "direct"
-    },
-    {
-      "type": "vless",
-      "tag": "l2",
-      "server": "209.146.116.246",
-      "server_port": 38446,
-      "uuid": "ebbea08f-346c-45c7-937d-7084959ddda3",
-      "flow": "xtls-rprx-vision",
-      "tls": {
-        "enabled": true,
-        "server_name": "www.amazon.com",
-        "utls": {
-          "enabled": true,
-          "fingerprint": "chrome"
-        },
-        "reality": {
-          "enabled": true,
-          "public_key": "txMj5fDjDf1-uVr8dmGPmhA_JhagjhzlF0GpVR58fkY"
-        }
-      }
-    },
-    {
-      "type": "vless",
-      "tag": "l3",
-      "server": "38.146.29.202",
-      "server_port": 56993,
-      "uuid": "50368712-722f-4d5b-8230-78d067e89bcb",
-      "flow": "xtls-rprx-vision",
-      "tls": {
-        "enabled": true,
-        "server_name": "aws.amazon.com",
-        "utls": {
-          "enabled": true,
-          "fingerprint": "chrome"
-        },
-        "reality": {
-          "enabled": true,
-          "public_key": "w7IYykUk-JA6xrAb52xtWE5HUOtZRKW2BznnhECcBSM"
-        }
-      }
-    }
-  ],
-  "route": {
-    "auto_detect_interface": true,
-    "default_domain_resolver": "local",
-    "rules": [
-      {
-        "action": "sniff"
-      },
-      {
-        "protocol": "dns",
-        "action": "hijack-dns"
-      },
-      {
-        "clash_mode": "Direct",
-        "outbound": "direct"
-      },
-      {
-        "clash_mode": "Proxy",
-        "outbound": "Proxy"
-      },
-      {
-        "rule_set": [
-          "geosite-cn"
-        ],
-        "outbound": "direct"
-      },
-      {
-        "ip_is_private": true,
-        "outbound": "direct"
-      },
-      {
-        "rule_set": [
-          "category-ads-all"
-        ],
-        "action": "reject"
-      }
-    ],
-    "rule_set": [
-      {
-        "tag": "geosite-cn",
-        "type": "remote",
-        "format": "binary",
-        "url": "https://fastly.jsdelivr.net/gh/SagerNet/sing-geosite@rule-set/geosite-cn.srs",
-        "download_detour": "direct"
-      },
-      {
-        "tag": "category-ads-all",
-        "type": "remote",
-        "format": "binary",
-        "url": "https://fastly.jsdelivr.net/gh/SagerNet/sing-geosite@rule-set/geosite-category-ads-all.srs",
-        "download_detour": "direct"
-      }
-    ]
-  }
-}
+mixed-port: 7890
+allow-lan: false
+mode: rule
+log-level: info
+external-controller: 127.0.0.1:9090
+
+proxies:
+  - name: "l2"
+    type: vless
+    server: 209.146.116.246
+    port: 38446
+    uuid: ebbea08f-346c-45c7-937d-7084959ddda3
+    network: tcp
+    tls: true
+    udp: true
+    flow: xtls-rprx-vision
+    servername: www.amazon.com
+    client-fingerprint: chrome
+    reality-opts:
+      public-key: txMj5fDjDf1-uVr8dmGPmhA_JhagjhzlF0GpVR58fkY
+      short-id: ""
+    skip-cert-verify: false
+
+  - name: "l3"
+    type: vless
+    server: 38.146.29.202
+    port: 56993
+    uuid: 50368712-722f-4d5b-8230-78d067e89bcb
+    network: tcp
+    tls: true
+    udp: true
+    flow: xtls-rprx-vision
+    servername: aws.amazon.com
+    client-fingerprint: chrome
+    reality-opts:
+      public-key: w7IYykUk-JA6xrAb52xtWE5HUOtZRKW2BznnhECcBSM
+      short-id: ""
+    skip-cert-verify: false
+
+proxy-groups:
+  - name: "🚀 节点选择"
+    type: select
+    proxies:
+      - "l2"
+      - "l3"
+      - DIRECT
+
+rules:
+  - GEOIP,CN,DIRECT
+  - MATCH,🚀 节点选择

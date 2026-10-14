@@ -3,48 +3,53 @@ allow-lan: false
 mode: rule
 log-level: info
 external-controller: 127.0.0.1:9090
-
 proxies:
-  - name: "l2"
-    type: vless
-    server: 209.146.116.246
-    port: 38446
-    uuid: ebbea08f-346c-45c7-937d-7084959ddda3
-    network: tcp
-    tls: true
-    udp: true
-    flow: xtls-rprx-vision
-    servername: www.amazon.com
-    client-fingerprint: chrome
-    reality-opts:
-      public-key: txMj5fDjDf1-uVr8dmGPmhA_JhagjhzlF0GpVR58fkY
-      short-id: ""
-    skip-cert-verify: false
-
-  - name: "l3"
-    type: vless
-    server: 38.146.29.202
-    port: 56993
-    uuid: 50368712-722f-4d5b-8230-78d067e89bcb
-    network: tcp
-    tls: true
-    udp: true
-    flow: xtls-rprx-vision
-    servername: aws.amazon.com
-    client-fingerprint: chrome
-    reality-opts:
-      public-key: w7IYykUk-JA6xrAb52xtWE5HUOtZRKW2BznnhECcBSM
-      short-id: ""
-    skip-cert-verify: false
-
+- name: l2
+  type: vless
+  server: 209.146.116.246
+  port: 38446
+  uuid: ebbea08f-346c-45c7-937d-7084959ddda3
+  udp: true
+  tls: true
+  skip-cert-verify: false
+  flow: xtls-rprx-vision
+  servername: www.amazon.com
+  client-fingerprint: chrome
+  reality-opts:
+    public-key: txMj5fDjDf1-uVr8dmGPmhA_JhagjhzlF0GpVR58fkY
+    short-id: ''
+  network: tcp
+- name: l3
+  type: vless
+  server: 38.146.29.202
+  port: 56993
+  uuid: 50368712-722f-4d5b-8230-78d067e89bcb
+  udp: true
+  tls: true
+  skip-cert-verify: false
+  flow: xtls-rprx-vision
+  servername: aws.amazon.com
+  client-fingerprint: chrome
+  reality-opts:
+    public-key: w7IYykUk-JA6xrAb52xtWE5HUOtZRKW2BznnhECcBSM
+    short-id: ''
+  network: tcp
 proxy-groups:
-  - name: "🚀 节点选择"
-    type: select
-    proxies:
-      - "l2"
-      - "l3"
-      - DIRECT
-
+- name: 🚀 节点选择
+  type: select
+  proxies:
+  - ♻️ 自动选择
+  - DIRECT
+  - l2
+  - l3
+- name: ♻️ 自动选择
+  type: url-test
+  url: http://www.gstatic.com/generate_204
+  interval: 300
+  tolerance: 50
+  proxies:
+  - l2
+  - l3
 rules:
-  - GEOIP,CN,DIRECT
-  - MATCH,🚀 节点选择
+- GEOIP,CN,DIRECT
+- MATCH,🚀 节点选择

@@ -4,11 +4,25 @@ mode: rule
 log-level: info
 external-controller: 127.0.0.1:9090
 proxies:
-- name: 233boy-reality-64.204.27.214
+- name: l2
+  type: vless
+  server: api.xi-han.top
+  port: 443
+  uuid: a7a8a878-873e-4bbe-a5b0-3f6643ecf889
+  udp: true
+  tls: true
+  skip-cert-verify: false
+  client-fingerprint: chrome
+  network: ws
+  ws-opts:
+    path: /a7a8a878-873e-4bbe-a5b0-3f6643ecf889
+    headers:
+      Host: api.xi-han.top
+- name: l3
   type: vless
   server: 64.204.27.214
-  port: 8704
-  uuid: 44b537fe-30af-457b-a37c-3c1691459450
+  port: 443
+  uuid: 1553a163-042c-4ba4-9b12-e1246d07bd03
   udp: true
   tls: true
   skip-cert-verify: false
@@ -16,7 +30,7 @@ proxies:
   servername: aws.amazon.com
   client-fingerprint: chrome
   reality-opts:
-    public-key: c8FXsQH3_Y4BoZoKXw5BM--2FbU3CMElWdjmE-1ZWA4
+    public-key: IRUsCuOdH6iAj-4i8rnWVlv7LPtSy5YeY5wJszapBUI
     short-id: ''
   network: tcp
 proxy-groups:
@@ -25,14 +39,16 @@ proxy-groups:
   proxies:
   - ♻️ 自动选择
   - DIRECT
-  - 233boy-reality-64.204.27.214
+  - l2
+  - l3
 - name: ♻️ 自动选择
   type: url-test
   url: http://www.gstatic.com/generate_204
   interval: 300
   tolerance: 50
   proxies:
-  - 233boy-reality-64.204.27.214
+  - l2
+  - l3
 rules:
 - GEOIP,CN,DIRECT
 - MATCH,🚀 节点选择

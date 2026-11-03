@@ -4,19 +4,19 @@ mode: rule
 log-level: info
 external-controller: 127.0.0.1:9090
 proxies:
-- name: l3
+- name: 233boy-reality-64.204.27.214
   type: vless
   server: 64.204.27.214
-  port: 48804
-  uuid: 7ab3b4a1-0bde-42f4-b51f-7ba4fd216f0c
+  port: 8704
+  uuid: 44b537fe-30af-457b-a37c-3c1691459450
   udp: true
   tls: true
   skip-cert-verify: false
   flow: xtls-rprx-vision
-  servername: dash.cloudflare.com
+  servername: aws.amazon.com
   client-fingerprint: chrome
   reality-opts:
-    public-key: qVMc1DYPd2ZoN-7jVfSBKm-8rv7AgAfNGgaaYxtztys
+    public-key: c8FXsQH3_Y4BoZoKXw5BM--2FbU3CMElWdjmE-1ZWA4
     short-id: ''
   network: tcp
 proxy-groups:
@@ -25,14 +25,14 @@ proxy-groups:
   proxies:
   - ♻️ 自动选择
   - DIRECT
-  - l3
+  - 233boy-reality-64.204.27.214
 - name: ♻️ 自动选择
   type: url-test
   url: http://www.gstatic.com/generate_204
   interval: 300
   tolerance: 50
   proxies:
-  - l3
+  - 233boy-reality-64.204.27.214
 rules:
 - GEOIP,CN,DIRECT
 - MATCH,🚀 节点选择
